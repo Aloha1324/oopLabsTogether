@@ -2,11 +2,11 @@ package functions;
 
 import java.util.Arrays;
 
-public class ArrayTabulatedFunction extends AbstractTabulatedFunction {
+public class ArrayTabulatedFunction extends AbstractTabulatedFunction implements Insertable {
 
-    private final double[] xValues;
-    private final double[] yValues;
-    private final int count;
+    private double[] xValues;  // Убрали final чтобы можно было переприсваивать
+    private double[] yValues;  // Убрали final чтобы можно было переприсваивать
+    private int count;
 
     // Конструктор с двумя массивами
     public ArrayTabulatedFunction(double[] xValues, double[] yValues) {
@@ -54,6 +54,77 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction {
         }
     }
 
+    /**
+     * Реализация метода insert из интерфейса Insertable
+     * Вставляет новую точку (x, y) в функцию
+     */
+    @Override
+    public void insert(double x, double y) {
+        // Проверяем, существует ли уже такой x
+        int existingIndex = indexOfX(x);
+        if (existingIndex != -1) {
+            // Если x уже есть - просто заменяем y и завершаем
+            yValues[existingIndex] = y;
+            return;
+        }
+
+        // Если x не существует - нужно добавить новую точку
+
+        // Создаем новые массивы увеличенного размера
+        double[] newXValues = new double[count + 1];
+        double[] newYValues = new double[count + 1];
+
+        // Находим позицию для вставки
+        int insertIndex = findInsertIndex(x);
+
+        // Копируем элементы до позиции вставки
+        if (insertIndex > 0) {
+            System.arraycopy(xValues, 0, newXValues, 0, insertIndex);
+            System.arraycopy(yValues, 0, newYValues, 0, insertIndex);
+        }
+
+        // Вставляем новый элемент
+        newXValues[insertIndex] = x;
+        newYValues[insertIndex] = y;
+
+        // Копируем элементы после позиции вставки
+        if (insertIndex < count) {
+            System.arraycopy(xValues, insertIndex, newXValues, insertIndex + 1, count - insertIndex);
+            System.arraycopy(yValues, insertIndex, newYValues, insertIndex + 1, count - insertIndex);
+        }
+
+        // Обновляем ссылки на массивы и счетчик
+        this.xValues = newXValues;
+        this.yValues = newYValues;
+        this.count++;
+    }
+
+    /**
+     * Находит индекс, куда нужно вставить x для сохранения сортировки
+     * @param x значение для вставки
+     * @return индекс для вставки
+     */
+    private int findInsertIndex(double x) {
+        // Если x меньше всех существующих значений
+        if (x < xValues[0]) {
+            return 0;
+        }
+
+        // Если x больше всех существующих значений
+        if (x > xValues[count - 1]) {
+            return count;
+        }
+
+        // Ищем позицию между существующими значениями
+        for (int i = 0; i < count - 1; i++) {
+            if (x > xValues[i] && x < xValues[i + 1]) {
+                return i + 1;
+            }
+        }
+
+        return count; // fallback
+    }
+
     // Реализация абстрактных методов из AbstractTabulatedFunction
 
     @Override
@@ -63,9 +134,9 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction {
             return 0;
         }
 
-        // Если все x меньше заданного - возвращаем count
-        if (x > xValues[count - 1]) {
-            return count;
+        // Если все x меньше заданного - возвращаем count - 1
+        if (x >= xValues[count - 1]) {
+            return count - 1;
         }
 
         // Линейный поиск для нахождения интервала
@@ -73,11 +144,6 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction {
             if (x >= xValues[i] && x < xValues[i + 1]) {
                 return i;
             }
-        }
-
-        // Если x равен последнему элементу (с учетом погрешности)
-        if (Math.abs(x - xValues[count - 1]) < 1e-12) {
-            return count - 1;
         }
 
         return count - 1; // fallback
