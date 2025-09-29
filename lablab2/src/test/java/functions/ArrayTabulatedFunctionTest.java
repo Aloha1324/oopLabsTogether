@@ -178,10 +178,13 @@ public class ArrayTabulatedFunctionTest {
         double[] yValues = {0.0, 1.0, 4.0};
         ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
 
-        assertEquals(0.25, function.apply(0.5), 1e-12,
-                "Интерполяция в точке 0.5 должна давать 0.25");
-        assertEquals(2.25, function.apply(1.5), 1e-12,
-                "Интерполяция в точке 1.5 должна давать 2.25");
+        // Для x=0.5 между (0,0) и (1,1): y = 0 + (1-0)/(1-0) * (0.5-0) = 0.5
+        assertEquals(0.5, function.apply(0.5), 1e-12,
+                "Интерполяция в точке 0.5 должна давать 0.5");
+
+        // Для x=1.5 между (1,1) и (2,4): y = 1 + (4-1)/(2-1) * (1.5-1) = 1 + 3*0.5 = 2.5
+        assertEquals(2.5, function.apply(1.5), 1e-12,
+                "Интерполяция в точке 1.5 должна давать 2.5");
     }
 
     @Test

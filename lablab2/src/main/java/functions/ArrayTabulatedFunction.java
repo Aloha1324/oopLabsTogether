@@ -134,9 +134,9 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction implements
             return 0;
         }
 
-        // Если все x меньше заданного - возвращаем count - 1
-        if (x >= xValues[count - 1]) {
-            return count - 1;
+        // Если все x меньше заданного - возвращаем count
+        if (x > xValues[count - 1]) {
+            return count;
         }
 
         // Линейный поиск для нахождения интервала
@@ -144,6 +144,11 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction implements
             if (x >= xValues[i] && x < xValues[i + 1]) {
                 return i;
             }
+        }
+
+        // Если x равен последнему элементу (с учетом погрешности)
+        if (Math.abs(x - xValues[count - 1]) < 1e-12) {
+            return count - 1;
         }
 
         return count - 1; // fallback
