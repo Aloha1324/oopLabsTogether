@@ -142,9 +142,9 @@ class CompositeFunctionTest {
         CompositeFunction composite1 = new CompositeFunction(square, plusOne);
         CompositeFunction composite2 = new CompositeFunction(composite1, timesThree);
 
-        assertEquals(3.0, composite2.apply(0.0), 1e-10);  // (0² + 1) * 3 = 3
-        assertEquals(6.0, composite2.apply(1.0), 1e-10);  // (1² + 1) * 3 = 6
-        assertEquals(15.0, composite2.apply(2.0), 1e-10); // (2² + 1) * 3 = 15
+        assertEquals(3.0, composite2.apply(0.0), 1e-10);  // (0*0 + 1) * 3 = 3
+        assertEquals(6.0, composite2.apply(1.0), 1e-10);  // (1*1 + 1) * 3 = 6
+        assertEquals(15.0, composite2.apply(2.0), 1e-10); // (2*2 + 1) * 3 = 15
     }
 
     @Test

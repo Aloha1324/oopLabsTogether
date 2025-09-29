@@ -8,11 +8,10 @@ public class CompositeFunction implements MathFunction {
     private final MathFunction firstFunction;
     private final MathFunction secondFunction;
 
-    /**
-     * Конструктор сложной функции
-     * @param firstFunction первая функция (применяется первой)
-     * @param secondFunction вторая функция (применяется к результату первой)
-     */
+    //Конструктор сложной функции
+     //firstFunction первая функция (применяется первой)
+     //secondFunction вторая функция (применяется к результату первой)
+
     public CompositeFunction(MathFunction firstFunction, MathFunction secondFunction) {
         if (firstFunction == null || secondFunction == null) {
             throw new IllegalArgumentException("Функции не могут быть null");
@@ -32,16 +31,11 @@ public class CompositeFunction implements MathFunction {
         return secondFunction.apply(intermediateResult);
     }
 
-    /**
-     * @return первая функция
-     */
     public MathFunction getFirstFunction() {
         return firstFunction;
     }
 
-    /**
-     * @return вторая функция
-     */
+
     public MathFunction getSecondFunction() {
         return secondFunction;
     }
