@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Тестовый класс для LinkedListTabulatedFunctionX
- * Проверяет корректность работы всех методов класса
+ * Проверяет корректность работы всех методов класса, включая удаление узлов
  */
 class LinkedListTabulatedFunctionXTest {
 
@@ -331,5 +331,224 @@ class LinkedListTabulatedFunctionXTest {
         // Экстраполяция
         assertEquals(-2.0, function.apply(-1.0), 1e-10); // Слева: 2*(-1) = -2.0
         assertEquals(10.0, function.apply(5.0), 1e-10);  // Справа: 2*5 = 10.0
+    }
+
+    // Тест метода remove - удаление из середины списка
+    @Test
+    void testRemoveMiddle() {
+        double[] xValues = {1.0, 2.0, 3.0, 4.0};
+        double[] yValues = {10.0, 20.0, 30.0, 40.0};
+        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
+
+        assertEquals(4, function.getCount());
+
+        // Удаляем узел с индексом 1 (значение x=2.0)
+        function.remove(1);
+
+        assertEquals(3, function.getCount());
+        assertEquals(1.0, function.getX(0), 1e-10);
+        assertEquals(3.0, function.getX(1), 1e-10);
+        assertEquals(4.0, function.getX(2), 1e-10);
+        assertEquals(10.0, function.getY(0), 1e-10);
+        assertEquals(30.0, function.getY(1), 1e-10);
+        assertEquals(40.0, function.getY(2), 1e-10);
+    }
+
+    // Тест метода remove - удаление головы списка
+    @Test
+    void testRemoveHead() {
+        double[] xValues = {1.0, 2.0, 3.0};
+        double[] yValues = {10.0, 20.0, 30.0};
+        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
+
+        assertEquals(3, function.getCount());
+        assertEquals(1.0, function.leftBound(), 1e-10);
+
+        // Удаляем голову (индекс 0)
+        function.remove(0);
+
+        assertEquals(2, function.getCount());
+        assertEquals(2.0, function.leftBound(), 1e-10);
+        assertEquals(3.0, function.rightBound(), 1e-10);
+        assertEquals(2.0, function.getX(0), 1e-10);
+        assertEquals(3.0, function.getX(1), 1e-10);
+        assertEquals(20.0, function.getY(0), 1e-10);
+        assertEquals(30.0, function.getY(1), 1e-10);
+    }
+
+    // Тест метода remove - удаление хвоста списка
+    @Test
+    void testRemoveTail() {
+        double[] xValues = {1.0, 2.0, 3.0};
+        double[] yValues = {10.0, 20.0, 30.0};
+        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
+
+        assertEquals(3, function.getCount());
+        assertEquals(3.0, function.rightBound(), 1e-10);
+
+        // Удаляем хвост (индекс 2)
+        function.remove(2);
+
+        assertEquals(2, function.getCount());
+        assertEquals(1.0, function.leftBound(), 1e-10);
+        assertEquals(2.0, function.rightBound(), 1e-10);
+        assertEquals(1.0, function.getX(0), 1e-10);
+        assertEquals(2.0, function.getX(1), 1e-10);
+        assertEquals(10.0, function.getY(0), 1e-10);
+        assertEquals(20.0, function.getY(1), 1e-10);
+    }
+
+    // Тест метода remove - удаление единственного узла
+    @Test
+    void testRemoveSingleNode() {
+        double[] xValues = {5.0};
+        double[] yValues = {10.0};
+        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
+
+        assertEquals(1, function.getCount());
+
+        // Удаляем единственный узел
+        function.remove(0);
+
+        assertEquals(0, function.getCount());
+
+        // После удаления должны получать исключения при попытке доступа
+        assertThrows(IllegalStateException.class, () -> {
+            function.leftBound();
+        });
+
+        assertThrows(IllegalStateException.class, () -> {
+            function.rightBound();
+        });
+    }
+
+    // Тест метода remove с невалидными индексами
+    @Test
+    void testRemoveInvalidIndex() {
+        double[] xValues = {1.0, 2.0, 3.0};
+        double[] yValues = {10.0, 20.0, 30.0};
+        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            function.remove(-1);
+        });
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            function.remove(3);
+        });
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            function.remove(10);
+        });
+    }
+
+    // Тест поиска узлов в первой и второй половине списка (оптимизация в getNode)
+    @Test
+    void testGetNodeOptimization() {
+        double[] xValues = {1.0, 2.0, 3.0, 4.0, 5.0};
+        double[] yValues = {10.0, 20.0, 30.0, 40.0, 50.0};
+        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
+
+        // Доступ к узлам в первой половине (индексы 0, 1)
+        assertEquals(1.0, function.getX(0), 1e-10);
+        assertEquals(2.0, function.getX(1), 1e-10);
+
+        // Доступ к узлам во второй половине (индексы 3, 4)
+        assertEquals(4.0, function.getX(3), 1e-10);
+        assertEquals(5.0, function.getX(4), 1e-10);
+    }
+
+    // Тест метода remove с последующим применением функции
+    @Test
+    void testRemoveAndApply() {
+        double[] xValues = {0.0, 1.0, 2.0, 3.0};
+        double[] yValues = {0.0, 1.0, 4.0, 9.0}; // Квадратичная функция
+        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
+
+        // Удаляем узел с индексом 1 (x=1.0)
+        function.remove(1);
+
+        // Проверяем, что интерполяция работает корректно после удаления
+        assertEquals(0.0, function.apply(0.0), 1e-10); // Точное значение
+        assertEquals(4.0, function.apply(2.0), 1e-10); // Точное значение
+        assertEquals(9.0, function.apply(3.0), 1e-10); // Точное значение
+
+        // Интерполяция между оставшимися узлами
+        assertEquals(2.0, function.apply(1.0), 1e-10); // Между 0 и 2: линейная интерполяция
+    }
+
+    // Тест последовательных удалений
+    @Test
+    void testMultipleRemoves() {
+        double[] xValues = {1.0, 2.0, 3.0, 4.0, 5.0};
+        double[] yValues = {10.0, 20.0, 30.0, 40.0, 50.0};
+        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
+
+        assertEquals(5, function.getCount());
+
+        // Удаляем несколько узлов
+        function.remove(2); // Удаляем x=3.0
+        assertEquals(4, function.getCount());
+
+        function.remove(0); // Удаляем голову x=1.0
+        assertEquals(3, function.getCount());
+
+        function.remove(2); // Удаляем хвост x=5.0
+        assertEquals(2, function.getCount());
+
+        // Проверяем оставшиеся узлы
+        assertEquals(2.0, function.getX(0), 1e-10);
+        assertEquals(4.0, function.getX(1), 1e-10);
+        assertEquals(20.0, function.getY(0), 1e-10);
+        assertEquals(40.0, function.getY(1), 1e-10);
+    }
+
+    // Тест для проверки ветки count == 1 в методе interpolate
+    @Test
+    void testInterpolateWithSingleNode() {
+        // Создаем функцию с ОДНОЙ точкой
+        double[] xValues = {2.5};
+        double[] yValues = {7.5};
+        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
+
+        // Проверяем, что при любой x возвращается значение единственной точки
+        // Все эти вызовы приведут к выполнению блока if (count == 1) в interpolate
+
+        // x меньше существующего - extrapolateLeft -> interpolate
+        assertEquals(7.5, function.apply(1.0), 1e-10);
+
+        // x больше существующего - extrapolateRight -> interpolate
+        assertEquals(7.5, function.apply(4.0), 1e-10);
+
+        // x равно существующему - тоже вызовет interpolate
+        assertEquals(7.5, function.apply(2.5), 1e-10);
+    }
+
+    // Тест граничных случаев для пустого списка
+    @Test
+    void testEmptyListBehavior() {
+        // Создаем функцию с одним узлом и удаляем его
+        double[] xValues = {1.0};
+        double[] yValues = {10.0};
+        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
+        function.remove(0);
+
+        // Проверяем поведение методов для пустого списка
+        assertEquals(-1, function.indexOfX(1.0));
+        assertEquals(-1, function.indexOfY(10.0));
+        assertEquals(0, function.getCount());
+
+        // Должны бросать исключения
+        assertThrows(IllegalStateException.class, () -> {
+            function.leftBound();
+        });
+
+        assertThrows(IllegalStateException.class, () -> {
+            function.rightBound();
+        });
+
+        assertThrows(IllegalStateException.class, () -> {
+            function.floorIndexOfX(1.0);
+        });
     }
 }
