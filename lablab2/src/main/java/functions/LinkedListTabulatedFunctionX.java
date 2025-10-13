@@ -1,11 +1,14 @@
 package functions;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 /**
  * Реализация табулированной функции на основе двусвязного циклического списка
  */
-public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX implements Removable {
+public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX implements Removable, Iterable<Point> {
 
-   static class Node {
+    static class Node {
         public Node next;
         public Node prev;
         public double x;
@@ -50,8 +53,8 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
         if (xValues.length != yValues.length) {
             throw new IllegalArgumentException("Длины массивов должны совпадать");
         }
-        if (xValues.length == 0) {
-            throw new IllegalArgumentException("Массивы не могут быть пустыми");
+        if (xValues.length < 2) {
+            throw new IllegalArgumentException("Длина таблицы должна быть не менее 2 точек");
         }
 
         // Заполняем список
@@ -67,8 +70,8 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
         if (source == null) {
             throw new IllegalArgumentException("Функция не может быть null");
         }
-        if (count <= 0) {
-            throw new IllegalArgumentException("Количество точек должно быть положительным");
+        if (count < 2) {
+            throw new IllegalArgumentException("Количество точек должно быть не менее 2");
         }
 
         if (xFrom > xTo) {
@@ -97,7 +100,7 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
      */
     private Node getNode(int index) {
         if (index < 0 || index >= count) {
-            throw new IndexOutOfBoundsException("Индекс: " + index + ", Размер: " + count);
+            throw new IllegalArgumentException("Индекс: " + index + " выходит за границы списка. Допустимый диапазон: 0-" + (count - 1));
         }
 
         Node current;
@@ -153,16 +156,25 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
 
     @Override
     public double getX(int index) {
+        if (index < 0 || index >= count) {
+            throw new IllegalArgumentException("Индекс: " + index + " выходит за границы списка. Допустимый диапазон: 0-" + (count - 1));
+        }
         return getNode(index).x;
     }
 
     @Override
     public double getY(int index) {
+        if (index < 0 || index >= count) {
+            throw new IllegalArgumentException("Индекс: " + index + " выходит за границы списка. Допустимый диапазон: 0-" + (count - 1));
+        }
         return getNode(index).y;
     }
 
     @Override
     public void setY(int index, double value) {
+        if (index < 0 || index >= count) {
+            throw new IllegalArgumentException("Индекс: " + index + " выходит за границы списка. Допустимый диапазон: 0-" + (count - 1));
+        }
         getNode(index).y = value;
     }
 
@@ -217,7 +229,7 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
         }
 
         if (x < head.x) {
-            return 0;
+            throw new IllegalArgumentException("x = " + x + " меньше левой границы " + head.x);
         }
 
         Node current = head;
@@ -233,9 +245,7 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
 
     @Override
     protected double extrapolateLeft(double x) {
-        if (count == 1) {
-            return head.y;
-        }
+        // Убрана проверка на count == 1, так как теперь гарантируется минимум 2 точки
         Node first = head;
         Node second = head.next;
         return interpolate(x, first.x, second.x, first.y, second.y);
@@ -243,9 +253,7 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
 
     @Override
     protected double extrapolateRight(double x) {
-        if (count == 1) {
-            return head.y;
-        }
+        // Убрана проверка на count == 1, так как теперь гарантируется минимум 2 точки
         Node last = head.prev;
         Node prevLast = last.prev;
         return interpolate(x, prevLast.x, last.x, prevLast.y, last.y);
@@ -253,12 +261,36 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
 
     @Override
     protected double interpolate(double x, int floorIndex) {
-        if (count == 1) {
-            return head.y;
-        }
-
+        // Убрана проверка на count == 1, так как теперь гарантируется минимум 2 точки
         Node leftNode = getNode(floorIndex);
         Node rightNode = leftNode.next;
         return interpolate(x, leftNode.x, rightNode.x, leftNode.y, rightNode.y);
+    }
+
+    /**
+     * Реализация метода iterator() из интерфейса Iterable
+     */
+    @Override
+    public Iterator<Point> iterator() {
+        return new Iterator<Point>() {
+            private Node current = head;
+            private int position = 0;
+
+            @Override
+            public boolean hasNext() {
+                return position < count;
+            }
+
+            @Override
+            public Point next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException("No more elements in the list");
+                }
+                Point point = new Point(current.x, current.y);
+                current = current.next;
+                position++;
+                return point;
+            }
+        };
     }
 }

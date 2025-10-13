@@ -7,36 +7,32 @@ public abstract class AbstractTabulatedFunctionX implements TabulatedFunction {
 
     //Находит индекс максимального x, который меньше заданного
     //x значение аргумента
-     //индекс, где xValues[index] ≤ x < xValues[index+1]
+    //индекс, где xValues[index] ≤ x < xValues[index+1]
     protected abstract int floorIndexOfX(double x);
 
     //Экстраполяция слева (для x < leftBound())
     // x значение аргумента
     //экстраполированное значение функции
-
     protected abstract double extrapolateLeft(double x);
 
     //Экстраполяция справа (для x > rightBound())
     //x значение аргумента
     //экстраполированное значение функции
-
     protected abstract double extrapolateRight(double x);
 
     //Интерполяция внутри интервала
     //x значение аргумента
     //floorIndex индекс левой границы интервала
     //интерполированное значение функции
-
     protected abstract double interpolate(double x, int floorIndex);
 
     //Вспомогательный метод для линейной интерполяции
     //x значение аргумента для интерполяции
     //leftX x левой границы интервала
     //rightX x правой границы интервала
-     //leftY y левой границы интервала
-     //rightY y правой границы интервала
-     // интерполированное значение
-
+    //leftY y левой границы интервала
+    //rightY y правой границы интервала
+    // интерполированное значение
     protected double interpolate(double x, double leftX, double rightX,
                                  double leftY, double rightY) {
         // Формула линейной интерполяции: y = leftY + (rightY - leftY) * (x - leftX) / (rightX - leftX)
@@ -45,7 +41,6 @@ public abstract class AbstractTabulatedFunctionX implements TabulatedFunction {
 
     //Реализация метода apply из MathFunction
     //Использует интерполяцию/экстраполяцию для вычисления значения в любой точке
-
     @Override
     public double apply(double x) {
         // Если x меньше левой границы - экстраполяция слева
@@ -69,9 +64,7 @@ public abstract class AbstractTabulatedFunctionX implements TabulatedFunction {
         return interpolate(x, floorIndex);
     }
 
-
     // количество точек в таблице
-
     @Override
     public int getCount() {
         return count;
