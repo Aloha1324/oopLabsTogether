@@ -604,4 +604,294 @@ class LinkedListTabulatedFunctionXTest {
         double rightResult = linearFunc.extrapolateRight(2.0);
         assertEquals(2.0, rightResult, 1e-12);
     }
+
+    // Тесты для проверки итератора с помощью цикла while
+    @Test
+    void testIteratorWithWhileLoop() {
+        Iterator<Point> iterator = function.iterator();
+        int index = 0;
+
+        // Используем цикл while для обхода всех элементов
+        while (iterator.hasNext()) {
+            Point point = iterator.next();
+            assertEquals(xValues[index], point.x, 1e-12);
+            assertEquals(yValues[index], point.y, 1e-12);
+            index++;
+        }
+
+        // Проверяем, что прошли все точки
+        assertEquals(4, index);
+        // Проверяем, что итератор действительно закончился
+        assertFalse(iterator.hasNext());
+    }
+
+    @Test
+    void testIteratorWithWhileLoopOnEmptyList() {
+        LinkedListTabulatedFunctionX emptyFunction = new LinkedListTabulatedFunctionX(
+                new double[]{1.0, 2.0}, new double[]{1.0, 4.0});
+        emptyFunction.remove(0);
+        emptyFunction.remove(0);
+
+        Iterator<Point> iterator = emptyFunction.iterator();
+
+        // Цикл while не должен выполняться ни разу
+        int iterationCount = 0;
+        while (iterator.hasNext()) {
+            iterator.next();
+            iterationCount++;
+        }
+
+        assertEquals(0, iterationCount);
+        assertFalse(iterator.hasNext());
+    }
+
+    @Test
+    void testIteratorWithWhileLoopAfterModification() {
+        // Модифицируем данные перед созданием итератора
+        function.setY(1, 5.0);
+        function.setY(2, 10.0);
+
+        Iterator<Point> iterator = function.iterator();
+        int index = 0;
+
+        // Проверяем модифицированные данные через while цикл
+        while (iterator.hasNext()) {
+            Point point = iterator.next();
+            if (index == 1) {
+                assertEquals(5.0, point.y, 1e-12); // Проверяем измененное значение
+            } else if (index == 2) {
+                assertEquals(10.0, point.y, 1e-12); // Проверяем измененное значение
+            }
+            index++;
+        }
+
+        assertEquals(4, index);
+    }
+
+    // Тесты для проверки итератора с помощью цикла for-each
+    @Test
+    void testIteratorWithForEachLoop() {
+        int index = 0;
+
+        // Используем цикл for-each для обхода всех элементов
+        for (Point point : function) {
+            assertEquals(xValues[index], point.x, 1e-12);
+            assertEquals(yValues[index], point.y, 1e-12);
+            index++;
+        }
+
+        // Проверяем, что прошли все точки
+        assertEquals(4, index);
+    }
+
+    @Test
+    void testIteratorWithForEachLoopOnEmptyList() {
+        LinkedListTabulatedFunctionX emptyFunction = new LinkedListTabulatedFunctionX(
+                new double[]{1.0, 2.0}, new double[]{1.0, 4.0});
+        emptyFunction.remove(0);
+        emptyFunction.remove(0);
+
+        // Цикл for-each не должен выполняться ни разу
+        int iterationCount = 0;
+        for (Point point : emptyFunction) {
+            iterationCount++;
+        }
+
+        assertEquals(0, iterationCount);
+    }
+
+    @Test
+    void testIteratorWithForEachLoopAfterModification() {
+        // Модифицируем данные
+        function.setY(0, 0.0);
+        function.setY(3, 20.0);
+
+        int index = 0;
+        double[] expectedY = {0.0, 4.0, 9.0, 20.0}; // Ожидаемые значения после модификации
+
+        // Проверяем модифицированные данные через for-each цикл
+        for (Point point : function) {
+            assertEquals(xValues[index], point.x, 1e-12);
+            assertEquals(expectedY[index], point.y, 1e-12);
+            index++;
+        }
+
+        assertEquals(4, index);
+    }
+
+    // Тесты для сравнения двух способов итерации
+    @Test
+    void testWhileLoopVsForEachLoopEquivalence() {
+        // Собираем точки через while цикл
+        java.util.List<Point> whileLoopPoints = new java.util.ArrayList<>();
+        Iterator<Point> iterator = function.iterator();
+        while (iterator.hasNext()) {
+            whileLoopPoints.add(iterator.next());
+        }
+
+        // Собираем точки через for-each цикл
+        java.util.List<Point> forEachLoopPoints = new java.util.ArrayList<>();
+        for (Point point : function) {
+            forEachLoopPoints.add(point);
+        }
+
+        // Проверяем, что оба способа дают одинаковый результат
+        assertEquals(whileLoopPoints.size(), forEachLoopPoints.size());
+        for (int i = 0; i < whileLoopPoints.size(); i++) {
+            assertEquals(whileLoopPoints.get(i).x, forEachLoopPoints.get(i).x, 1e-12);
+            assertEquals(whileLoopPoints.get(i).y, forEachLoopPoints.get(i).y, 1e-12);
+        }
+    }
+
+    // Тесты для проверки независимости итераторов
+    @Test
+    void testMultipleIndependentIterators() {
+        Iterator<Point> iterator1 = function.iterator();
+        Iterator<Point> iterator2 = function.iterator();
+
+        // Используем разные циклы для разных итераторов
+        int count1 = 0;
+        while (iterator1.hasNext()) {
+            iterator1.next();
+            count1++;
+        }
+
+        int count2 = 0;
+        for (Point point : function) { // Создается новый итератор внутри for-each
+            count2++;
+        }
+
+        // Оба должны пройти все элементы
+        assertEquals(4, count1);
+        assertEquals(4, count2);
+
+        // Первый итератор должен быть исчерпан
+        assertFalse(iterator1.hasNext());
+
+        // Новый итератор через for-each должен работать корректно
+        int count3 = 0;
+        for (Point point : function) {
+            count3++;
+        }
+        assertEquals(4, count3);
+    }
+
+    // Тесты для проверки порядка элементов в итераторе
+    @Test
+    void testIteratorOrder() {
+        double[] expectedX = {1.0, 2.0, 3.0, 4.0};
+        double[] expectedY = {1.0, 4.0, 9.0, 16.0};
+
+        // Проверяем порядок через while цикл
+        Iterator<Point> iterator = function.iterator();
+        int index = 0;
+        while (iterator.hasNext()) {
+            Point point = iterator.next();
+            assertEquals(expectedX[index], point.x, 1e-12, "X value mismatch at index " + index);
+            assertEquals(expectedY[index], point.y, 1e-12, "Y value mismatch at index " + index);
+            index++;
+        }
+
+        // Проверяем порядок через for-each цикл
+        index = 0;
+        for (Point point : function) {
+            assertEquals(expectedX[index], point.x, 1e-12, "X value mismatch at index " + index);
+            assertEquals(expectedY[index], point.y, 1e-12, "Y value mismatch at index " + index);
+            index++;
+        }
+    }
+
+    // Тесты для проверки итератора после удаления элементов
+    @Test
+    void testIteratorAfterRemoveWithWhileLoop() {
+        // Удаляем некоторые элементы
+        function.remove(1); // Удаляем второй элемент
+
+        Iterator<Point> iterator = function.iterator();
+        java.util.List<Point> points = new java.util.ArrayList<>();
+
+        // Собираем оставшиеся точки через while цикл
+        while (iterator.hasNext()) {
+            points.add(iterator.next());
+        }
+
+        // Проверяем, что остались правильные точки
+        assertEquals(3, points.size());
+        assertEquals(1.0, points.get(0).x, 1e-12);
+        assertEquals(3.0, points.get(1).x, 1e-12);
+        assertEquals(4.0, points.get(2).x, 1e-12);
+    }
+
+    @Test
+    void testIteratorAfterRemoveWithForEachLoop() {
+        // Удаляем некоторые элементы
+        function.remove(0); // Удаляем первый элемент
+        function.remove(1); // Удаляем третий элемент (после первого удаления)
+
+        java.util.List<Point> points = new java.util.ArrayList<>();
+
+        // Собираем оставшиеся точки через for-each цикл
+        for (Point point : function) {
+            points.add(point);
+        }
+
+        // Проверяем, что остались правильные точки
+        assertEquals(2, points.size());
+        assertEquals(2.0, points.get(0).x, 1e-12);
+        assertEquals(4.0, points.get(1).x, 1e-12);
+    }
+
+    // Тест для проверки, что итератор не модифицирует исходную коллекцию
+    @Test
+    void testIteratorDoesNotModifyCollection() {
+        int initialCount = function.getCount();
+
+        // Используем while цикл
+        Iterator<Point> iterator = function.iterator();
+        while (iterator.hasNext()) {
+            Point point = iterator.next();
+            // Просто читаем точки, не модифицируем
+        }
+
+        // Проверяем, что коллекция не изменилась
+        assertEquals(initialCount, function.getCount());
+        assertEquals(1.0, function.getX(0), 1e-12);
+        assertEquals(4.0, function.getY(1), 1e-12);
+
+        // Используем for-each цикл
+        for (Point point : function) {
+            // Просто читаем точки, не модифицируем
+        }
+
+        // Проверяем, что коллекция не изменилась
+        assertEquals(initialCount, function.getCount());
+        assertEquals(1.0, function.getX(0), 1e-12);
+        assertEquals(4.0, function.getY(1), 1e-12);
+    }
+
+    // Тест для проверки работы итератора с разными размерами коллекций
+    @Test
+    void testIteratorWithDifferentSizedCollections() {
+        // Тестируем с коллекцией из 2 элементов
+        LinkedListTabulatedFunctionX twoElementFunction = new LinkedListTabulatedFunctionX(
+                new double[]{1.0, 2.0}, new double[]{1.0, 4.0});
+
+        int count = 0;
+        for (Point point : twoElementFunction) {
+            count++;
+        }
+        assertEquals(2, count);
+
+        // Тестируем с коллекцией из 3 элементов
+        LinkedListTabulatedFunctionX threeElementFunction = new LinkedListTabulatedFunctionX(
+                new double[]{1.0, 2.0, 3.0}, new double[]{1.0, 4.0, 9.0});
+
+        count = 0;
+        Iterator<Point> iterator = threeElementFunction.iterator();
+        while (iterator.hasNext()) {
+            iterator.next();
+            count++;
+        }
+        assertEquals(3, count);
+    }
 }
