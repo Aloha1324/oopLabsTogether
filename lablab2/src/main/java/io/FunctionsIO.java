@@ -3,8 +3,10 @@ package io;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.BufferedReader;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.io.DataOutputStream;
 import java.text.NumberFormat;
@@ -54,6 +56,18 @@ public final class FunctionsIO {
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(stream);
         objectOutputStream.writeObject(function);
         objectOutputStream.flush();
+    }
+
+    /**
+     * Десериализует функцию из буферизованного байтового потока
+     * @param stream буферизованный байтовый поток
+     * @return десериализованная табулированная функция
+     * @throws IOException если произошла ошибка ввода-вывода
+     * @throws ClassNotFoundException если класс не найден при десериализации
+     */
+    public static TabulatedFunction deserialize(BufferedInputStream stream) throws IOException, ClassNotFoundException {
+        ObjectInputStream objectInputStream = new ObjectInputStream(stream);
+        return (TabulatedFunction) objectInputStream.readObject();
     }
 
     /**
