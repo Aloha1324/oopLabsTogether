@@ -1,5 +1,10 @@
 package functions;
 
+import exceptions.ArrayIsNotSortedException;
+import exceptions.DifferentLengthOfArraysException;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 /**
  * Абстрактный класс для табулированных функций, реализующий общий функционал
  * для различных способов хранения данных (массивы, связные списки)
@@ -70,5 +75,136 @@ public abstract class AbstractTabulatedFunction implements TabulatedFunction {
                 return interpolate(x, floorIndex);
             }
         }
+    }
+
+    /**
+     * Статический метод для проверки одинаковой длины массивов x и y
+     * @param xValues массив значений x
+     * @param yValues массив значений y
+     * @throws DifferentLengthOfArraysException если массивы разной длины
+     */
+    public static void checkLengthIsTheSame(double[] xValues, double[] yValues) {
+        if (xValues.length != yValues.length) {
+            throw new DifferentLengthOfArraysException("Arrays xValues and yValues must have the same length");
+        }
+    }
+
+    /**
+     * Статический метод для проверки отсортированности массива x по возрастанию
+     * @param xValues массив значений x
+     * @throws ArrayIsNotSortedException если массив не отсортирован по возрастанию
+     */
+    public static void checkSorted(double[] xValues) {
+        for (int i = 1; i < xValues.length; i++) {
+            if (xValues[i] <= xValues[i - 1]) {
+                throw new ArrayIsNotSortedException("xValues array must be sorted in ascending order");
+            }
+        }
+    }
+
+    /**
+     * Возвращает строковое представление табулированной функции
+     * @return строка в формате "ИмяКласса size = [количество точек]\n[x1; y1]\n[x2; y2]..."
+     */
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getSimpleName()).append(" size = ").append(getCount()).append("\n");
+
+        for (int i = 0; i < getCount(); i++) {
+            sb.append("[").append(getX(i)).append("; ").append(getY(i)).append("]\n");
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Сравнивает две табулированные функции на равенство
+     * @param o объект для сравнения
+     * @return true если функции идентичны (одинаковые точки в одинаковом порядке), false в противном случае
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TabulatedFunction that = (TabulatedFunction) o;
+
+        // Проверка количества точек
+        if (getCount() != that.getCount()) return false;
+
+        // Поэлементное сравнение всех точек
+        for (int i = 0; i < getCount(); i++) {
+            if (Double.compare(getX(i), that.getX(i)) != 0 ||
+                    Double.compare(getY(i), that.getY(i)) != 0) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Вычисляет хэш-код функции на основе всех её точек
+     * @return хэш-код функции
+     */
+    @Override
+    public int hashCode() {
+        int result = 1;
+
+        for (int i = 0; i < getCount(); i++) {
+            long xBits = Double.doubleToLongBits(getX(i));
+            long yBits = Double.doubleToLongBits(getY(i));
+
+            result = 31 * result + (int) (xBits ^ (xBits >>> 32));
+            result = 31 * result + (int) (yBits ^ (yBits >>> 32));
+        }
+
+        return result;
+    }
+
+    /**
+     * Создает и возвращает копию объекта
+     * @return копия табулированной функции
+     * @throws CloneNotSupportedException если клонирование не поддерживается
+     */
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+
+    /**
+     * Возвращает итератор для прохода по всем точкам функции
+     * @return итератор точек
+     */
+    public Iterator<Point> iterator() {
+        return new Iterator<Point>() {
+            private int currentIndex = 0;
+
+            /**
+             * Проверяет наличие следующей точки
+             * @return true если есть следующая точка, false в противном случае
+             */
+            @Override
+            public boolean hasNext() {
+                return currentIndex < getCount();
+            }
+
+            /**
+             * Возвращает следующую точку функции
+             * @return следующая точка
+             * @throws NoSuchElementException если больше нет точек
+             */
+            @Override
+            public Point next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException("No more points available");
+                }
+
+                Point point = new Point(getX(currentIndex), getY(currentIndex));
+                currentIndex++;
+                return point;
+            }
+        };
     }
 }
