@@ -40,8 +40,8 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction implements
         double step = (xTo - xFrom) / (count - 1);
 
         for (int i = 0; i < count; i++) {
-            xValues[i] = xFrom + i * step;
-            yValues[i] = func.apply(xValues[i]);
+            this.xValues[i] = xFrom + i * step;
+            this.yValues[i] = func.apply(this.xValues[i]);
         }
     }
 
@@ -200,7 +200,6 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction implements
         return super.toString();
     }
 
-    // Итератор по массиву на основе индекса i (по требованию!)
     @Override
     public Iterator<Point> iterator() {
         return new Iterator<Point>() {
@@ -214,7 +213,7 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction implements
             @Override
             public Point next() {
                 if (!hasNext())
-                    throw new java.util.NoSuchElementException("No more points available");
+                    throw new java.util.NoSuchElementException();
                 Point point = new Point(xValues[i], yValues[i]);
                 i++;
                 return point;

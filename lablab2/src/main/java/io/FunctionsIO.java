@@ -1,5 +1,9 @@
 package io;
 
+import java.io.BufferedWriter;
+import java.io.PrintWriter;
+import functions.TabulatedFunction;
+
 /**
  * Класс для операций ввода-вывода функций.
  * Не может иметь наследников и экземпляров.
@@ -8,10 +12,8 @@ public final class FunctionsIO {
 
     /**
      * Исключение, указывающее, что операция не поддерживается.
-     * Создано внутри класса FunctionsIO как вложенный класс.
      */
     public static class UnsupportedOperationException extends RuntimeException {
-
         public UnsupportedOperationException() {
             super();
         }
@@ -27,32 +29,40 @@ public final class FunctionsIO {
 
     /**
      * Приватный конструктор, который предотвращает создание экземпляров класса.
-     * Бросает UnsupportedOperationException при попытке вызова.
-     *
-     * @throws UnsupportedOperationException всегда, при попытке создания экземпляра
      */
-    private FunctionsIO() throws UnsupportedOperationException {
+    private FunctionsIO() {
         throw new UnsupportedOperationException("Создание экземпляров класса FunctionsIO запрещено");
     }
 
-    // Статические методы для работы с функциями
+    /**
+     * Записывает представление функции в буферизованный символьный поток
+     * @param writer буферизованный поток записи
+     * @param function табулированная функция для записи
+     */
+    public static void writeTabulatedFunction(BufferedWriter writer, TabulatedFunction function) {
+        PrintWriter printWriter = new PrintWriter(writer);
+
+        // Записываем количество точек
+        printWriter.println(function.getCount());
+
+        // Записываем все точки функции
+        for (functions.Point point : function) {
+            printWriter.printf("%f %f\n", point.x, point.y);
+        }
+
+        // Сбрасываем буфер, но не закрываем поток
+        printWriter.flush();
+    }
 
     /**
      * Пример статического метода для работы с функциями.
-     *
-     * @param input входные данные функции
-     * @return результат вычисления
      */
     public static double processFunction(double input) {
-        // Реализация обработки функции
-        return input * input; // пример реализации
+        return input * input;
     }
 
     /**
      * Другой пример статического метода.
-     *
-     * @param functionData данные функции
-     * @return обработанные данные
      */
     public static String formatFunction(String functionData) {
         return "Function: " + functionData;

@@ -5,6 +5,7 @@ import exceptions.DifferentLengthOfArraysException;
 import exceptions.InterpolationException;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 public class LinkedListTabulatedFunction extends AbstractTabulatedFunction implements Iterable<Point>, Cloneable {
 
@@ -45,7 +46,7 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         }
     }
 
-    // Новый конструктор на основе функции и интервала
+    // Конструктор на основе функции и интервала
     public LinkedListTabulatedFunction(MathFunction func, double xFrom, double xTo, int count) {
         if (func == null)
             throw new NullPointerException("Function must not be null");
@@ -256,6 +257,22 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
 
     @Override
     public Iterator<Point> iterator() {
-        throw new UnsupportedOperationException("Iterator not supported");
+        return new Iterator<Point>() {
+            private Node current = head;
+
+            @Override
+            public boolean hasNext() {
+                return current != null;
+            }
+
+            @Override
+            public Point next() {
+                if (!hasNext())
+                    throw new NoSuchElementException("No more points available");
+                Point result = current.value;
+                current = current.next;
+                return result;
+            }
+        };
     }
 }
