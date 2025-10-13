@@ -74,4 +74,32 @@ public class TabulatedFunctionOperationService {
     public TabulatedFunction subtract(TabulatedFunction a, TabulatedFunction b) {
         return doOperation(a, b, (u, v) -> u - v);
     }
+
+    /**
+     * Умножает две табулированные функции покоординатно
+     * a первая функция
+     *  b вторая функция
+     * новая функция, где y[i] = a.y[i] * b.y[i]
+     * InconsistentFunctionsException если функции имеют разное количество точек или разные x-значения
+     */
+    public TabulatedFunction multiply(TabulatedFunction a, TabulatedFunction b) {
+        return doOperation(a, b, (u, v) -> u * v);
+    }
+
+    /**
+     * Делит две табулированные функции покоординатно
+     * a функция-числитель
+     *  b функция-знаменатель
+     *  новая функция, где y[i] = a.y[i] / b.y[i]
+     * InconsistentFunctionsException если функции имеют разное количество точек или разные x-значения
+     * ArithmeticException если b.y[i] = 0 для любого i
+     */
+    public TabulatedFunction divide(TabulatedFunction a, TabulatedFunction b) {
+        return doOperation(a, b, (u, v) -> {
+            if (Math.abs(v) < 1e-12) {
+                throw new ArithmeticException("Division by zero at point with y = " + v);
+            }
+            return u / v;
+        });
+    }
 }
