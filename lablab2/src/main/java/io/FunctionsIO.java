@@ -9,6 +9,8 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.io.DataOutputStream;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Locale;
@@ -91,6 +93,34 @@ public final class FunctionsIO {
 
         // Сбрасываем буфер, но не закрываем поток
         outputStream.flush();
+    }
+
+    /**
+     * Читает табулированную функцию из буферизованного байтового потока.
+     *
+     * @param inputStream буферизованный входной поток
+     * @param factory фабрика для создания функций
+     * @return созданная табулированная функция
+     * @throws IOException если происходит ошибка ввода-вывода
+     */
+    public static TabulatedFunction readTabulatedFunction(BufferedInputStream inputStream, TabulatedFunctionFactory factory) throws IOException {
+        DataInputStream dataInputStream = new DataInputStream(inputStream);
+
+        // Считываем количество точек
+        int count = dataInputStream.readInt();
+
+        // Создаем массивы для x и y значений
+        double[] xValues = new double[count];
+        double[] yValues = new double[count];
+
+        // Считываем все точки (x, y)
+        for (int i = 0; i < count; i++) {
+            xValues[i] = dataInputStream.readDouble();
+            yValues[i] = dataInputStream.readDouble();
+        }
+
+        // Создаем функцию с помощью фабрики
+        return factory.create(xValues, yValues);
     }
 
     /**
