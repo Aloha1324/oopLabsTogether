@@ -273,12 +273,13 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
     @Override
     public Iterator<Point> iterator() {
         return new Iterator<Point>() {
-            private Node current = head;
-            private int position = 0;
+            private Node node = head;  // Текущий узел, начинаем с головы
+            private int returnedCount = 0;  // Количество уже возвращенных элементов
 
             @Override
             public boolean hasNext() {
-                return position < count;
+                // Элементы есть, если мы еще не вернули все точки
+                return returnedCount < count;
             }
 
             @Override
@@ -286,9 +287,14 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
                 if (!hasNext()) {
                     throw new NoSuchElementException("No more elements in the list");
                 }
-                Point point = new Point(current.x, current.y);
-                current = current.next;
-                position++;
+
+                // Создаем точку из текущего узла
+                Point point = new Point(node.x, node.y);
+
+                // Переходим к следующему узлу
+                node = node.next;
+                returnedCount++;
+
                 return point;
             }
         };
