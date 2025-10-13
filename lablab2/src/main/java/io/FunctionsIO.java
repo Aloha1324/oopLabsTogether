@@ -1,8 +1,10 @@
 package io;
 
-import java.io.BufferedWriter;
-import java.io.PrintWriter;
 import functions.TabulatedFunction;
+import functions.Point;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 /**
  * Класс для операций ввода-вывода функций.
@@ -12,8 +14,10 @@ public final class FunctionsIO {
 
     /**
      * Исключение, указывающее, что операция не поддерживается.
+     * Создано внутри класса FunctionsIO как вложенный класс.
      */
     public static class UnsupportedOperationException extends RuntimeException {
+
         public UnsupportedOperationException() {
             super();
         }
@@ -29,40 +33,55 @@ public final class FunctionsIO {
 
     /**
      * Приватный конструктор, который предотвращает создание экземпляров класса.
+     * Бросает UnsupportedOperationException при попытке вызова.
+     *
+     * @throws UnsupportedOperationException всегда, при попытке создания экземпляра
      */
-    private FunctionsIO() {
+    private FunctionsIO() throws UnsupportedOperationException {
         throw new UnsupportedOperationException("Создание экземпляров класса FunctionsIO запрещено");
     }
 
+
     /**
-     * Записывает представление функции в буферизованный символьный поток
-     * @param writer буферизованный поток записи
+     * Записывает табулированную функцию в буферизованный байтовый поток.
+     *
+     * @param outputStream буферизованный выходной поток
      * @param function табулированная функция для записи
+     * @throws IOException если происходит ошибка ввода-вывода
      */
-    public static void writeTabulatedFunction(BufferedWriter writer, TabulatedFunction function) {
-        PrintWriter printWriter = new PrintWriter(writer);
+    public static void writeTabulatedFunction(BufferedOutputStream outputStream, TabulatedFunction function) throws IOException {
+        DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
 
         // Записываем количество точек
-        printWriter.println(function.getCount());
+        dataOutputStream.writeInt(function.getCount());
 
-        // Записываем все точки функции
-        for (functions.Point point : function) {
-            printWriter.printf("%f %f\n", point.x, point.y);
+        // Записываем все точки (x, y) с помощью цикла for-each
+        for (Point point : function) {
+            dataOutputStream.writeDouble(point.x);
+            dataOutputStream.writeDouble(point.y);
         }
 
         // Сбрасываем буфер, но не закрываем поток
-        printWriter.flush();
+        outputStream.flush();
     }
 
+    // Существующие статические методы остаются без изменений
     /**
      * Пример статического метода для работы с функциями.
+     *
+     * @param input входные данные функции
+     * @return результат вычисления
      */
     public static double processFunction(double input) {
-        return input * input;
+        // Реализация обработки функции
+        return input * input; // пример реализации
     }
 
     /**
      * Другой пример статического метода.
+     *
+     * @param functionData данные функции
+     * @return обработанные данные
      */
     public static String formatFunction(String functionData) {
         return "Function: " + functionData;

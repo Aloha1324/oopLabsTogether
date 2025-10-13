@@ -46,7 +46,7 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         }
     }
 
-    // Конструктор на основе функции и интервала
+    // Новый конструктор на основе функции и интервала
     public LinkedListTabulatedFunction(MathFunction func, double xFrom, double xTo, int count) {
         if (func == null)
             throw new NullPointerException("Function must not be null");
@@ -258,20 +258,24 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
     @Override
     public Iterator<Point> iterator() {
         return new Iterator<Point>() {
-            private Node current = head;
+            private Node currentNode = head;
+            private int currentIndex = 0;
 
             @Override
             public boolean hasNext() {
-                return current != null;
+                return currentIndex < count;
             }
 
             @Override
             public Point next() {
-                if (!hasNext())
-                    throw new NoSuchElementException("No more points available");
-                Point result = current.value;
-                current = current.next;
-                return result;
+                if (!hasNext()) {
+                    throw new NoSuchElementException("No more elements in the tabulated function");
+                }
+
+                Point point = new Point(currentNode.value.x, currentNode.value.y);
+                currentNode = currentNode.next;
+                currentIndex++;
+                return point;
             }
         };
     }
