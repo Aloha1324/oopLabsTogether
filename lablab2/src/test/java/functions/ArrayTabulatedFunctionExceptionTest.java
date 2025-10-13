@@ -6,6 +6,7 @@ import exceptions.InterpolationException;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * Тестовый класс для проверки исключений и функционала ArrayTabulatedFunction
@@ -464,14 +465,21 @@ public class ArrayTabulatedFunctionExceptionTest {
 
     @Test
     public void testIteratorThrowsExceptionOnNextWithoutHasNext() {
-        double[] xValues = {0.0};
-        double[] yValues = {0.0};
+        // Используем минимальное количество точек (2)
+        double[] xValues = {0.0, 1.0};
+        double[] yValues = {0.0, 1.0};
         ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
 
         Iterator<Point> iterator = function.iterator();
+
+        // Получаем все элементы
         assertTrue(iterator.hasNext());
-        assertNotNull(iterator.next());
+        iterator.next(); // Первый элемент
+        assertTrue(iterator.hasNext());
+        iterator.next(); // Второй элемент
+
+        // Теперь итератор должен быть пустым
         assertFalse(iterator.hasNext());
-        assertThrows(java.util.NoSuchElementException.class, iterator::next);
+        assertThrows(NoSuchElementException.class, iterator::next);
     }
 }

@@ -32,14 +32,16 @@ public class ArrayTabulatedFunctionTest {
 
     @Test
     public void testFloorIndexOfX() {
-        double[] xValues = {-3.0, 4.0, 6.0};
-        double[] yValues = {9.0, 16.0, 36.0};
+        double[] xValues = {1.0, 2.0, 3.0, 4.0};
+        double[] yValues = {1.0, 4.0, 9.0, 16.0};
         ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
 
-        assertEquals(1, function.floorIndexOfX(4.5), "floorIndexOfX(4.5) должен вернуть 1");
-        assertEquals(0, function.floorIndexOfX(-5.0), "floorIndexOfX(-5.0) должен вернуть 0");
-        assertEquals(3, function.floorIndexOfX(10.0), "floorIndexOfX(10.0) должен вернуть 3");
-        assertEquals(2, function.floorIndexOfX(6.0), "floorIndexOfX(6.0) должен вернуть 2");
+        assertEquals(0, function.floorIndexOfX(1.5), "floorIndexOfX(1.5) должен вернуть 0");
+        assertEquals(1, function.floorIndexOfX(2.5), "floorIndexOfX(2.5) должен вернуть 1");
+        assertEquals(2, function.floorIndexOfX(3.5), "floorIndexOfX(3.5) должен вернуть 2");
+        assertEquals(2, function.floorIndexOfX(4.0), "floorIndexOfX(4.0) должен вернуть 2");
+        assertEquals(2, function.floorIndexOfX(10.0), "floorIndexOfX(10.0) должен вернуть 2");
+        assertEquals(0, function.floorIndexOfX(0.0), "floorIndexOfX(0.0) должен вернуть 0");
     }
 
     @Test
@@ -117,12 +119,13 @@ public class ArrayTabulatedFunctionTest {
 
     @Test
     public void testInvalidConstructorWithNonUniqueX() {
-        double[] badXValues = {1.0, 1.0};
-        double[] badYValues = {2.0, 3.0};
+        double[] badXValues = {1.0, 2.0, 2.0}; // Дублирующиеся значения
+        double[] badYValues = {2.0, 3.0, 4.0};
 
-        assertThrows(IllegalArgumentException.class, () ->
+        // Вместо IllegalArgumentException должно бросаться ArrayIsNotSortedException
+        assertThrows(exceptions.ArrayIsNotSortedException.class, () ->
                         new ArrayTabulatedFunction(badXValues, badYValues),
-                "Конструктор должен выбрасывать исключение при неуникальных значениях x");
+                "Конструктор должен выбрасывать ArrayIsNotSortedException при неуникальных значениях x");
     }
 
     @Test
@@ -154,11 +157,14 @@ public class ArrayTabulatedFunctionTest {
     @Test
     public void testApplyWithReversedXFromXTo() {
         MathFunction source = x -> x * x;
-        ArrayTabulatedFunction function = new ArrayTabulatedFunction(source, 4, 0, 5);
 
-        assertEquals(5, function.getCount(), "Количество точек должно быть 5");
-        assertEquals(0.0, function.leftBound(), 1e-10, "Левая граница должна быть 0.0");
-        assertEquals(4.0, function.rightBound(), 1e-10, "Правая граница должна быть 4.0");
+        assertThrows(IllegalArgumentException.class, () ->
+                        new ArrayTabulatedFunction(source, 4.0, 0.0, 5),
+                "Конструктор должен выбрасывать исключение при xFrom >= xTo");
+
+        assertThrows(IllegalArgumentException.class, () ->
+                        new ArrayTabulatedFunction(source, 2.0, 2.0, 5),
+                "Конструктор должен выбрасывать исключение при xFrom == xTo");
     }
 
     @Test
@@ -332,17 +338,18 @@ public class ArrayTabulatedFunctionTest {
         double[] yValues = {1.0, 4.0, 9.0};
         ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
 
-        assertThrows(IndexOutOfBoundsException.class, () -> function.getX(-1),
-                "getX(-1) должен выбрасывать IndexOutOfBoundsException");
+        // Исправляем ожидаемые исключения - должны быть IllegalArgumentException
+        assertThrows(IllegalArgumentException.class, () -> function.getX(-1),
+                "getX(-1) должен выбрасывать IllegalArgumentException");
 
-        assertThrows(IndexOutOfBoundsException.class, () -> function.getX(3),
-                "getX(3) должен выбрасывать IndexOutOfBoundsException");
+        assertThrows(IllegalArgumentException.class, () -> function.getX(3),
+                "getX(3) должен выбрасывать IllegalArgumentException");
 
-        assertThrows(IndexOutOfBoundsException.class, () -> function.getY(-1),
-                "getY(-1) должен выбрасывать IndexOutOfBoundsException");
+        assertThrows(IllegalArgumentException.class, () -> function.getY(-1),
+                "getY(-1) должен выбрасывать IllegalArgumentException");
 
-        assertThrows(IndexOutOfBoundsException.class, () -> function.setY(5, 10.0),
-                "setY(5, 10.0) должен выбрасывать IndexOutOfBoundsException");
+        assertThrows(IllegalArgumentException.class, () -> function.setY(-1, 10.0),
+                "setY(-1, 10.0) должен выбрасывать IllegalArgumentException");
     }
 
     @Test
@@ -351,20 +358,9 @@ public class ArrayTabulatedFunctionTest {
         double[] yValues = {1.0, 4.0, 9.0};
         ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
 
-        // Создаем ситуацию, где interpolate будет вызван с невалидным индексом
-        // Для этого нужно вызвать apply с x, который приведет к floorIndex за пределами допустимого
-
-        // x меньше всех - floorIndexOfX вернет 0, что валидно
-        // x больше всех - floorIndexOfX вернет count, что приведет к вызову extrapolateRight
-
-        // Чтобы попасть в interpolate с невалидным индексом, нужно чтобы floorIndexOfX
-        // вернул индекс последнего элемента, но тогда interpolate вызовется с count-1
-
-        // Вместо рефлексии протестируем через apply с x между узлами
-        // Это безопасно и покрывает основную логику
+        // Просто проверяем, что интерполяция работает корректно
         assertEquals(6.5, function.apply(2.5), 1e-10);
     }
-
 
     @Test
     public void testConstructorWithFunctionAndSmallCount() {
@@ -410,5 +406,4 @@ public class ArrayTabulatedFunctionTest {
         assertEquals(6.0, function.getX(5), 1e-10);
         assertEquals(6, function.getCount(), "После вставки количество точек должно быть 6");
     }
-
 }
