@@ -3,14 +3,18 @@ package functions;
 import exceptions.ArrayIsNotSortedException;
 import exceptions.DifferentLengthOfArraysException;
 import exceptions.InterpolationException;
-
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 
 /**
  * Класс табулированной функции, реализованной на основе массивов.
  */
-public class ArrayTabulatedFunction extends AbstractTabulatedFunction implements Iterable<Point>, Cloneable {
+public class ArrayTabulatedFunction extends AbstractTabulatedFunction
+        implements Iterable<Point>, Cloneable, Serializable {
+
+    private static final long serialVersionUID = 8305720685834923448L;
+
     private double[] xValues;
     private double[] yValues;
 
@@ -168,6 +172,22 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction implements
     protected double interpolate(double x, double leftX, double rightX, double leftY, double rightY) {
         if (leftX == rightX) return (leftY + rightY) / 2.0;
         return leftY + ((x - leftX) * (rightY - leftY)) / (rightX - leftX);
+    }
+
+    @Override
+    public double apply(double x) {
+        if (x < xValues[0] || x > xValues[getCount() - 1]) {
+            throw new UnsupportedOperationException("x is out of bounds");
+        }
+
+        // Линейная интерполяция
+        for (int i = 0; i < getCount() - 1; i++) {
+            if (x >= xValues[i] && x <= xValues[i + 1]) {
+                return interpolate(x, xValues[i], xValues[i + 1], yValues[i], yValues[i + 1]);
+            }
+        }
+
+        return yValues[getCount() - 1];
     }
 
     @Override
