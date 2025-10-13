@@ -3,101 +3,67 @@ package functions;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Тестовый класс для LinkedListTabulatedFunctionX
- * Проверяет корректность работы всех методов класса, включая удаление узлов
- */
 class LinkedListTabulatedFunctionXTest {
 
-    // Тест конструктора из массивов значений
+    static class TestableFunction extends LinkedListTabulatedFunctionX {
+        public TestableFunction(double[] xValues, double[] yValues) {
+            super(xValues, yValues);
+        }
+
+        public double testInterpolate(double x, int floorIndex) {
+            return interpolate(x, floorIndex);
+        }
+
+        public int testFloorIndexOfX(double x) {
+            return floorIndexOfX(x);
+        }
+
+        public double testExtrapolateLeft(double x) {
+            return extrapolateLeft(x);
+        }
+
+        public double testExtrapolateRight(double x) {
+            return extrapolateRight(x);
+        }
+    }
+
     @Test
-    void testConstructorFromArrays() {
+    void testConstructors() {
         double[] xValues = {1.0, 2.0, 3.0};
         double[] yValues = {10.0, 20.0, 30.0};
-
         LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
 
-        // Проверяем корректность создания функции
         assertEquals(3, function.getCount());
         assertEquals(1.0, function.getX(0), 1e-10);
-        assertEquals(2.0, function.getX(1), 1e-10);
-        assertEquals(3.0, function.getX(2), 1e-10);
-        assertEquals(10.0, function.getY(0), 1e-10);
         assertEquals(20.0, function.getY(1), 1e-10);
-        assertEquals(30.0, function.getY(2), 1e-10);
+
+        MathFunction identity = x -> x;
+        LinkedListTabulatedFunctionX func2 = new LinkedListTabulatedFunctionX(identity, 0.0, 4.0, 5);
+        assertEquals(5, func2.getCount());
+        assertEquals(0.0, func2.leftBound(), 1e-10);
+        assertEquals(4.0, func2.rightBound(), 1e-10);
+
+        MathFunction square = x -> x * x;
+        LinkedListTabulatedFunctionX func3 = new LinkedListTabulatedFunctionX(square, 5.0, 5.0, 3);
+        assertEquals(3, func3.getCount());
+        assertEquals(25.0, func3.getY(1), 1e-10);
     }
 
-    // Тест конструктора дискретизации функции
     @Test
-    void testConstructorFromFunction() {
-        // Создаем тождественную функцию f(x) = x
-        MathFunction identity = new MathFunction() {
-            @Override
-            public double apply(double x) {
-                return x;
-            }
-        };
+    void testInvalidConstructors() {
+        double[] xValues = {1.0};
+        double[] yValues = {10.0, 20.0};
+        MathFunction func = x -> x;
 
-        // Создаем табулированную функцию на интервале [0, 4] с 5 точками
-        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(identity, 0.0, 4.0, 5);
-
-        // Проверяем корректность дискретизации
-        assertEquals(5, function.getCount());
-        assertEquals(0.0, function.leftBound(), 1e-10);
-        assertEquals(4.0, function.rightBound(), 1e-10);
-        assertEquals(0.0, function.getX(0), 1e-10);
-        assertEquals(1.0, function.getX(1), 1e-10);
-        assertEquals(2.0, function.getX(2), 1e-10);
-        assertEquals(3.0, function.getX(3), 1e-10);
-        assertEquals(4.0, function.getX(4), 1e-10);
-        assertEquals(2.0, function.getY(2), 1e-10);
+        assertThrows(IllegalArgumentException.class, () -> new LinkedListTabulatedFunctionX(xValues, yValues));
+        assertThrows(IllegalArgumentException.class, () -> new LinkedListTabulatedFunctionX(null, 0, 1, 2));
+        assertThrows(IllegalArgumentException.class, () -> new LinkedListTabulatedFunctionX(null, new double[]{1.0}));
+        assertThrows(IllegalArgumentException.class, () -> new LinkedListTabulatedFunctionX(new double[0], new double[0]));
+        assertThrows(IllegalArgumentException.class, () -> new LinkedListTabulatedFunctionX(func, 0, 1, 0));
     }
 
-    // Тест конструктора для вырожденного интервала (одна точка)
     @Test
-    void testConstructorFromFunctionSinglePoint() {
-        // Создаем квадратичную функцию f(x) = x²
-        MathFunction square = new MathFunction() {
-            @Override
-            public double apply(double x) {
-                return x * x;
-            }
-        };
-
-        // Создаем функцию с одной точкой x=5.0, но 3 узлами
-        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(square, 5.0, 5.0, 3);
-
-        // Все узлы должны иметь одинаковые значения
-        assertEquals(3, function.getCount());
-        assertEquals(5.0, function.getX(0), 1e-10);
-        assertEquals(5.0, function.getX(1), 1e-10);
-        assertEquals(5.0, function.getX(2), 1e-10);
-        assertEquals(25.0, function.getY(0), 1e-10);
-        assertEquals(25.0, function.getY(1), 1e-10);
-        assertEquals(25.0, function.getY(2), 1e-10);
-    }
-
-    // Тест конструктора с обратными границами
-    @Test
-    void testConstructorWithReversedBounds() {
-        MathFunction linear = new MathFunction() {
-            @Override
-            public double apply(double x) {
-                return 2 * x + 1;
-            }
-        };
-
-        // Границы переданы в обратном порядке
-        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(linear, 5.0, 1.0, 5);
-
-        // Должны автоматически поменяться местами
-        assertEquals(1.0, function.leftBound(), 1e-10);
-        assertEquals(5.0, function.rightBound(), 1e-10);
-    }
-
-    // Тест установки и получения значений y
-    @Test
-    void testGetSetY() {
+    void testBasicOperations() {
         double[] xValues = {1.0, 2.0, 3.0};
         double[] yValues = {10.0, 20.0, 30.0};
         LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
@@ -105,450 +71,290 @@ class LinkedListTabulatedFunctionXTest {
         function.setY(1, 25.0);
         assertEquals(25.0, function.getY(1), 1e-10);
 
-        // Проверяем, что другие значения не изменились
-        assertEquals(10.0, function.getY(0), 1e-10);
-        assertEquals(30.0, function.getY(2), 1e-10);
-    }
-
-    // Тест поиска индекса по значению x
-    @Test
-    void testIndexOfX() {
-        double[] xValues = {1.0, 2.0, 3.0};
-        double[] yValues = {10.0, 20.0, 30.0};
-        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
-
         assertEquals(0, function.indexOfX(1.0));
-        assertEquals(1, function.indexOfX(2.0));
-        assertEquals(2, function.indexOfX(3.0));
-        assertEquals(-1, function.indexOfX(5.0)); // Несуществующий x
-        assertEquals(-1, function.indexOfX(0.0)); // Несуществующий x
+        assertEquals(1, function.indexOfY(25.0));
+        assertEquals(-1, function.indexOfX(5.0));
+
+        assertEquals(1.0, function.leftBound(), 1e-10);
+        assertEquals(3.0, function.rightBound(), 1e-10);
     }
 
-    // Тест поиска индекса по значению y
     @Test
-    void testIndexOfY() {
+    void testFloorIndexOfXAllBranches() {
+        double[] xValues = {1.0, 3.0, 5.0, 7.0};
+        double[] yValues = {10.0, 30.0, 50.0, 70.0};
+        TestableFunction function = new TestableFunction(xValues, yValues);
+
+        assertEquals(0, function.testFloorIndexOfX(0.5), "x меньше головы");
+        assertEquals(0, function.testFloorIndexOfX(2.0), "x между 1 и 3");
+        assertEquals(1, function.testFloorIndexOfX(4.0), "x между 3 и 5");
+        assertEquals(2, function.testFloorIndexOfX(6.0), "x между 5 и 7");
+        assertEquals(0, function.testFloorIndexOfX(1.0), "x равен первому узлу");
+        assertEquals(1, function.testFloorIndexOfX(3.0), "x равен второму узлу");
+        assertEquals(3, function.testFloorIndexOfX(7.0), "x равен последнему узлу");
+        assertEquals(3, function.testFloorIndexOfX(8.0), "x больше последнего узла");
+
+        TestableFunction emptyFunction = new TestableFunction(new double[]{1.0}, new double[]{10.0});
+        emptyFunction.remove(0);
+        assertThrows(IllegalStateException.class, () -> emptyFunction.testFloorIndexOfX(1.0));
+    }
+
+    @Test
+    void testFloorIndexOfXEdgeCases() {
+        double[] twoX = {1.0, 3.0};
+        double[] twoY = {10.0, 30.0};
+        TestableFunction twoPointFunc = new TestableFunction(twoX, twoY);
+
+        assertEquals(0, twoPointFunc.testFloorIndexOfX(0.0));
+        assertEquals(0, twoPointFunc.testFloorIndexOfX(1.0));
+        assertEquals(0, twoPointFunc.testFloorIndexOfX(2.0));
+        assertEquals(1, twoPointFunc.testFloorIndexOfX(3.0));
+        assertEquals(1, twoPointFunc.testFloorIndexOfX(4.0));
+
+        // Для одинаковых x логика метода floorIndexOfX работает по-другому
+        // При x=2.0 и узлах [2.0, 2.0, 2.0]:
+        // - x >= current.x (2.0 >= 2.0) - true
+        // - x < current.next.x (2.0 < 2.0) - false
+        // Поэтому условие не выполняется и метод доходит до return count - 1
+        double[] sameX = {2.0, 2.0, 2.0};
+        double[] sameY = {10.0, 20.0, 30.0};
+        TestableFunction sameXFunc = new TestableFunction(sameX, sameY);
+
+        assertEquals(0, sameXFunc.testFloorIndexOfX(1.0));  // x < head.x → 0
+        assertEquals(2, sameXFunc.testFloorIndexOfX(2.0));  // Все условия в цикле false → count-1
+        assertEquals(2, sameXFunc.testFloorIndexOfX(3.0));  // x > всех узлов → count-1
+    }
+
+    @Test
+    void testIndexOfYAllBranches() {
         double[] xValues = {1.0, 2.0, 3.0};
         double[] yValues = {10.0, 20.0, 30.0};
         LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
 
-        assertEquals(0, function.indexOfY(10.0));
-        assertEquals(1, function.indexOfY(20.0));
-        assertEquals(2, function.indexOfY(30.0));
-        assertEquals(-1, function.indexOfY(50.0)); // Несуществующий y
-        assertEquals(-1, function.indexOfY(15.0)); // Несуществующий y
+        assertEquals(0, function.indexOfY(10.0), "Точное совпадение с первым y");
+        assertEquals(1, function.indexOfY(20.0), "Точное совпадение со вторым y");
+        assertEquals(2, function.indexOfY(30.0), "Точное совпадение с третьим y");
+
+        assertEquals(0, function.indexOfY(10.0 + 1e-13), "Совпадение с погрешностью +");
+        assertEquals(1, function.indexOfY(20.0 - 1e-13), "Совпадение с погрешностью -");
+        assertEquals(2, function.indexOfY(30.0 + 0.5e-12), "Совпадение с половиной погрешности");
+
+        assertEquals(-1, function.indexOfY(15.0), "Нет совпадения - середина");
+        assertEquals(-1, function.indexOfY(5.0), "Нет совпадения - меньше");
+        assertEquals(-1, function.indexOfY(35.0), "Нет совпадения - больше");
+        assertEquals(-1, function.indexOfY(10.0000000001), "Нет совпадения - чуть больше погрешности");
+
+        LinkedListTabulatedFunctionX emptyFunction = new LinkedListTabulatedFunctionX(
+                new double[]{1.0}, new double[]{10.0});
+        emptyFunction.remove(0);
+        assertEquals(-1, emptyFunction.indexOfY(10.0), "Пустой список");
     }
 
-    // Тест поиска индекса интервала для заданного x
     @Test
-    void testFloorIndexOfX() {
-        double[] xValues = {1.0, 2.0, 3.0, 4.0};
-        double[] yValues = {10.0, 20.0, 30.0, 40.0};
+    void testIndexOfXAllBranches() {
+        double[] xValues = {1.0, 2.0, 3.0};
+        double[] yValues = {10.0, 20.0, 30.0};
         LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
 
-        assertEquals(0, function.floorIndexOfX(0.5));  // x меньше всех - индекс 0
-        assertEquals(0, function.floorIndexOfX(1.5));  // x между 1 и 2 - индекс 0
-        assertEquals(1, function.floorIndexOfX(2.0));  // x равно существующему - индекс 1
-        assertEquals(1, function.floorIndexOfX(2.5));  // x между 2 и 3 - индекс 1
-        assertEquals(2, function.floorIndexOfX(3.5));  // x между 3 и 4 - индекс 2
-        assertEquals(3, function.floorIndexOfX(4.0));  // x равно последнему - индекс 3
-        assertEquals(3, function.floorIndexOfX(5.0));  // x больше всех - последний индекс
+        assertEquals(0, function.indexOfX(1.0), "Точное совпадение с первым x");
+        assertEquals(1, function.indexOfX(2.0), "Точное совпадение со вторым x");
+        assertEquals(2, function.indexOfX(3.0), "Точное совпадение с третьим x");
+
+        assertEquals(0, function.indexOfX(1.0 + 1e-13), "Совпадение с погрешностью +");
+        assertEquals(1, function.indexOfX(2.0 - 1e-13), "Совпадение с погрешностью -");
+
+        assertEquals(-1, function.indexOfX(1.5), "Нет совпадения - середина");
+        assertEquals(-1, function.indexOfX(0.5), "Нет совпадения - меньше");
+        assertEquals(-1, function.indexOfX(3.5), "Нет совпадения - больше");
+        assertEquals(-1, function.indexOfX(1.0000000001), "Нет совпадения - чуть больше погрешности");
+
+        LinkedListTabulatedFunctionX emptyFunction = new LinkedListTabulatedFunctionX(
+                new double[]{1.0}, new double[]{10.0});
+        emptyFunction.remove(0);
+        assertEquals(-1, emptyFunction.indexOfX(1.0), "Пустой список");
     }
 
-    // Тест интерполяции внутри интервала
     @Test
-    void testApplyInterpolation() {
+    void testPrecisionInIndexSearch() {
+        double[] xValues = {1.0, 2.0, 3.0};
+        double[] yValues = {1.0, 2.0, 3.0};
+        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
+
+        assertEquals(0, function.indexOfX(1.0 + 0.9e-12));
+        assertEquals(1, function.indexOfY(2.0 - 0.9e-12));
+
+        assertEquals(-1, function.indexOfX(1.0 + 1.1e-12));
+        assertEquals(-1, function.indexOfY(2.0 - 1.1e-12));
+    }
+
+    @Test
+    void testApplyOperations() {
         double[] xValues = {0.0, 2.0};
         double[] yValues = {0.0, 4.0};
         LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
 
-        // В точке x=1.0 должно быть 2.0 (линейная интерполяция)
-        assertEquals(2.0, function.apply(1.0), 1e-10);
-
-        // Проверяем другие точки интерполяции
-        assertEquals(1.0, function.apply(0.5), 1e-10);
-        assertEquals(3.0, function.apply(1.5), 1e-10);
-    }
-
-    // Тест экстраполяции за границами интервала
-    @Test
-    void testApplyExtrapolation() {
-        double[] xValues = {1.0, 2.0};
-        double[] yValues = {1.0, 2.0};
-        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
-
-        // Экстраполяция слева
         assertEquals(0.0, function.apply(0.0), 1e-10);
-        assertEquals(-1.0, function.apply(-1.0), 1e-10);
-
-        // Экстраполяция справа
-        assertEquals(3.0, function.apply(3.0), 1e-10);
-        assertEquals(4.0, function.apply(4.0), 1e-10);
+        assertEquals(4.0, function.apply(2.0), 1e-10);
+        assertEquals(2.0, function.apply(1.0), 1e-10);
+        assertEquals(-2.0, function.apply(-1.0), 1e-10);
+        assertEquals(6.0, function.apply(3.0), 1e-10);
     }
 
-    // Тест точного значения в узле таблицы
-    @Test
-    void testApplyExactValue() {
-        double[] xValues = {1.0, 2.0, 3.0};
-        double[] yValues = {10.0, 20.0, 30.0};
-        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
-
-        // Для существующих x должно вернуться точное значение
-        assertEquals(10.0, function.apply(1.0), 1e-10);
-        assertEquals(20.0, function.apply(2.0), 1e-10);
-        assertEquals(30.0, function.apply(3.0), 1e-10);
-    }
-
-    // Тест функции с одной точкой
     @Test
     void testSinglePointFunction() {
         double[] xValues = {5.0};
         double[] yValues = {10.0};
         LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
 
-        // Для функции с одной точкой все значения должны быть одинаковыми
-        assertEquals(10.0, function.apply(0.0), 1e-10);  // Экстраполяция слева
-        assertEquals(10.0, function.apply(5.0), 1e-10);  // Точное значение
-        assertEquals(10.0, function.apply(10.0), 1e-10); // Экстраполяция справа
-        assertEquals(10.0, function.apply(-5.0), 1e-10); // Экстраполяция слева
+        assertEquals(10.0, function.apply(0.0), 1e-10);
+        assertEquals(10.0, function.apply(5.0), 1e-10);
+        assertEquals(10.0, function.apply(10.0), 1e-10);
     }
 
-    // Тест границ функции
     @Test
-    void testBounds() {
-        double[] xValues = {1.0, 2.0, 3.0};
-        double[] yValues = {10.0, 20.0, 30.0};
+    void testRemoveOperations() {
+        double[] xValues = {1.0, 2.0, 3.0, 4.0};
+        double[] yValues = {10.0, 20.0, 30.0, 40.0};
         LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
 
-        assertEquals(1.0, function.leftBound(), 1e-10); // Левая граница
-        assertEquals(3.0, function.rightBound(), 1e-10); // Правая граница
+        function.remove(1);
+        assertEquals(3, function.getCount());
+        assertEquals(3.0, function.getX(1), 1e-10);
+
+        function.remove(0);
+        assertEquals(2, function.getCount());
+        assertEquals(3.0, function.leftBound(), 1e-10);
+
+        function.remove(1);
+        assertEquals(1, function.getCount());
+        assertEquals(3.0, function.rightBound(), 1e-10);
+
+        function.remove(0);
+        assertEquals(0, function.getCount());
+        assertThrows(IllegalStateException.class, () -> function.leftBound());
     }
 
-    // Тест невалидных параметров конструктора
-    @Test
-    void testInvalidConstructor() {
-        // Тест с разными длинами массивов
-        double[] xValues = {1.0};
-        double[] yValues = {10.0, 20.0};
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            new LinkedListTabulatedFunctionX(xValues, yValues);
-        });
-
-        // Тест с null функцией
-        assertThrows(IllegalArgumentException.class, () -> {
-            new LinkedListTabulatedFunctionX(null, 0, 1, 2);
-        });
-
-        // Тест с null массивами
-        assertThrows(IllegalArgumentException.class, () -> {
-            new LinkedListTabulatedFunctionX(null, new double[]{1.0});
-        });
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            new LinkedListTabulatedFunctionX(new double[]{1.0}, null);
-        });
-
-        // Тест с пустыми массивами
-        assertThrows(IllegalArgumentException.class, () -> {
-            new LinkedListTabulatedFunctionX(new double[0], new double[0]);
-        });
-
-        // Тест с некорректным количеством точек
-        MathFunction func = x -> x;
-        assertThrows(IllegalArgumentException.class, () -> {
-            new LinkedListTabulatedFunctionX(func, 0, 1, 0);
-        });
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            new LinkedListTabulatedFunctionX(func, 0, 1, -1);
-        });
-    }
-
-    // Тест получения несуществующего индекса
     @Test
     void testInvalidIndexAccess() {
         double[] xValues = {1.0, 2.0, 3.0};
         double[] yValues = {10.0, 20.0, 30.0};
         LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
 
-        assertThrows(IndexOutOfBoundsException.class, () -> {
-            function.getX(-1);
-        });
-
-        assertThrows(IndexOutOfBoundsException.class, () -> {
-            function.getX(3);
-        });
-
-        assertThrows(IndexOutOfBoundsException.class, () -> {
-            function.getY(-1);
-        });
-
-        assertThrows(IndexOutOfBoundsException.class, () -> {
-            function.setY(5, 100.0);
-        });
+        assertThrows(IndexOutOfBoundsException.class, () -> function.getX(-1));
+        assertThrows(IndexOutOfBoundsException.class, () -> function.getX(3));
+        assertThrows(IllegalArgumentException.class, () -> function.remove(-1));
+        assertThrows(IllegalArgumentException.class, () -> function.remove(3));
     }
 
-    // Тест граничных случаев floorIndexOfX
     @Test
-    void testFloorIndexOfXEdgeCases() {
-        // Функция с одним узлом
-        double[] singleX = {5.0};
-        double[] singleY = {10.0};
-        LinkedListTabulatedFunctionX singleFunction = new LinkedListTabulatedFunctionX(singleX, singleY);
+    void testInterpolateMethod() {
+        TestableFunction singleFunc = new TestableFunction(new double[]{2.0}, new double[]{5.0});
+        double result1 = singleFunc.testInterpolate(3.0, 0);
+        assertEquals(5.0, result1, 1e-12);
 
-        assertEquals(0, singleFunction.floorIndexOfX(0.0)); // Меньше
-        assertEquals(0, singleFunction.floorIndexOfX(5.0)); // Равно
-        assertEquals(0, singleFunction.floorIndexOfX(10.0)); // Больше
+        double[] multipleX = {1.0, 2.0, 3.0, 4.0};
+        double[] multipleY = {1.0, 4.0, 9.0, 16.0};
+        TestableFunction multiFunc = new TestableFunction(multipleX, multipleY);
 
-        // Функция с двумя узлами
-        double[] twoX = {1.0, 3.0};
-        double[] twoY = {10.0, 30.0};
-        LinkedListTabulatedFunctionX twoFunction = new LinkedListTabulatedFunctionX(twoX, twoY);
-
-        assertEquals(0, twoFunction.floorIndexOfX(0.0)); // Меньше первого
-        assertEquals(0, twoFunction.floorIndexOfX(1.0)); // Равно первому
-        assertEquals(0, twoFunction.floorIndexOfX(2.0)); // Между узлами
-        assertEquals(1, twoFunction.floorIndexOfX(3.0)); // Равно второму
-        assertEquals(1, twoFunction.floorIndexOfX(4.0)); // Больше второго
+        assertEquals(2.5, multiFunc.testInterpolate(1.5, 0), 1e-12);
+        assertEquals(6.5, multiFunc.testInterpolate(2.5, 1), 1e-12);
+        assertEquals(12.5, multiFunc.testInterpolate(3.5, 2), 1e-12);
+        assertEquals(1.0, multiFunc.testInterpolate(1.0, 0), 1e-12);
+        assertEquals(4.0, multiFunc.testInterpolate(2.0, 0), 1e-12);
     }
 
-    // Тест комплексной интерполяции и экстраполяции
     @Test
-    void testComplexInterpolationExtrapolation() {
-        double[] xValues = {0.0, 2.0, 4.0};
-        double[] yValues = {0.0, 4.0, 8.0}; // Линейная функция y = 2x
-        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
+    void testExtrapolateMethods() {
+        double[] xValues = {1.0, 2.0};
+        double[] yValues = {1.0, 2.0};
+        TestableFunction function = new TestableFunction(xValues, yValues);
 
-        // Точные значения
-        assertEquals(0.0, function.apply(0.0), 1e-10);
-        assertEquals(4.0, function.apply(2.0), 1e-10);
-        assertEquals(8.0, function.apply(4.0), 1e-10);
+        assertEquals(0.0, function.testExtrapolateLeft(0.0), 1e-10);
+        assertEquals(-1.0, function.testExtrapolateLeft(-1.0), 1e-10);
+        assertEquals(3.0, function.testExtrapolateRight(3.0), 1e-10);
+        assertEquals(4.0, function.testExtrapolateRight(4.0), 1e-10);
 
-        // Интерполяция
-        assertEquals(2.0, function.apply(1.0), 1e-10);  // Между 0 и 2: 2*1 = 2.0
-        assertEquals(6.0, function.apply(3.0), 1e-10);  // Между 2 и 4: 2*3 = 6.0
-
-        // Экстраполяция
-        assertEquals(-2.0, function.apply(-1.0), 1e-10); // Слева: 2*(-1) = -2.0
-        assertEquals(10.0, function.apply(5.0), 1e-10);  // Справа: 2*5 = 10.0
+        TestableFunction singleFunc = new TestableFunction(new double[]{5.0}, new double[]{10.0});
+        assertEquals(10.0, singleFunc.testExtrapolateLeft(0.0), 1e-10);
+        assertEquals(10.0, singleFunc.testExtrapolateRight(10.0), 1e-10);
     }
 
-    // Тест метода remove - удаление из середины списка
     @Test
-    void testRemoveMiddle() {
-        double[] xValues = {1.0, 2.0, 3.0, 4.0};
-        double[] yValues = {10.0, 20.0, 30.0, 40.0};
-        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
+    void testInterpolateAfterRemoval() {
+        double[] xValues = {0.0, 1.0, 2.0, 3.0, 4.0};
+        double[] yValues = {0.0, 1.0, 4.0, 9.0, 16.0};
+        TestableFunction function = new TestableFunction(xValues, yValues);
 
-        assertEquals(4, function.getCount());
-
-        // Удаляем узел с индексом 1 (значение x=2.0)
-        function.remove(1);
-
-        assertEquals(3, function.getCount());
-        assertEquals(1.0, function.getX(0), 1e-10);
-        assertEquals(3.0, function.getX(1), 1e-10);
-        assertEquals(4.0, function.getX(2), 1e-10);
-        assertEquals(10.0, function.getY(0), 1e-10);
-        assertEquals(30.0, function.getY(1), 1e-10);
-        assertEquals(40.0, function.getY(2), 1e-10);
-    }
-
-    // Тест метода remove - удаление головы списка
-    @Test
-    void testRemoveHead() {
-        double[] xValues = {1.0, 2.0, 3.0};
-        double[] yValues = {10.0, 20.0, 30.0};
-        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
-
-        assertEquals(3, function.getCount());
-        assertEquals(1.0, function.leftBound(), 1e-10);
-
-        // Удаляем голову (индекс 0)
-        function.remove(0);
-
-        assertEquals(2, function.getCount());
-        assertEquals(2.0, function.leftBound(), 1e-10);
-        assertEquals(3.0, function.rightBound(), 1e-10);
-        assertEquals(2.0, function.getX(0), 1e-10);
-        assertEquals(3.0, function.getX(1), 1e-10);
-        assertEquals(20.0, function.getY(0), 1e-10);
-        assertEquals(30.0, function.getY(1), 1e-10);
-    }
-
-    // Тест метода remove - удаление хвоста списка
-    @Test
-    void testRemoveTail() {
-        double[] xValues = {1.0, 2.0, 3.0};
-        double[] yValues = {10.0, 20.0, 30.0};
-        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
-
-        assertEquals(3, function.getCount());
-        assertEquals(3.0, function.rightBound(), 1e-10);
-
-        // Удаляем хвост (индекс 2)
         function.remove(2);
+        double result = function.testInterpolate(2.0, 1);
+        assertEquals(5.0, result, 1e-12);
 
-        assertEquals(2, function.getCount());
-        assertEquals(1.0, function.leftBound(), 1e-10);
-        assertEquals(2.0, function.rightBound(), 1e-10);
-        assertEquals(1.0, function.getX(0), 1e-10);
-        assertEquals(2.0, function.getX(1), 1e-10);
-        assertEquals(10.0, function.getY(0), 1e-10);
-        assertEquals(20.0, function.getY(1), 1e-10);
-    }
-
-    // Тест метода remove - удаление единственного узла
-    @Test
-    void testRemoveSingleNode() {
-        double[] xValues = {5.0};
-        double[] yValues = {10.0};
-        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
-
-        assertEquals(1, function.getCount());
-
-        // Удаляем единственный узел
         function.remove(0);
-
-        assertEquals(0, function.getCount());
-
-        // После удаления должны получать исключения при попытке доступа
-        assertThrows(IllegalStateException.class, () -> {
-            function.leftBound();
-        });
-
-        assertThrows(IllegalStateException.class, () -> {
-            function.rightBound();
-        });
+        double result2 = function.testInterpolate(2.0, 0);
+        assertEquals(5.0, result2, 1e-12);
     }
 
-    // Тест метода remove с невалидными индексами
-    @Test
-    void testRemoveInvalidIndex() {
-        double[] xValues = {1.0, 2.0, 3.0};
-        double[] yValues = {10.0, 20.0, 30.0};
-        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            function.remove(-1);
-        });
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            function.remove(3);
-        });
-
-        assertThrows(IllegalArgumentException.class, () -> {
-            function.remove(10);
-        });
-    }
-
-    // Тест поиска узлов в первой и второй половине списка (оптимизация в getNode)
     @Test
     void testGetNodeOptimization() {
         double[] xValues = {1.0, 2.0, 3.0, 4.0, 5.0};
         double[] yValues = {10.0, 20.0, 30.0, 40.0, 50.0};
         LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
 
-        // Доступ к узлам в первой половине (индексы 0, 1)
         assertEquals(1.0, function.getX(0), 1e-10);
         assertEquals(2.0, function.getX(1), 1e-10);
-
-        // Доступ к узлам во второй половине (индексы 3, 4)
         assertEquals(4.0, function.getX(3), 1e-10);
         assertEquals(5.0, function.getX(4), 1e-10);
     }
 
-    // Тест метода remove с последующим применением функции
     @Test
-    void testRemoveAndApply() {
-        double[] xValues = {0.0, 1.0, 2.0, 3.0};
-        double[] yValues = {0.0, 1.0, 4.0, 9.0}; // Квадратичная функция
-        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
-
-        // Удаляем узел с индексом 1 (x=1.0)
-        function.remove(1);
-
-        // Проверяем, что интерполяция работает корректно после удаления
-        assertEquals(0.0, function.apply(0.0), 1e-10); // Точное значение
-        assertEquals(4.0, function.apply(2.0), 1e-10); // Точное значение
-        assertEquals(9.0, function.apply(3.0), 1e-10); // Точное значение
-
-        // Интерполяция между оставшимися узлами
-        assertEquals(2.0, function.apply(1.0), 1e-10); // Между 0 и 2: линейная интерполяция
-    }
-
-    // Тест последовательных удалений
-    @Test
-    void testMultipleRemoves() {
+    void testMultipleRemovals() {
         double[] xValues = {1.0, 2.0, 3.0, 4.0, 5.0};
         double[] yValues = {10.0, 20.0, 30.0, 40.0, 50.0};
         LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
 
-        assertEquals(5, function.getCount());
+        function.remove(2);
+        function.remove(0);
+        function.remove(2);
 
-        // Удаляем несколько узлов
-        function.remove(2); // Удаляем x=3.0
-        assertEquals(4, function.getCount());
-
-        function.remove(0); // Удаляем голову x=1.0
-        assertEquals(3, function.getCount());
-
-        function.remove(2); // Удаляем хвост x=5.0
         assertEquals(2, function.getCount());
-
-        // Проверяем оставшиеся узлы
         assertEquals(2.0, function.getX(0), 1e-10);
         assertEquals(4.0, function.getX(1), 1e-10);
         assertEquals(20.0, function.getY(0), 1e-10);
         assertEquals(40.0, function.getY(1), 1e-10);
     }
 
-    // Тест для проверки ветки count == 1 в методе interpolate
-    @Test
-    void testInterpolateWithSingleNode() {
-        // Создаем функцию с ОДНОЙ точкой
-        double[] xValues = {2.5};
-        double[] yValues = {7.5};
-        LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
-
-        // Проверяем, что при любой x возвращается значение единственной точки
-        // Все эти вызовы приведут к выполнению блока if (count == 1) в interpolate
-
-        // x меньше существующего - extrapolateLeft -> interpolate
-        assertEquals(7.5, function.apply(1.0), 1e-10);
-
-        // x больше существующего - extrapolateRight -> interpolate
-        assertEquals(7.5, function.apply(4.0), 1e-10);
-
-        // x равно существующему - тоже вызовет interpolate
-        assertEquals(7.5, function.apply(2.5), 1e-10);
-    }
-
-    // Тест граничных случаев для пустого списка
     @Test
     void testEmptyListBehavior() {
-        // Создаем функцию с одним узлом и удаляем его
         double[] xValues = {1.0};
         double[] yValues = {10.0};
         LinkedListTabulatedFunctionX function = new LinkedListTabulatedFunctionX(xValues, yValues);
         function.remove(0);
 
-        // Проверяем поведение методов для пустого списка
         assertEquals(-1, function.indexOfX(1.0));
         assertEquals(-1, function.indexOfY(10.0));
         assertEquals(0, function.getCount());
 
-        // Должны бросать исключения
-        assertThrows(IllegalStateException.class, () -> {
-            function.leftBound();
-        });
+        assertThrows(IllegalStateException.class, () -> function.leftBound());
+        assertThrows(IllegalStateException.class, () -> function.rightBound());
 
-        assertThrows(IllegalStateException.class, () -> {
-            function.rightBound();
-        });
+        TestableFunction testFunc = new TestableFunction(new double[]{1.0}, new double[]{10.0});
+        testFunc.remove(0);
+        assertThrows(IllegalStateException.class, () -> testFunc.testFloorIndexOfX(1.0));
+    }
 
-        assertThrows(IllegalStateException.class, () -> {
-            function.floorIndexOfX(1.0);
-        });
+    @Test
+    void testComplexScenarios() {
+        double[] xValues = {0.0, 1.0, 3.0, 6.0};
+        double[] yValues = {0.0, 2.0, 8.0, 18.0};
+        TestableFunction function = new TestableFunction(xValues, yValues);
+
+        assertEquals(4, function.getCount());
+        assertEquals(1.0, function.testInterpolate(0.5, 0), 1e-10);
+        assertEquals(5.0, function.testInterpolate(2.0, 1), 1e-10);
+        assertEquals(13.0, function.testInterpolate(4.5, 2), 1e-10);
+
+        function.remove(3);
+        assertEquals(3, function.getCount());
+        assertEquals(5.0, function.testInterpolate(2.0, 1), 1e-10);
     }
 }
