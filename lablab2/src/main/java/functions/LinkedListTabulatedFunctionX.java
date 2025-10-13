@@ -5,6 +5,13 @@ package functions;
  */
 public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX implements Removable {
 
+   static class Node {
+        public Node next;
+        public Node prev;
+        public double x;
+        public double y;
+    }
+
     private Node head; // Голова двусвязного циклического списка
 
     /**
