@@ -57,19 +57,4 @@ public final class FunctionsIO {
     public static String formatFunction(String functionData) {
         return "Function: " + functionData;
     }
-
-    /**
-     * Метод для чтения функции из файла
-     */
-    public static String readFunction(String filePath) {
-        // Реализация чтения функции
-        return "function data";
-    }
-
-    /**
-     * Метод для записи результата функции
-     */
-    public static void writeResult(String filePath, String result) {
-        // Реализация записи результата
-    }
 }
