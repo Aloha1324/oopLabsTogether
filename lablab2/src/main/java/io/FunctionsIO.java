@@ -74,10 +74,9 @@ public final class FunctionsIO {
 
     /**
      * Записывает табулированную функцию в буферизованный байтовый поток.
-     *
-     * @param outputStream буферизованный выходной поток
-     * @param function табулированная функция для записи
-     * @throws IOException если происходит ошибка ввода-вывода
+     * outputStream буферизованный выходной поток
+     *function табулированная функция для записи
+     * IOException если происходит ошибка ввода-вывода
      */
     public static void writeTabulatedFunction(BufferedOutputStream outputStream, TabulatedFunction function) throws IOException {
         DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
