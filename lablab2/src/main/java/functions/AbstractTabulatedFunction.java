@@ -104,15 +104,16 @@ public abstract class AbstractTabulatedFunction implements TabulatedFunction {
 
     /**
      * Возвращает строковое представление табулированной функции
-     * @return строка в формате "ИмяКласса size = [количество точек]\n[x1; y1]\n[x2; y2]..."
+     *строка в формате "ИмяКласса size = [количество точек]\n[x1; y1]\n[x2; y2]..."
      */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName()).append(" size = ").append(getCount()).append("\n");
+        sb.append(getClass().getSimpleName()).append(" size = ").append(getCount());
 
-        for (int i = 0; i < getCount(); i++) {
-            sb.append("[").append(getX(i)).append("; ").append(getY(i)).append("]\n");
+        // Используем цикл for-each с итератором
+        for (Point point : this) {
+            sb.append("\n[").append(point.x).append("; ").append(point.y).append("]");
         }
 
         return sb.toString();
