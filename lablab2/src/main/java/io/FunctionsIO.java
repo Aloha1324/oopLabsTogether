@@ -1,22 +1,18 @@
 package io;
 
-<<<<<<< HEAD
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.io.DataOutputStream;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Locale;
 import functions.TabulatedFunction;
 import functions.factory.TabulatedFunctionFactory;
-=======
-import functions.TabulatedFunction;
 import functions.Point;
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
->>>>>>> 9099a5cca8d733f33a7148691e6bc45c28783f70
 
 /**
  * Класс для операций ввода-вывода функций.
@@ -26,10 +22,8 @@ public final class FunctionsIO {
 
     /**
      * Исключение, указывающее, что операция не поддерживается.
-     * Создано внутри класса FunctionsIO как вложенный класс.
      */
     public static class UnsupportedOperationException extends RuntimeException {
-
         public UnsupportedOperationException() {
             super();
         }
@@ -45,14 +39,22 @@ public final class FunctionsIO {
 
     /**
      * Приватный конструктор, который предотвращает создание экземпляров класса.
-     * Бросает UnsupportedOperationException при попытке вызова.
-     *
-     * @throws UnsupportedOperationException всегда, при попытке создания экземпляра
      */
-    private FunctionsIO() throws UnsupportedOperationException {
+    private FunctionsIO() {
         throw new UnsupportedOperationException("Создание экземпляров класса FunctionsIO запрещено");
     }
 
+    /**
+     * Сериализует функцию и записывает в буферизованный байтовый поток
+     * @param stream буферизованный байтовый поток
+     * @param function табулированная функция для сериализации
+     * @throws IOException если произошла ошибка ввода-вывода
+     */
+    public static void serialize(BufferedOutputStream stream, TabulatedFunction function) throws IOException {
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(stream);
+        objectOutputStream.writeObject(function);
+        objectOutputStream.flush();
+    }
 
     /**
      * Записывает табулированную функцию в буферизованный байтовый поток.
@@ -77,7 +79,26 @@ public final class FunctionsIO {
         outputStream.flush();
     }
 
-    // Существующие статические методы остаются без изменений
+    /**
+     * Записывает представление функции в буферизованный символьный поток
+     * @param writer буферизованный поток записи
+     * @param function табулированная функция для записи
+     */
+    public static void writeTabulatedFunction(BufferedWriter writer, TabulatedFunction function) {
+        PrintWriter printWriter = new PrintWriter(writer);
+
+        // Записываем количество точек
+        printWriter.println(function.getCount());
+
+        // Записываем все точки функции
+        for (Point point : function) {
+            printWriter.printf("%f %f\n", point.x, point.y);
+        }
+
+        // Сбрасываем буфер, но не закрываем поток
+        printWriter.flush();
+    }
+
     /**
      * Читает данные из буферизованного потока и создает функцию с помощью фабрики
      * @param reader буферизованный поток чтения
@@ -134,20 +155,13 @@ public final class FunctionsIO {
 
     /**
      * Пример статического метода для работы с функциями.
-     *
-     * @param input входные данные функции
-     * @return результат вычисления
      */
     public static double processFunction(double input) {
-        // Реализация обработки функции
-        return input * input; // пример реализации
+        return input * input;
     }
 
     /**
      * Другой пример статического метода.
-     *
-     * @param functionData данные функции
-     * @return обработанные данные
      */
     public static String formatFunction(String functionData) {
         return "Function: " + functionData;
