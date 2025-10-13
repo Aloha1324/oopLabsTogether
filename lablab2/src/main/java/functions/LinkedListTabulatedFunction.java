@@ -6,10 +6,18 @@ import exceptions.InterpolationException;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.io.Serializable;
 
-public class LinkedListTabulatedFunction extends AbstractTabulatedFunction implements Iterable<Point>, Cloneable {
+public class LinkedListTabulatedFunction extends AbstractTabulatedFunction implements Iterable<Point>, Cloneable, Serializable {
 
-    private class Node {
+    // Сгенерированный serialVersionUID (значение будет зависеть от вашей IDE)
+    private static final long serialVersionUID = 123456789L; // TODO: Заменить на сгенерированное в IDE
+
+    // Внутренний класс Node также должен быть Serializable
+    private class Node implements Serializable {
+        // serialVersionUID для внутреннего класса
+        private static final long serialVersionUID = 987654321L; // TODO: Заменить на сгенерированное в IDE
+
         Point value;
         Node next;
 

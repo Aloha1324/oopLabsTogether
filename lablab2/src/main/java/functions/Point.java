@@ -1,8 +1,13 @@
 package functions;
 
-public class Point {
+import java.io.Serializable;
+
+public class Point implements Serializable {
+    // Сгенерированный serialVersionUID (замените на значение из вашей IDE)
+    private static final long serialVersionUID = 1L; // TODO: Заменить на сгенерированное в IDE
+
     public double x;
-    public double y;  // убрано final
+    public double y;
 
     public Point(double x, double y) {
         this.x = x;

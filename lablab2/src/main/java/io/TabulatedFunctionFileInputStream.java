@@ -32,11 +32,18 @@ public class TabulatedFunctionFileInputStream {
             }
         }
 
-        // Используем try-with-resources для файлового потока
-        try (FileInputStream fis = new FileInputStream("input/binary function.bin");
-             BufferedInputStream bis = new BufferedInputStream(fis)) {
+        File file = new File("input/binary function.bin");
+        if (!file.exists()) {
+            System.err.println("Файл не найден: " + file.getAbsolutePath());
+            System.err.println("Сначала создайте файл через CreateInputFile");
+            return;
+        }
 
-            System.out.println("Чтение функции из файла...");
+        System.out.println("Чтение функции из файла: " + file.getAbsolutePath());
+
+        // Используем try-with-resources для файлового потока
+        try (FileInputStream fis = new FileInputStream(file);
+             BufferedInputStream bis = new BufferedInputStream(fis)) {
 
             // Создаем фабрику для ArrayTabulatedFunction
             TabulatedFunctionFactory arrayFactory = new TabulatedFunctionFactory() {
@@ -46,7 +53,7 @@ public class TabulatedFunctionFileInputStream {
                 }
             };
 
-            // Читаем функцию из файла с помощью нового метода
+            // Читаем функцию из файла с помощью метода для BufferedInputStream
             TabulatedFunction function = FunctionsIO.readTabulatedFunction(bis, arrayFactory);
 
             // Выводим функцию
@@ -70,38 +77,95 @@ public class TabulatedFunctionFileInputStream {
         System.out.println("1.0 2.0");
         System.out.println("2.0 4.0");
 
-        // Не используем try-with-resources, так как нельзя закрывать System.in
-        BufferedReader reader = null;
+        // Для работы с BufferedInputStream из консоли нужно использовать PipedInputStream
+        // Но это сложно, поэтому используем временный файл как промежуточное решение
+
+        File tempFile = null;
+        InputStreamReader inputStreamReader = null;
+        BufferedReader bufferedReader = null;
 
         try {
-            // Создаем BufferedReader для чтения из консоли
-            reader = new BufferedReader(new InputStreamReader(System.in));
+            // Создаем временный файл для бинарных данных
+            tempFile = File.createTempFile("console_input", ".bin");
+            tempFile.deleteOnExit(); // Удалим при завершении программы
 
-            // Создаем фабрику для LinkedListTabulatedFunction
-            TabulatedFunctionFactory linkedListFactory = new TabulatedFunctionFactory() {
-                @Override
-                public TabulatedFunction create(double[] xValues, double[] yValues) {
-                    return new LinkedListTabulatedFunction(xValues, yValues);
+            // Создаем потоки для чтения текста из консоли
+            inputStreamReader = new InputStreamReader(System.in);
+            bufferedReader = new BufferedReader(inputStreamReader);
+
+            // Читаем количество точек из консоли
+            String countLine = bufferedReader.readLine();
+            int count = Integer.parseInt(countLine.trim());
+
+            // Создаем массивы для данных
+            double[] xValues = new double[count];
+            double[] yValues = new double[count];
+
+            // Читаем пары x, y из консоли
+            for (int i = 0; i < count; i++) {
+                String line = bufferedReader.readLine();
+                if (line == null) {
+                    throw new IOException("Недостаточно данных. Ожидалось " + count + " точек");
                 }
-            };
 
-            // Используем существующий метод readTabulatedFunction для BufferedReader
-            TabulatedFunction function = FunctionsIO.readTabulatedFunction(reader, linkedListFactory);
+                String[] parts = line.trim().split("\\s+");
+                if (parts.length < 2) {
+                    throw new IOException("Неверный формат. Ожидались два числа через пробел: " + line);
+                }
 
-            // Вычисляем производную
-            TabulatedDifferentialOperator differentialOperator = new TabulatedDifferentialOperator();
-            TabulatedFunction derivative = differentialOperator.derive(function);
+                xValues[i] = Double.parseDouble(parts[0]);
+                yValues[i] = Double.parseDouble(parts[1]);
+            }
 
-            // Выводим производную
-            System.out.println("Производная функции:");
-            System.out.println(derivative.toString());
+            // Записываем данные во временный файл в бинарном формате
+            try (FileOutputStream fos = new FileOutputStream(tempFile);
+                 BufferedOutputStream bos = new BufferedOutputStream(fos);
+                 DataOutputStream dos = new DataOutputStream(bos)) {
+
+                dos.writeInt(count);
+                for (int i = 0; i < count; i++) {
+                    dos.writeDouble(xValues[i]);
+                    dos.writeDouble(yValues[i]);
+                }
+            }
+
+            // Теперь читаем из временного файла через BufferedInputStream
+            try (FileInputStream fis = new FileInputStream(tempFile);
+                 BufferedInputStream bis = new BufferedInputStream(fis)) {
+
+                // Создаем фабрику для LinkedListTabulatedFunction
+                TabulatedFunctionFactory linkedListFactory = new TabulatedFunctionFactory() {
+                    @Override
+                    public TabulatedFunction create(double[] xValues, double[] yValues) {
+                        return new LinkedListTabulatedFunction(xValues, yValues);
+                    }
+                };
+
+                // Используем метод readTabulatedFunction для BufferedInputStream
+                TabulatedFunction function = FunctionsIO.readTabulatedFunction(bis, linkedListFactory);
+
+                // Вычисляем производную с помощью TabulatedDifferentialOperator
+                TabulatedDifferentialOperator differentialOperator = new TabulatedDifferentialOperator();
+                TabulatedFunction derivative = differentialOperator.derive(function);
+
+                // Выводим производную
+                System.out.println("Производная функции:");
+                System.out.println(derivative.toString());
+            }
 
         } catch (IOException e) {
             System.err.println("Ошибка при чтении из консоли:");
             e.printStackTrace();
+        } catch (NumberFormatException e) {
+            System.err.println("Ошибка формата числа:");
+            e.printStackTrace();
         } finally {
-            // Не закрываем reader, так как он оборачивает System.in
-            // System.in закрывать нельзя!
+            // Удаляем временный файл
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete();
+            }
+
+
         }
     }
 }
