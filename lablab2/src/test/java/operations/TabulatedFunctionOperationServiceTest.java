@@ -1,8 +1,11 @@
-package functions;
+package operations;
 
 import exceptions.InconsistentFunctionsException;
+import functions.ArrayTabulatedFunction;
+import functions.LinkedListTabulatedFunction;
+import functions.Point;
+import functions.TabulatedFunction;
 import org.junit.jupiter.api.Test;
-import operations.TabulatedFunctionOperationService;
 import functions.factory.ArrayTabulatedFunctionFactory;
 import functions.factory.LinkedListTabulatedFunctionFactory;
 import functions.factory.TabulatedFunctionFactory;
