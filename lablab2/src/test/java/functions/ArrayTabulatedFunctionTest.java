@@ -410,4 +410,5 @@ public class ArrayTabulatedFunctionTest {
         assertEquals(6.0, function.getX(5), 1e-10);
         assertEquals(6, function.getCount(), "После вставки количество точек должно быть 6");
     }
+
 }

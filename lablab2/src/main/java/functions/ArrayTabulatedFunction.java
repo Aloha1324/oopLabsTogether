@@ -14,9 +14,7 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction implements
     private double[] xValues;
     private double[] yValues;
 
-    /**
-     * Конструктор на основе массивов
-     */
+    // Конструктор на основе массивов
     public ArrayTabulatedFunction(double[] xValues, double[] yValues) {
         if (xValues == null || yValues == null)
             throw new NullPointerException("Arrays must not be null");
@@ -28,9 +26,7 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction implements
         this.yValues = Arrays.copyOf(yValues, yValues.length);
     }
 
-    /**
-     * Конструктор на основе функции, диапазона, количества точек
-     */
+    // Конструктор на основе функции, диапазона, количества точек
     public ArrayTabulatedFunction(MathFunction func, double xFrom, double xTo, int count) {
         if (func == null)
             throw new NullPointerException("Function must not be null");
@@ -49,9 +45,7 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction implements
         }
     }
 
-    /**
-     * Вставка точки (или обновление, если x уже есть)
-     */
+    // Вставка точки (или обновление, если x уже есть)
     public void insert(double x, double y) {
         int index = indexOfX(x);
         if (index != -1) {
@@ -206,20 +200,24 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction implements
         return super.toString();
     }
 
+    // Итератор по массиву на основе индекса i (по требованию!)
     @Override
     public Iterator<Point> iterator() {
-        return new Iterator<>() {
-            private int currentIndex = 0;
+        return new Iterator<Point>() {
+            private int i = 0;
 
             @Override
             public boolean hasNext() {
-                return currentIndex < getCount();
+                return i < getCount();
             }
 
             @Override
             public Point next() {
-                if (!hasNext()) throw new java.util.NoSuchElementException("No more points available");
-                return new Point(xValues[currentIndex], yValues[currentIndex++]);
+                if (!hasNext())
+                    throw new java.util.NoSuchElementException("No more points available");
+                Point point = new Point(xValues[i], yValues[i]);
+                i++;
+                return point;
             }
         };
     }

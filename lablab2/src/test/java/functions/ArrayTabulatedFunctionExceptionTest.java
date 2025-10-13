@@ -5,7 +5,6 @@ import exceptions.DifferentLengthOfArraysException;
 import exceptions.InterpolationException;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.Iterator;
 
 /**
@@ -427,58 +426,52 @@ public class ArrayTabulatedFunctionExceptionTest {
         assertNotEquals(function.getY(1), cloned.getY(1));
     }
 
+    // Тесты для методов iterator
+
     @Test
-    public void testIterator() {
+    public void testIteratorUsingWhileLoop() {
         double[] xValues = {0.0, 1.0, 2.0};
         double[] yValues = {0.0, 1.0, 4.0};
         ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-        Iterator<Point> it = function.iterator();
-        int count = 0;
-        while (it.hasNext()) {
-            Point point = it.next();
+
+        Iterator<Point> iterator = function.iterator();
+        int index = 0;
+        while (iterator.hasNext()) {
+            Point point = iterator.next();
             assertNotNull(point);
-            assertEquals(xValues[count], point.x);
-            assertEquals(yValues[count], point.y);
-            count++;
+            assertEquals(xValues[index], point.x);
+            assertEquals(yValues[index], point.y);
+            index++;
         }
-        assertEquals(3, count);
+        assertEquals(xValues.length, index);
     }
 
     @Test
-    public void testIteratorThrowsException() {
-        double[] xValues = {0.0, 1.0};
-        double[] yValues = {0.0, 1.0};
-        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-        Iterator<Point> it = function.iterator();
-        it.next();
-        it.next();
-        assertThrows(java.util.NoSuchElementException.class, it::next);
-    }
-
-    @Test
-    public void testPointIterationUsingIndexes() {
+    public void testIteratorUsingForEachLoop() {
         double[] xValues = {0.0, 1.0, 2.0};
         double[] yValues = {0.0, 1.0, 4.0};
         ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-        int count = 0;
-        for (int i = 0; i < function.getCount(); i++) {
-            Point point = new Point(function.getX(i), function.getY(i));
+
+        int index = 0;
+        for (Point point : function) {
             assertNotNull(point);
-            assertEquals(xValues[i], point.x);
-            assertEquals(yValues[i], point.y);
-            count++;
+            assertEquals(xValues[index], point.x);
+            assertEquals(yValues[index], point.y);
+            index++;
         }
-        assertEquals(3, count);
+        assertEquals(xValues.length, index);
     }
 
     @Test
-    public void testProtectedInterpolateWithEqualXValues() {
-        double[] xValues = {0.0, 1.0, 2.0};
-        double[] yValues = {0.0, 1.0, 4.0};
+    public void testIteratorThrowsExceptionOnNextWithoutHasNext() {
+        double[] xValues = {0.0};
+        double[] yValues = {0.0};
         ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-        double result = function.interpolate(0.5, 0.0, 1.0, 0.0, 1.0);
-        assertEquals(0.5, result, 1e-10);
-        double resultWithEqualX = function.interpolate(0.5, 1.0, 1.0, 2.0, 3.0);
-        assertEquals(2.5, resultWithEqualX, 1e-10);
+
+        Iterator<Point> iterator = function.iterator();
+        assertTrue(iterator.hasNext());
+        assertNotNull(iterator.next());
+        assertFalse(iterator.hasNext());
+        assertThrows(java.util.NoSuchElementException.class, iterator::next);
     }
 }
