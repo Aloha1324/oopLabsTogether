@@ -7,7 +7,6 @@ public class LinkedListTabulatedFunctionTest {
 
     @Test
     public void testInsertIntoEmptyList() {
-        // Создаем пустую функцию с помощью конструктора без параметров
         LinkedListTabulatedFunction function = new LinkedListTabulatedFunction();
         function.insert(2.0, 5.0);
 
@@ -21,7 +20,6 @@ public class LinkedListTabulatedFunctionTest {
 
     @Test
     public void testInsertAtBeginning() {
-        // Используем конструктор с массивами
         LinkedListTabulatedFunction function = new LinkedListTabulatedFunction(
                 new double[]{3.0, 4.0}, new double[]{9.0, 16.0}
         );
@@ -117,7 +115,6 @@ public class LinkedListTabulatedFunctionTest {
         assertEquals(5, function.getCount(),
                 "После всех вставок должно быть 5 элементов");
 
-        // Проверка упорядоченности по X
         assertEquals(1.0, function.getX(0), 1e-10,
                 "Первый элемент должен иметь наименьший X");
         assertEquals(2.0, function.getX(1), 1e-10,
@@ -170,7 +167,6 @@ public class LinkedListTabulatedFunctionTest {
 
         function.insert(2.0, 4.0);
 
-        // Проверка целостности структуры списка
         assertEquals(1.0, function.getX(0), 1e-10,
                 "Первый элемент должен сохранить свое значение X");
         assertEquals(2.0, function.getX(1), 1e-10,
@@ -188,14 +184,12 @@ public class LinkedListTabulatedFunctionTest {
 
     @Test
     public void testInsertIntoFunctionFromMathFunction() {
-        // Тестируем конструктор на основе MathFunction
         MathFunction square = x -> x * x;
         LinkedListTabulatedFunction function = new LinkedListTabulatedFunction(square, 0.0, 2.0, 3);
 
         assertEquals(3, function.getCount(),
                 "Функция должна быть создана с 3 точками");
 
-        // Вставляем новую точку
         function.insert(1.5, 2.25);
 
         assertEquals(4, function.getCount(),
@@ -218,13 +212,24 @@ public class LinkedListTabulatedFunctionTest {
     }
 
     @Test
-    public void testIteratorThrowsException() {
+    public void testIterator() {
         LinkedListTabulatedFunction function = new LinkedListTabulatedFunction(
                 new double[]{1.0, 2.0}, new double[]{1.0, 4.0}
         );
 
-        assertThrows(UnsupportedOperationException.class, () -> {
-            function.iterator();
-        }, "iterator() должен бросать UnsupportedOperationException");
+        java.util.Iterator<Point> iterator = function.iterator();
+        assertNotNull(iterator, "Iterator should not be null");
+
+        assertTrue(iterator.hasNext(), "Iterator should have next element");
+        Point firstPoint = iterator.next();
+        assertEquals(1.0, firstPoint.x, 1e-10, "First point x should be 1.0");
+        assertEquals(1.0, firstPoint.y, 1e-10, "First point y should be 1.0");
+
+        assertTrue(iterator.hasNext(), "Iterator should have second element");
+        Point secondPoint = iterator.next();
+        assertEquals(2.0, secondPoint.x, 1e-10, "Second point x should be 2.0");
+        assertEquals(4.0, secondPoint.y, 1e-10, "Second point y should be 4.0");
+
+        assertFalse(iterator.hasNext(), "Iterator should not have more elements after last one");
     }
 }

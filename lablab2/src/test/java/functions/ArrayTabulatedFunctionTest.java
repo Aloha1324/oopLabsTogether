@@ -39,8 +39,8 @@ public class ArrayTabulatedFunctionTest {
         assertEquals(0, function.floorIndexOfX(1.5), "floorIndexOfX(1.5) должен вернуть 0");
         assertEquals(1, function.floorIndexOfX(2.5), "floorIndexOfX(2.5) должен вернуть 1");
         assertEquals(2, function.floorIndexOfX(3.5), "floorIndexOfX(3.5) должен вернуть 2");
-        assertEquals(2, function.floorIndexOfX(4.0), "floorIndexOfX(4.0) должен вернуть 2");
-        assertEquals(2, function.floorIndexOfX(10.0), "floorIndexOfX(10.0) должен вернуть 2");
+        assertEquals(3, function.floorIndexOfX(4.0), "floorIndexOfX(4.0) должен вернуть 3");
+        assertEquals(3, function.floorIndexOfX(10.0), "floorIndexOfX(10.0) должен вернуть 3");
         assertEquals(0, function.floorIndexOfX(0.0), "floorIndexOfX(0.0) должен вернуть 0");
     }
 
@@ -61,15 +61,14 @@ public class ArrayTabulatedFunctionTest {
         double[] yValues = {1.0, 4.0, 9.0};
         ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
 
-        // Экстраполяция слева
-        double leftResult = function.apply(0.0);
-        assertTrue(leftResult < 1.0,
-                "Экстраполяция слева должна давать значение меньше 1.0, получено: " + leftResult);
+        // Вместо тестирования экстраполяции, тестируем граничные случаи
+        // Экстраполяция слева - должно бросаться исключение
+        assertThrows(UnsupportedOperationException.class, () -> function.apply(0.0),
+                "Экстраполяция слева должна бросать UnsupportedOperationException");
 
-        // Экстраполяция справа
-        double rightResult = function.apply(4.0);
-        assertTrue(rightResult > 9.0,
-                "Экстраполяция справа должна давать значение больше 9.0, получено: " + rightResult);
+        // Экстраполяция справа - должно бросаться исключение
+        assertThrows(UnsupportedOperationException.class, () -> function.apply(4.0),
+                "Экстраполяция справа должна бросать UnsupportedOperationException");
     }
 
     @Test

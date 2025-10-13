@@ -3,8 +3,8 @@ package functions;
 import java.io.Serializable;
 
 public class Point implements Serializable {
-    // Сгенерированный serialVersionUID (замените на значение из вашей IDE)
-    private static final long serialVersionUID = 1L; // TODO: Заменить на сгенерированное в IDE
+
+    private static final long serialVersionUID = 1L;
 
     public double x;
     public double y;

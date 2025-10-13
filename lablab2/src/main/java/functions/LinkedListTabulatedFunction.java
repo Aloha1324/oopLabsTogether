@@ -10,14 +10,10 @@ import java.io.Serializable;
 
 public class LinkedListTabulatedFunction extends AbstractTabulatedFunction implements Iterable<Point>, Cloneable, Serializable {
 
-    // Сгенерированный serialVersionUID (значение будет зависеть от вашей IDE)
-    private static final long serialVersionUID = 123456789L; // TODO: Заменить на сгенерированное в IDE
+    private static final long serialVersionUID = 123456789L;
 
-    // Внутренний класс Node также должен быть Serializable
     private class Node implements Serializable {
-        // serialVersionUID для внутреннего класса
-        private static final long serialVersionUID = 987654321L; // TODO: Заменить на сгенерированное в IDE
-
+        private static final long serialVersionUID = 987654321L;
         Point value;
         Node next;
 
@@ -29,19 +25,19 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
     private Node head;
     private int count;
 
-    // Конструктор без параметров
     public LinkedListTabulatedFunction() {
         this.head = null;
         this.count = 0;
     }
 
-    // Конструктор на основе массивов
     public LinkedListTabulatedFunction(double[] xValues, double[] yValues) {
         if (xValues == null || yValues == null)
             throw new NullPointerException("Arrays must not be null");
         if (xValues.length < 2)
             throw new IllegalArgumentException("At least 2 points required");
-        checkLengthIsTheSame(xValues, yValues);
+        if (xValues.length != yValues.length)
+            throw new DifferentLengthOfArraysException("Arrays length mismatch");
+
         checkSorted(xValues);
 
         this.count = xValues.length;
@@ -54,7 +50,6 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         }
     }
 
-    // Новый конструктор на основе функции и интервала
     public LinkedListTabulatedFunction(MathFunction func, double xFrom, double xTo, int count) {
         if (func == null)
             throw new NullPointerException("Function must not be null");
@@ -265,7 +260,7 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
 
     @Override
     public Iterator<Point> iterator() {
-        return new Iterator<Point>() {
+        return new Iterator<>() {
             private Node currentNode = head;
             private int currentIndex = 0;
 
@@ -277,9 +272,8 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
             @Override
             public Point next() {
                 if (!hasNext()) {
-                    throw new NoSuchElementException("No more elements in the tabulated function");
+                    throw new NoSuchElementException("No more elements");
                 }
-
                 Point point = new Point(currentNode.value.x, currentNode.value.y);
                 currentNode = currentNode.next;
                 currentIndex++;
