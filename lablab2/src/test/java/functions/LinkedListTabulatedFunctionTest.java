@@ -1,249 +1,230 @@
 package functions;
 
-import exceptions.ArrayIsNotSortedException;
-import exceptions.DifferentLengthOfArraysException;
-import exceptions.InterpolationException;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
+public class LinkedListTabulatedFunctionTest {
 
-public class LinkedListTabulatedFunction extends AbstractTabulatedFunction implements Iterable<Point>, Cloneable {
+    @Test
+    public void testInsertIntoEmptyList() {
+        // Создаем пустую функцию с помощью конструктора без параметров
+        LinkedListTabulatedFunction function = new LinkedListTabulatedFunction();
+        function.insert(2.0, 5.0);
 
-    private class Node {
-        Point value;
-        Node next;
-
-        Node(Point value) {
-            this.value = value;
-        }
+        assertEquals(1, function.getCount(),
+                "После вставки в пустой список количество элементов должно быть 1");
+        assertEquals(2.0, function.getX(0), 1e-10,
+                "X-координата вставленного элемента не соответствует ожидаемой");
+        assertEquals(5.0, function.getY(0), 1e-10,
+                "Y-координата вставленного элемента не соответствует ожидаемой");
     }
 
-    private Node head;
-    private int count;
+    @Test
+    public void testInsertAtBeginning() {
+        // Используем конструктор с массивами
+        LinkedListTabulatedFunction function = new LinkedListTabulatedFunction(
+                new double[]{3.0, 4.0}, new double[]{9.0, 16.0}
+        );
 
-    // Конструктор без параметров — создает пустой список
-    public LinkedListTabulatedFunction() {
-        this.head = null;
-        this.count = 0;
+        function.insert(1.0, 1.0);
+
+        assertEquals(3, function.getCount(),
+                "После вставки в начало количество элементов должно увеличиться на 1");
+        assertEquals(1.0, function.getX(0), 1e-10,
+                "Новый элемент должен стать головой списка");
+        assertEquals(3.0, function.getX(1), 1e-10,
+                "Прежний первый элемент должен сместиться на вторую позицию");
+        assertEquals(4.0, function.getX(2), 1e-10,
+                "Последний элемент должен остаться на своей позиции");
     }
 
-    // Конструктор на основе массивов
-    public LinkedListTabulatedFunction(double[] xValues, double[] yValues) {
-        if (xValues == null || yValues == null)
-            throw new NullPointerException("Arrays must not be null");
-        if (xValues.length < 2)
-            throw new IllegalArgumentException("At least 2 points required");
-        checkLengthIsTheSame(xValues, yValues);
-        checkSorted(xValues);
+    @Test
+    public void testInsertAtEnd() {
+        LinkedListTabulatedFunction function = new LinkedListTabulatedFunction(
+                new double[]{1.0, 2.0}, new double[]{1.0, 4.0}
+        );
 
-        this.count = xValues.length;
-        head = new Node(new Point(xValues[0], yValues[0]));
-        Node current = head;
-        for (int i = 1; i < count; i++) {
-            Node node = new Node(new Point(xValues[i], yValues[i]));
-            current.next = node;
-            current = node;
-        }
+        function.insert(3.0, 9.0);
+
+        assertEquals(3, function.getCount(),
+                "После вставки в конец количество элементов должно увеличиться на 1");
+        assertEquals(3.0, function.getX(2), 1e-10,
+                "Новый элемент должен стать хвостом списка");
+        assertEquals(9.0, function.getY(2), 1e-10,
+                "Y-координата нового элемента в хвосте не соответствует ожидаемой");
     }
 
-    @Override
-    public int getCount() {
-        return count;
+    @Test
+    public void testInsertInMiddle() {
+        LinkedListTabulatedFunction function = new LinkedListTabulatedFunction(
+                new double[]{1.0, 3.0, 4.0}, new double[]{1.0, 9.0, 16.0}
+        );
+
+        function.insert(2.0, 4.0);
+
+        assertEquals(4, function.getCount(),
+                "После вставки в середину количество элементов должно увеличиться на 1");
+        assertEquals(2.0, function.getX(1), 1e-10,
+                "Новый элемент должен быть вставлен на правильную позицию в середине");
+        assertEquals(4.0, function.getY(1), 1e-10,
+                "Y-координата элемента в середине не соответствует ожидаемой");
     }
 
-    @Override
-    public double getX(int index) {
-        checkIndex(index);
-        return getNode(index).value.x;
+    @Test
+    public void testInsertDuplicateX() {
+        LinkedListTabulatedFunction function = new LinkedListTabulatedFunction(
+                new double[]{1.0, 2.0, 3.0}, new double[]{1.0, 4.0, 9.0}
+        );
+
+        function.insert(2.0, 20.0);
+
+        assertEquals(3, function.getCount(),
+                "При вставке с существующим X количество элементов не должно изменяться");
+        assertEquals(20.0, function.getY(1), 1e-10,
+                "Y-координата должна обновиться при вставке с существующим X");
     }
 
-    @Override
-    public double getY(int index) {
-        checkIndex(index);
-        return getNode(index).value.y;
+    @Test
+    public void testInsertUpdatesCount() {
+        LinkedListTabulatedFunction function = new LinkedListTabulatedFunction();
+
+        assertEquals(0, function.getCount(),
+                "Изначально количество элементов должно быть 0");
+
+        function.insert(1.0, 1.0);
+        assertEquals(1, function.getCount(),
+                "После первой вставки количество элементов должно быть 1");
+
+        function.insert(2.0, 4.0);
+        assertEquals(2, function.getCount(),
+                "После второй вставки количество элементов должно быть 2");
+
+        function.insert(1.0, 10.0);
+        assertEquals(2, function.getCount(),
+                "При вставке с существующим X количество элементов не должно изменяться");
     }
 
-    @Override
-    public void setY(int index, double value) {
-        checkIndex(index);
-        getNode(index).value.y = value;
+    @Test
+    public void testInsertMaintainsOrdering() {
+        LinkedListTabulatedFunction function = new LinkedListTabulatedFunction();
+
+        function.insert(5.0, 25.0);
+        function.insert(1.0, 1.0);
+        function.insert(3.0, 9.0);
+        function.insert(2.0, 4.0);
+        function.insert(4.0, 16.0);
+
+        assertEquals(5, function.getCount(),
+                "После всех вставок должно быть 5 элементов");
+
+        // Проверка упорядоченности по X
+        assertEquals(1.0, function.getX(0), 1e-10,
+                "Первый элемент должен иметь наименьший X");
+        assertEquals(2.0, function.getX(1), 1e-10,
+                "Второй элемент должен быть упорядочен по X");
+        assertEquals(3.0, function.getX(2), 1e-10,
+                "Третий элемент должен быть упорядочен по X");
+        assertEquals(4.0, function.getX(3), 1e-10,
+                "Четвертый элемент должен быть упорядочен по X");
+        assertEquals(5.0, function.getX(4), 1e-10,
+                "Пятый элемент должен иметь наибольший X");
     }
 
-    private Node getNode(int index) {
-        Node node = head;
-        for (int i = 0; i < index; i++)
-            node = node.next;
-        return node;
+    @Test
+    public void testInsertWithNegativeValues() {
+        LinkedListTabulatedFunction function = new LinkedListTabulatedFunction();
+
+        function.insert(-2.0, 4.0);
+        function.insert(-1.0, 1.0);
+        function.insert(-3.0, 9.0);
+
+        assertEquals(3, function.getCount(),
+                "После вставки отрицательных значений должно быть 3 элемента");
+        assertEquals(-3.0, function.getX(0), 1e-10,
+                "Элементы с отрицательными X должны быть упорядочены правильно");
+        assertEquals(-2.0, function.getX(1), 1e-10,
+                "Элементы с отрицательными X должны быть упорядочены правильно");
+        assertEquals(-1.0, function.getX(2), 1e-10,
+                "Элементы с отрицательными X должны быть упорядочены правильно");
     }
 
-    private void checkIndex(int index) {
-        if (index < 0 || index >= getCount())
-            throw new IllegalArgumentException("Index out of bounds: " + index);
+    @Test
+    public void testInsertWithSameXMultipleTimes() {
+        LinkedListTabulatedFunction function = new LinkedListTabulatedFunction();
+
+        function.insert(1.0, 10.0);
+        function.insert(1.0, 20.0);
+        function.insert(1.0, 30.0);
+
+        assertEquals(1, function.getCount(),
+                "Многократная вставка с одинаковым X не должна увеличивать количество элементов");
+        assertEquals(30.0, function.getY(0), 1e-10,
+                "Должно сохраняться последнее вставленное значение Y");
     }
 
-    @Override
-    public int indexOfX(double x) {
-        Node current = head;
-        for (int i = 0; i < count; i++) {
-            if (Double.compare(current.value.x, x) == 0)
-                return i;
-            current = current.next;
-        }
-        return -1;
+    @Test
+    public void testInsertPreservesListStructure() {
+        LinkedListTabulatedFunction function = new LinkedListTabulatedFunction(
+                new double[]{1.0, 3.0}, new double[]{1.0, 9.0}
+        );
+
+        function.insert(2.0, 4.0);
+
+        // Проверка целостности структуры списка
+        assertEquals(1.0, function.getX(0), 1e-10,
+                "Первый элемент должен сохранить свое значение X");
+        assertEquals(2.0, function.getX(1), 1e-10,
+                "Второй элемент должен быть новым вставленным элементом");
+        assertEquals(3.0, function.getX(2), 1e-10,
+                "Третий элемент должен сохранить свое значение X");
+
+        assertEquals(1.0, function.getY(0), 1e-10,
+                "Первый элемент должен сохранить свое значение Y");
+        assertEquals(4.0, function.getY(1), 1e-10,
+                "Второй элемент должен иметь новое значение Y");
+        assertEquals(9.0, function.getY(2), 1e-10,
+                "Третий элемент должен сохранить свое значение Y");
     }
 
-    @Override
-    public int indexOfY(double y) {
-        Node current = head;
-        for (int i = 0; i < count; i++) {
-            if (Double.compare(current.value.y, y) == 0)
-                return i;
-            current = current.next;
-        }
-        return -1;
+    @Test
+    public void testInsertIntoFunctionFromMathFunction() {
+        // Тестируем конструктор на основе MathFunction
+        MathFunction square = x -> x * x;
+        LinkedListTabulatedFunction function = new LinkedListTabulatedFunction(square, 0.0, 2.0, 3);
+
+        assertEquals(3, function.getCount(),
+                "Функция должна быть создана с 3 точками");
+
+        // Вставляем новую точку
+        function.insert(1.5, 2.25);
+
+        assertEquals(4, function.getCount(),
+                "После вставки должно быть 4 точки");
+        assertEquals(1.5, function.getX(2), 1e-10,
+                "Новая точка должна быть вставлена в правильную позицию");
     }
 
-    @Override
-    public double leftBound() {
-        if (count == 0) throw new IllegalStateException("Empty function");
-        return head.value.x;
+    @Test
+    public void testEmptyFunctionBounds() {
+        LinkedListTabulatedFunction function = new LinkedListTabulatedFunction();
+
+        assertThrows(IllegalStateException.class, () -> {
+            function.leftBound();
+        }, "leftBound() должен бросать исключение для пустой функции");
+
+        assertThrows(IllegalStateException.class, () -> {
+            function.rightBound();
+        }, "rightBound() должен бросать исключение для пустой функции");
     }
 
-    @Override
-    public double rightBound() {
-        if (count == 0) throw new IllegalStateException("Empty function");
-        Node current = head;
-        while (current.next != null)
-            current = current.next;
-        return current.value.x;
-    }
+    @Test
+    public void testIteratorThrowsException() {
+        LinkedListTabulatedFunction function = new LinkedListTabulatedFunction(
+                new double[]{1.0, 2.0}, new double[]{1.0, 4.0}
+        );
 
-    @Override
-    protected int floorIndexOfX(double x) {
-        if (count < 2)
-            throw new IllegalStateException("Insufficient data");
-        if (x < leftBound())
-            return 0;
-        if (x > rightBound())
-            return count - 2;
-        int index = 0;
-        Node current = head;
-        while (current.next != null && current.next.value.x <= x) {
-            current = current.next;
-            index++;
-        }
-        return index;
-    }
-
-    @Override
-    protected double extrapolateLeft(double x) {
-        double x0 = getX(0);
-        double x1 = getX(1);
-        double y0 = getY(0);
-        double y1 = getY(1);
-        return interpolate(x, x0, x1, y0, y1);
-    }
-
-    @Override
-    protected double extrapolateRight(double x) {
-        int last = getCount() - 1;
-        double x0 = getX(last - 1);
-        double x1 = getX(last);
-        double y0 = getY(last - 1);
-        double y1 = getY(last);
-        return interpolate(x, x0, x1, y0, y1);
-    }
-
-    @Override
-    protected double interpolate(double x, int floorIndex) {
-        if (floorIndex < 0 || floorIndex >= getCount() - 1)
-            throw new IllegalArgumentException("Invalid floor index: " + floorIndex);
-        double x0 = getX(floorIndex);
-        double x1 = getX(floorIndex + 1);
-        if (x < x0 || x > x1)
-            throw new InterpolationException("x is outside interpolation interval [" + x0 + "," + x1 + "]");
-        double y0 = getY(floorIndex);
-        double y1 = getY(floorIndex + 1);
-        return interpolate(x, x0, x1, y0, y1);
-    }
-
-    protected double interpolate(double x, double x0, double x1, double y0, double y1) {
-        if (x0 == x1) return (y0 + y1) / 2.0;
-        return y0 + ( (x - x0) * (y1 - y0) ) / (x1 - x0);
-    }
-
-    @Override
-    public LinkedListTabulatedFunction clone() {
-        try {
-            LinkedListTabulatedFunction cloned = (LinkedListTabulatedFunction) super.clone();
-            // Deep copy nodes
-            if (head == null) {
-                cloned.head = null;
-                cloned.count = 0;
-            } else {
-                cloned.head = new Node(new Point(head.value.x, head.value.y));
-                Node currentOrig = head.next;
-                Node currentClone = cloned.head;
-                while (currentOrig != null) {
-                    currentClone.next = new Node(new Point(currentOrig.value.x, currentOrig.value.y));
-                    currentClone = currentClone.next;
-                    currentOrig = currentOrig.next;
-                }
-                cloned.count = this.count;
-            }
-            return cloned;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError("Clone not supported");
-        }
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || this.getClass() != obj.getClass()) return false;
-        LinkedListTabulatedFunction other = (LinkedListTabulatedFunction) obj;
-        if (this.count != other.count) return false;
-        Node curr1 = this.head;
-        Node curr2 = other.head;
-        while (curr1 != null) {
-            if (Double.compare(curr1.value.x, curr2.value.x) != 0) return false;
-            if (Double.compare(curr1.value.y, curr2.value.y) != 0) return false;
-            curr1 = curr1.next;
-            curr2 = curr2.next;
-        }
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = 1;
-        Node current = head;
-        while (current != null) {
-            long temp = Double.doubleToLongBits(current.value.x);
-            result = 31 * result + (int)(temp ^ (temp >>> 32));
-            temp = Double.doubleToLongBits(current.value.y);
-            result = 31 * result + (int)(temp ^ (temp >>> 32));
-            current = current.next;
-        }
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("LinkedListTabulatedFunction{ count = " + count + ", points=[");
-        Node current = head;
-        while (current != null) {
-            sb.append("(").append(current.value.x).append(", ").append(current.value.y).append(")");
-            if (current.next != null) sb.append(", ");
-            current = current.next;
-        }
-        sb.append("]}");
-        return sb.toString();
-    }
-
-    // Итератор, который выбрасывает UnsupportedOperationException
-    @Override
-    public Iterator<Point> iterator() {
-        throw new UnsupportedOperationException("Iterator not supported");
+        assertThrows(UnsupportedOperationException.class, () -> {
+            function.iterator();
+        }, "iterator() должен бросать UnsupportedOperationException");
     }
 }

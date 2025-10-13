@@ -1,111 +1,70 @@
 package functions;
 
-import java.util.Iterator;
 import exceptions.ArrayIsNotSortedException;
 import exceptions.DifferentLengthOfArraysException;
+import exceptions.InterpolationException;
 
-public class LinkedListTabulatedFunction extends AbstractTabulatedFunction {
-    private static class Node {
-        Point point;
+import java.util.Iterator;
+
+public class LinkedListTabulatedFunction extends AbstractTabulatedFunction implements Iterable<Point>, Cloneable {
+
+    private class Node {
+        Point value;
         Node next;
-        Node prev;
 
-        Node(double x, double y) {
-            this.point = new Point(x, y);
+        Node(Point value) {
+            this.value = value;
         }
     }
 
     private Node head;
-    private Node tail;
     private int count;
 
+    // Конструктор без параметров
+    public LinkedListTabulatedFunction() {
+        this.head = null;
+        this.count = 0;
+    }
+
+    // Конструктор на основе массивов
     public LinkedListTabulatedFunction(double[] xValues, double[] yValues) {
-        if (xValues.length < 2 || yValues.length < 2) {
-            throw new IllegalArgumentException("Minimum 2 points required");
-        }
-        if (xValues.length != yValues.length) {
-            throw new DifferentLengthOfArraysException("Arrays must have the same length");
-        }
-        if (!isSorted(xValues)) {
-            throw new ArrayIsNotSortedException("X values must be sorted");
-        }
+        if (xValues == null || yValues == null)
+            throw new NullPointerException("Arrays must not be null");
+        if (xValues.length < 2)
+            throw new IllegalArgumentException("At least 2 points required");
+        checkLengthIsTheSame(xValues, yValues);
+        checkSorted(xValues);
 
         this.count = xValues.length;
-        for (int i = 0; i < count; i++) {
-            addNode(xValues[i], yValues[i]);
+        head = new Node(new Point(xValues[0], yValues[0]));
+        Node current = head;
+        for (int i = 1; i < count; i++) {
+            Node node = new Node(new Point(xValues[i], yValues[i]));
+            current.next = node;
+            current = node;
         }
     }
 
-    public LinkedListTabulatedFunction(MathFunction source, double xFrom, double xTo, int count) {
-        if (count < 2) {
-            throw new IllegalArgumentException("Minimum 2 points required");
-        }
-        if (xFrom >= xTo) {
+    // Новый конструктор на основе функции и интервала
+    public LinkedListTabulatedFunction(MathFunction func, double xFrom, double xTo, int count) {
+        if (func == null)
+            throw new NullPointerException("Function must not be null");
+        if (count < 2)
+            throw new IllegalArgumentException("At least 2 points required");
+        if (xFrom >= xTo)
             throw new IllegalArgumentException("xFrom must be less than xTo");
-        }
-        if (source == null) {
-            throw new NullPointerException("Source function cannot be null");
-        }
 
         this.count = count;
         double step = (xTo - xFrom) / (count - 1);
-        for (int i = 0; i < count; i++) {
-            double x = xFrom + i * step;
-            double y = source.apply(x);
-            addNode(x, y);
-        }
-    }
-
-    private boolean isSorted(double[] array) {
-        for (int i = 1; i < array.length; i++) {
-            if (array[i] <= array[i - 1]) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private void addNode(double x, double y) {
-        Node newNode = new Node(x, y);
-        if (head == null) {
-            head = newNode;
-            tail = newNode;
-        } else {
-            tail.next = newNode;
-            newNode.prev = tail;
-            tail = newNode;
-        }
-    }
-
-    private Node getNode(int index) {
-        if (index < 0 || index >= count) {
-            throw new IllegalArgumentException("Index out of bounds: " + index);
-        }
-
-        Node current;
-        if (index < count / 2) {
-            current = head;
-            for (int i = 0; i < index; i++) {
-                current = current.next;
-            }
-        } else {
-            current = tail;
-            for (int i = count - 1; i > index; i--) {
-                current = current.prev;
-            }
-        }
-        return current;
-    }
-
-    private Node findNodeX(double x) {
+        head = new Node(new Point(xFrom, func.apply(xFrom)));
         Node current = head;
-        while (current != null) {
-            if (current.point.x == x) {
-                return current;
-            }
-            current = current.next;
+        for (int i = 1; i < count; i++) {
+            double x = xFrom + i * step;
+            double y = func.apply(x);
+            Node node = new Node(new Point(x, y));
+            current.next = node;
+            current = node;
         }
-        return null;
     }
 
     @Override
@@ -115,38 +74,71 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction {
 
     @Override
     public double getX(int index) {
-        return getNode(index).point.x;
+        checkIndex(index);
+        return getNode(index).value.x;
     }
 
     @Override
     public double getY(int index) {
-        return getNode(index).point.y;
+        checkIndex(index);
+        return getNode(index).value.y;
     }
 
     @Override
     public void setY(int index, double value) {
-        getNode(index).point.y = value;
+        checkIndex(index);
+        getNode(index).value.y = value;
     }
 
-    @Override
-    public double leftBound() {
-        return head.point.x;
+    private Node getNode(int index) {
+        Node node = head;
+        for (int i = 0; i < index; i++)
+            node = node.next;
+        return node;
     }
 
-    @Override
-    public double rightBound() {
-        return tail.point.x;
+    private void checkIndex(int index) {
+        if (index < 0 || index >= getCount())
+            throw new IllegalArgumentException("Index out of bounds: " + index);
+    }
+
+    public void insert(double x, double y) {
+        if (head == null) {
+            head = new Node(new Point(x, y));
+            count = 1;
+            return;
+        }
+        if (Double.compare(x, head.value.x) < 0) {
+            Node newHead = new Node(new Point(x, y));
+            newHead.next = head;
+            head = newHead;
+            count++;
+            return;
+        }
+        Node current = head;
+        Node prev = null;
+        while (current != null && current.value.x < x) {
+            prev = current;
+            current = current.next;
+        }
+        if (current != null && Double.compare(current.value.x, x) == 0) {
+            current.value.y = y;
+        } else {
+            Node newNode = new Node(new Point(x, y));
+            prev.next = newNode;
+            newNode.next = current;
+            count++;
+        }
     }
 
     @Override
     public int indexOfX(double x) {
-        Node current = head;
         int index = 0;
-        while (current != null) {
-            if (current.point.x == x) {
+        Node node = head;
+        while (node != null) {
+            if (Double.compare(node.value.x, x) == 0)
                 return index;
-            }
-            current = current.next;
+            node = node.next;
             index++;
         }
         return -1;
@@ -154,215 +146,116 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction {
 
     @Override
     public int indexOfY(double y) {
-        Node current = head;
         int index = 0;
-        while (current != null) {
-            if (current.point.y == y) {
+        Node node = head;
+        while (node != null) {
+            if (Double.compare(node.value.y, y) == 0)
                 return index;
-            }
-            current = current.next;
+            node = node.next;
             index++;
         }
         return -1;
     }
 
     @Override
-    public int floorIndexOfX(double x) {
-        if (x < head.point.x) {
-            return 0;
-        }
-        if (x > tail.point.x) {
-            return count - 2;
-        }
+    public double leftBound() {
+        if (head == null)
+            throw new IllegalStateException("Empty function");
+        return head.value.x;
+    }
 
-        Node current = head;
+    @Override
+    public double rightBound() {
+        if (head == null)
+            throw new IllegalStateException("Empty function");
+        Node node = head;
+        while (node.next != null)
+            node = node.next;
+        return node.value.x;
+    }
+
+    @Override
+    protected int floorIndexOfX(double x) {
+        if (count < 2)
+            throw new IllegalStateException("Insufficient data");
+        if (x < leftBound())
+            return 0;
+        if (x > rightBound())
+            return count - 2;
         int index = 0;
-        while (current.next != null) {
-            if (x >= current.point.x && x < current.next.point.x) {
-                return index;
-            }
-            current = current.next;
+        Node node = head;
+        while (node.next != null && node.next.value.x <= x) {
+            node = node.next;
             index++;
         }
-        return count - 2;
+        return index;
     }
 
     @Override
-    public double extrapolateLeft(double x) {
-        return interpolate(x, 0);
+    protected double extrapolateLeft(double x) {
+        double x0 = getX(0);
+        double x1 = getX(1);
+        double y0 = getY(0);
+        double y1 = getY(1);
+        return interpolate(x, x0, x1, y0, y1);
     }
 
     @Override
-    public double extrapolateRight(double x) {
-        return interpolate(x, count - 2);
+    protected double extrapolateRight(double x) {
+        int last = getCount() - 1;
+        double x0 = getX(last - 1);
+        double x1 = getX(last);
+        double y0 = getY(last - 1);
+        double y1 = getY(last);
+        return interpolate(x, x0, x1, y0, y1);
     }
 
     @Override
-    public double interpolate(double x, int floorIndex) {
-        if (floorIndex < 0 || floorIndex >= count - 1) {
-            throw new IllegalArgumentException("Invalid floor index: " + floorIndex);
-        }
-
-        Node leftNode = getNode(floorIndex);
-        Node rightNode = leftNode.next;
-
-        double leftX = leftNode.point.x;
-        double rightX = rightNode.point.x;
-        double leftY = leftNode.point.y;
-        double rightY = rightNode.point.y;
-
-        return interpolate(x, leftX, rightX, leftY, rightY);
+    protected double interpolate(double x, int floorIndex) {
+        if (floorIndex < 0 || floorIndex >= getCount() - 1)
+            throw new IllegalArgumentException("Invalid floor index");
+        double x0 = getX(floorIndex);
+        double x1 = getX(floorIndex + 1);
+        if (x < x0 || x > x1)
+            throw new InterpolationException("x is outside interpolation interval");
+        double y0 = getY(floorIndex);
+        double y1 = getY(floorIndex + 1);
+        return interpolate(x, x0, x1, y0, y1);
     }
 
-    protected double interpolate(double x, double leftX, double rightX, double leftY, double rightY) {
-        if (leftX == rightX) {
-            return (leftY + rightY) / 2;
-        }
-        return leftY + (rightY - leftY) * (x - leftX) / (rightX - leftX);
-    }
-
-    @Override
-    public double apply(double x) {
-        if (x < head.point.x) {
-            return extrapolateLeft(x);
-        }
-        if (x > tail.point.x) {
-            return extrapolateRight(x);
-        }
-
-        int index = indexOfX(x);
-        if (index != -1) {
-            return getY(index);
-        }
-
-        int floorIndex = floorIndexOfX(x);
-        return interpolate(x, floorIndex);
-    }
-
-    public void insert(double x, double y) {
-        Node existingNode = findNodeX(x);
-        if (existingNode != null) {
-            existingNode.point.y = y;
-            return;
-        }
-
-        Node newNode = new Node(x, y);
-
-        if (head == null) {
-            head = newNode;
-            tail = newNode;
-        } else if (x < head.point.x) {
-            newNode.next = head;
-            head.prev = newNode;
-            head = newNode;
-        } else if (x > tail.point.x) {
-            tail.next = newNode;
-            newNode.prev = tail;
-            tail = newNode;
-        } else {
-            Node current = head;
-            while (current != null && current.point.x < x) {
-                current = current.next;
-            }
-            newNode.next = current;
-            newNode.prev = current.prev;
-            current.prev.next = newNode;
-            current.prev = newNode;
-        }
-        count++;
-    }
-
-    public void remove(int index) {
-        if (index < 0 || index >= count) {
-            throw new IllegalArgumentException("Index out of bounds: " + index);
-        }
-
-        Node nodeToRemove = getNode(index);
-
-        if (nodeToRemove.prev != null) {
-            nodeToRemove.prev.next = nodeToRemove.next;
-        } else {
-            head = nodeToRemove.next;
-        }
-
-        if (nodeToRemove.next != null) {
-            nodeToRemove.next.prev = nodeToRemove.prev;
-        } else {
-            tail = nodeToRemove.prev;
-        }
-
-        count--;
-    }
-
-    @Override
-    public Iterator<Point> iterator() {
-        throw new UnsupportedOperationException("Iterator not supported for LinkedListTabulatedFunction");
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("LinkedListTabulatedFunction{");
-        sb.append("size=").append(count);
-        sb.append(", points=[");
-        Node current = head;
-        while (current != null) {
-            sb.append("(").append(current.point.x).append(", ").append(current.point.y).append(")");
-            if (current.next != null) {
-                sb.append(", ");
-            }
-            current = current.next;
-        }
-        sb.append("]}");
-        return sb.toString();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-
-        LinkedListTabulatedFunction that = (LinkedListTabulatedFunction) obj;
-        if (count != that.count) return false;
-
-        Node current1 = head;
-        Node current2 = that.head;
-        while (current1 != null) {
-            if (current1.point.x != current2.point.x || current1.point.y != current2.point.y) {
-                return false;
-            }
-            current1 = current1.next;
-            current2 = current2.next;
-        }
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = 1;
-        Node current = head;
-        while (current != null) {
-            result = 31 * result + Double.hashCode(current.point.x);
-            result = 31 * result + Double.hashCode(current.point.y);
-            current = current.next;
-        }
-        return result;
+    protected double interpolate(double x, double x0, double x1, double y0, double y1) {
+        if (Double.compare(x0, x1) == 0)
+            return (y0 + y1) / 2.0;
+        return y0 + (y1 - y0) * (x - x0) / (x1 - x0);
     }
 
     @Override
     public LinkedListTabulatedFunction clone() {
-        double[] xValues = new double[count];
-        double[] yValues = new double[count];
+        try {
+            LinkedListTabulatedFunction cloned = (LinkedListTabulatedFunction) super.clone();
 
-        Node current = head;
-        int index = 0;
-        while (current != null) {
-            xValues[index] = current.point.x;
-            yValues[index] = current.point.y;
-            current = current.next;
-            index++;
+            if (head == null) {
+                cloned.head = null;
+                cloned.count = 0;
+            } else {
+                cloned.head = new Node(new Point(head.value.x, head.value.y));
+                Node currentOrig = head.next;
+                Node currentClone = cloned.head;
+                while (currentOrig != null) {
+                    currentClone.next = new Node(new Point(currentOrig.value.x, currentOrig.value.y));
+                    currentClone = currentClone.next;
+                    currentOrig = currentOrig.next;
+                }
+                cloned.count = this.count;
+            }
+            return cloned;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError("Clone not supported");
         }
+    }
 
-        return new LinkedListTabulatedFunction(xValues, yValues);
+    @Override
+    public Iterator<Point> iterator() {
+        throw new UnsupportedOperationException("Iterator not supported");
     }
 }
