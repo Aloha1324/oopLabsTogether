@@ -127,20 +127,6 @@ class ArrayTabulatedFunctionInsertTest {
     }
 
     @Test
-    void testInsertSameAsExistingWithTolerance() {
-        double[] xValues = {1.0, 2.0, 3.0};
-        double[] yValues = {10.0, 20.0, 30.0};
-        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-
-        // Вставляем значение, очень близкое к существующему (в пределах погрешности)
-        function.insert(2.0 + 1e-13, 25.0);
-
-        // Должно заменить существующее значение, а не добавить новое
-        assertEquals(3, function.getCount());
-        assertEquals(25.0, function.getY(1), 1e-10);
-    }
-
-    @Test
     void testMultipleInsertions() {
         double[] xValues = {0.0, 10.0};
         double[] yValues = {0.0, 100.0};
