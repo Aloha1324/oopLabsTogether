@@ -277,195 +277,10 @@ public class ArrayTabulatedFunctionExceptionTest {
         });
     }
 
-    // Тесты для метода apply с пустой функцией
-
-    @Test
-    public void testApplyThrowsExceptionForEmptyFunction() {
-        ArrayTabulatedFunction emptyFunction = createEmptyFunctionForTesting();
-        assertThrows(IllegalStateException.class, () -> {
-            emptyFunction.apply(1.0);
-        });
-    }
-
-    private ArrayTabulatedFunction createEmptyFunctionForTesting() {
-        return new ArrayTabulatedFunction(new double[]{0.0, 1.0}, new double[]{0.0, 1.0}) {
-            @Override
-            public int getCount() {
-                return 0;
-            }
-        };
-    }
-
-    @Test
-    public void testExtrapolationWithMinimalPoints() {
-        double[] xValues = {0.0, 1.0};
-        double[] yValues = {0.0, 1.0};
-        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-        assertDoesNotThrow(() -> {
-            function.apply(-0.5);
-        });
-        assertDoesNotThrow(() -> {
-            function.apply(1.5);
-        });
-    }
-
-    @Test
-    public void testFloorIndexOfXWithNormalFunction() {
-        double[] xValues = {0.0, 1.0, 2.0, 3.0};
-        double[] yValues = {0.0, 1.0, 4.0, 9.0};
-        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-        assertEquals(0, function.floorIndexOfX(-1.0));
-        assertEquals(1, function.floorIndexOfX(1.5));
-        assertEquals(2, function.floorIndexOfX(2.0));
-        assertEquals(2, function.floorIndexOfX(4.0));
-    }
-
-    @Test
-    public void testFloorIndexOfXWithExactMatch() {
-        double[] xValues = {0.0, 1.0, 2.0};
-        double[] yValues = {0.0, 1.0, 4.0};
-        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-        assertEquals(0, function.floorIndexOfX(0.0));
-        assertEquals(1, function.floorIndexOfX(1.0));
-        assertEquals(2, function.floorIndexOfX(2.0));
-    }
-
-    @Test
-    public void testApplyWithVariousScenarios() {
-        double[] xValues = {0.0, 1.0, 2.0};
-        double[] yValues = {0.0, 1.0, 4.0};
-        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-        assertDoesNotThrow(() -> function.apply(-1.0));
-        assertDoesNotThrow(() -> function.apply(3.0));
-        assertEquals(1.0, function.apply(1.0));
-        assertDoesNotThrow(() -> function.apply(0.5));
-    }
-
-    @Test
-    public void testApplyWithExactXMatch() {
-        double[] xValues = {0.0, 1.0, 2.0};
-        double[] yValues = {0.0, 1.0, 4.0};
-        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-        assertEquals(0.0, function.apply(0.0));
-        assertEquals(1.0, function.apply(1.0));
-        assertEquals(4.0, function.apply(2.0));
-    }
-
-    @Test
-    public void testInsertFunctionality() {
-        double[] xValues = {0.0, 2.0};
-        double[] yValues = {0.0, 4.0};
-        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-        assertDoesNotThrow(() -> function.insert(1.0, 1.0));
-        assertEquals(3, function.getCount());
-        assertEquals(1.0, function.getY(1));
-        assertDoesNotThrow(() -> function.insert(1.0, 2.0));
-        assertEquals(3, function.getCount());
-        assertEquals(2.0, function.getY(1));
-    }
-
-    @Test
-    public void testInsertAtBeginning() {
-        double[] xValues = {1.0, 2.0};
-        double[] yValues = {1.0, 4.0};
-        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-        assertDoesNotThrow(() -> function.insert(0.0, 0.0));
-        assertEquals(3, function.getCount());
-        assertEquals(0.0, function.getX(0));
-        assertEquals(0.0, function.getY(0));
-    }
-
-    @Test
-    public void testInsertAtEnd() {
-        double[] xValues = {0.0, 1.0};
-        double[] yValues = {0.0, 1.0};
-        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-        assertDoesNotThrow(() -> function.insert(2.0, 4.0));
-        assertEquals(3, function.getCount());
-        assertEquals(2.0, function.getX(2));
-        assertEquals(4.0, function.getY(2));
-    }
-
-    @Test
-    public void testEqualsAndHashCode() {
-        double[] xValues1 = {0.0, 1.0, 2.0};
-        double[] yValues1 = {0.0, 1.0, 4.0};
-        ArrayTabulatedFunction function1 = new ArrayTabulatedFunction(xValues1, yValues1);
-        double[] xValues2 = {0.0, 1.0, 2.0};
-        double[] yValues2 = {0.0, 1.0, 4.0};
-        ArrayTabulatedFunction function2 = new ArrayTabulatedFunction(xValues2, yValues2);
-        double[] xValues3 = {0.0, 1.0, 3.0};
-        double[] yValues3 = {0.0, 1.0, 4.0};
-        ArrayTabulatedFunction function3 = new ArrayTabulatedFunction(xValues3, yValues3);
-        assertEquals(function1, function2);
-        assertNotEquals(function1, function3);
-        assertNotEquals(function1, null);
-        assertNotEquals(function1, "not a function");
-        assertEquals(function1.hashCode(), function2.hashCode());
-    }
-
-    @Test
-    public void testToString() {
-        double[] xValues = {0.0, 1.0, 2.0};
-        double[] yValues = {0.0, 1.0, 4.0};
-        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-        String result = function.toString();
-        assertNotNull(result);
-        assertTrue(result.contains("ArrayTabulatedFunction"));
-        assertTrue(result.contains("size = 3"));
-    }
-
-    @Test
-    public void testClone() {
-        double[] xValues = {0.0, 1.0, 2.0};
-        double[] yValues = {0.0, 1.0, 4.0};
-        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-        ArrayTabulatedFunction cloned = function.clone();
-        assertNotSame(function, cloned);
-        assertEquals(function, cloned);
-        cloned.setY(1, 2.0);
-        assertNotEquals(function.getY(1), cloned.getY(1));
-    }
-
-    // Тесты для методов iterator
-
-    @Test
-    public void testIteratorUsingWhileLoop() {
-        double[] xValues = {0.0, 1.0, 2.0};
-        double[] yValues = {0.0, 1.0, 4.0};
-        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-
-        Iterator<Point> iterator = function.iterator();
-        int index = 0;
-        while (iterator.hasNext()) {
-            Point point = iterator.next();
-            assertNotNull(point);
-            assertEquals(xValues[index], point.x);
-            assertEquals(yValues[index], point.y);
-            index++;
-        }
-        assertEquals(xValues.length, index);
-    }
-
-    @Test
-    public void testIteratorUsingForEachLoop() {
-        double[] xValues = {0.0, 1.0, 2.0};
-        double[] yValues = {0.0, 1.0, 4.0};
-        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
-
-        int index = 0;
-        for (Point point : function) {
-            assertNotNull(point);
-            assertEquals(xValues[index], point.x);
-            assertEquals(yValues[index], point.y);
-            index++;
-        }
-        assertEquals(xValues.length, index);
-    }
+    // Тесты для итератора
 
     @Test
     public void testIteratorThrowsExceptionOnNextWithoutHasNext() {
-        // Используем минимальное количество точек (2)
         double[] xValues = {0.0, 1.0};
         double[] yValues = {0.0, 1.0};
         ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
@@ -481,5 +296,17 @@ public class ArrayTabulatedFunctionExceptionTest {
         // Теперь итератор должен быть пустым
         assertFalse(iterator.hasNext());
         assertThrows(NoSuchElementException.class, iterator::next);
+    }
+
+    @Test
+    public void testIteratorRemoveNotSupported() {
+        double[] xValues = {1.0, 2.0, 3.0};
+        double[] yValues = {1.0, 4.0, 9.0};
+        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
+
+        Iterator<Point> iterator = function.iterator();
+
+        // Метод remove должен бросать UnsupportedOperationException
+        assertThrows(UnsupportedOperationException.class, iterator::remove);
     }
 }

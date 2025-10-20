@@ -169,4 +169,99 @@ class ArrayTabulatedFunctionInsertTest {
         assertEquals(3.0, function.apply(1.5), 1e-10); // Между 1.0 и 2.0: (2+4)/2 = 3
         assertEquals(5.0, function.apply(2.5), 1e-10); // Между 2.0 и 3.0: (4+6)/2 = 5
     }
+
+    // Новые тесты для покрытия недостающих сценариев insert
+
+    @Test
+    void testInsertWithEmptyFunction() {
+        // Создаем функцию с минимальным количеством точек
+        double[] xValues = {1.0, 2.0};
+        double[] yValues = {1.0, 4.0};
+        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
+
+        // Вставляем точку в начало
+        function.insert(0.5, 0.25);
+        assertEquals(3, function.getCount());
+        assertEquals(0.5, function.getX(0), 1e-10);
+
+        // Вставляем точку в конец
+        function.insert(2.5, 6.25);
+        assertEquals(4, function.getCount());
+        assertEquals(2.5, function.getX(3), 1e-10);
+
+        // Заменяем существующую точку
+        function.insert(1.0, 2.0);
+        assertEquals(4, function.getCount());
+        assertEquals(2.0, function.getY(1), 1e-10);
+    }
+
+    @Test
+    void testInsertPerformance() {
+        // Тест производительности для большого количества вставок
+        double[] xValues = {0.0, 100.0};
+        double[] yValues = {0.0, 10000.0};
+        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
+
+        // Вставляем точки в случайном порядке
+        for (int i = 1; i <= 10; i++) {
+            double x = Math.random() * 100.0;
+            double y = x * x;
+            function.insert(x, y);
+        }
+
+        // Проверяем, что массив остался отсортированным
+        for (int i = 0; i < function.getCount() - 1; i++) {
+            assertTrue(function.getX(i) < function.getX(i + 1),
+                    "Массив должен оставаться отсортированным после вставок");
+        }
+
+        // Проверяем, что все точки на месте
+        assertTrue(function.getCount() >= 12); // Исходные 2 + 10 вставок
+    }
+
+    @Test
+    void testInsertWithNegativeValues() {
+        double[] xValues = {-2.0, 0.0, 2.0};
+        double[] yValues = {4.0, 0.0, 4.0};
+        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
+
+        function.insert(-1.0, 1.0);
+
+        assertEquals(4, function.getCount(), "После вставки количество точек должно быть 4");
+        assertEquals(-2.0, function.leftBound(), 1e-10, "Левая граница должна быть -2.0");
+        assertEquals(2.0, function.rightBound(), 1e-10, "Правая граница должна быть 2.0");
+        assertEquals(-1.0, function.getX(1), 1e-10, "x[1] должен быть -1.0");
+        assertEquals(1.0, function.getY(1), 1e-10, "y[1] должен быть 1.0");
+    }
+
+    @Test
+    void testInsertComplexScenario() {
+        double[] xValues = {0.0, 5.0};
+        double[] yValues = {0.0, 25.0};
+        ArrayTabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
+
+        // Вставляем точки в разном порядке
+        function.insert(3.0, 9.0);
+        function.insert(1.0, 1.0);
+        function.insert(4.0, 16.0);
+        function.insert(2.0, 4.0);
+
+        assertEquals(6, function.getCount());
+
+        // Проверяем порядок
+        assertEquals(0.0, function.getX(0), 1e-10);
+        assertEquals(1.0, function.getX(1), 1e-10);
+        assertEquals(2.0, function.getX(2), 1e-10);
+        assertEquals(3.0, function.getX(3), 1e-10);
+        assertEquals(4.0, function.getX(4), 1e-10);
+        assertEquals(5.0, function.getX(5), 1e-10);
+
+        // Проверяем значения
+        assertEquals(0.0, function.getY(0), 1e-10);
+        assertEquals(1.0, function.getY(1), 1e-10);
+        assertEquals(4.0, function.getY(2), 1e-10);
+        assertEquals(9.0, function.getY(3), 1e-10);
+        assertEquals(16.0, function.getY(4), 1e-10);
+        assertEquals(25.0, function.getY(5), 1e-10);
+    }
 }

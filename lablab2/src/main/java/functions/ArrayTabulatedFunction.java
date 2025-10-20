@@ -7,18 +7,14 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 
-/**
- * Класс табулированной функции, реализованной на основе массивов.
- */
 public class ArrayTabulatedFunction extends AbstractTabulatedFunction
-        implements Iterable<Point>, Cloneable, Serializable {
+        implements Insertable, Removable, Iterable<Point>, Cloneable, Serializable {
 
     private static final long serialVersionUID = 8305720685834923448L;
 
     private double[] xValues;
     private double[] yValues;
 
-    // Конструктор на основе массивов
     public ArrayTabulatedFunction(double[] xValues, double[] yValues) {
         if (xValues == null || yValues == null)
             throw new NullPointerException("Arrays must not be null");
@@ -30,7 +26,6 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
         this.yValues = Arrays.copyOf(yValues, yValues.length);
     }
 
-    // Конструктор на основе функции, диапазона, количества точек
     public ArrayTabulatedFunction(MathFunction func, double xFrom, double xTo, int count) {
         if (func == null)
             throw new NullPointerException("Function must not be null");
@@ -49,7 +44,6 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
         }
     }
 
-    // Вставка точки (или обновление, если x уже есть)
     public void insert(double x, double y) {
         int index = indexOfX(x);
         if (index != -1) {
@@ -71,6 +65,28 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
             xValues = newXValues;
             yValues = newYValues;
         }
+    }
+
+    public void remove(int index) {
+        if (index < 0 || index >= getCount()) {
+            throw new IllegalArgumentException("Index out of bounds: " + index);
+        }
+
+        if (getCount() <= 2) {
+            throw new IllegalStateException("Cannot remove point - at least 2 points are required");
+        }
+
+        int newCount = getCount() - 1;
+        double[] newXValues = new double[newCount];
+        double[] newYValues = new double[newCount];
+
+        System.arraycopy(xValues, 0, newXValues, 0, index);
+        System.arraycopy(yValues, 0, newYValues, 0, index);
+        System.arraycopy(xValues, index + 1, newXValues, index, newCount - index);
+        System.arraycopy(yValues, index + 1, newYValues, index, newCount - index);
+
+        xValues = newXValues;
+        yValues = newYValues;
     }
 
     @Override
@@ -135,17 +151,16 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
         if (x < xValues[0]) {
             return 0;
         }
-        if (x > xValues[count - 1]) {
+        if (x >= xValues[count - 1]) {
             return count - 2;
         }
-        int left = 0, right = count - 1;
-        while (left <= right) {
-            int mid = left + (right - left) / 2;
-            if (xValues[mid] == x) return mid;
-            else if (xValues[mid] < x) left = mid + 1;
-            else right = mid - 1;
+
+        for (int i = 0; i < count - 1; i++) {
+            if (x >= xValues[i] && x < xValues[i + 1]) {
+                return i;
+            }
         }
-        return left - 1;
+        return count - 2;
     }
 
     @Override
@@ -176,18 +191,20 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
 
     @Override
     public double apply(double x) {
-        if (x < xValues[0] || x > xValues[getCount() - 1]) {
-            throw new UnsupportedOperationException("x is out of bounds");
+        if (x < xValues[0]) {
+            return extrapolateLeft(x);
+        }
+        if (x > xValues[getCount() - 1]) {
+            return extrapolateRight(x);
         }
 
-        // Линейная интерполяция
-        for (int i = 0; i < getCount() - 1; i++) {
-            if (x >= xValues[i] && x <= xValues[i + 1]) {
-                return interpolate(x, xValues[i], xValues[i + 1], yValues[i], yValues[i + 1]);
-            }
+        int exactIndex = indexOfX(x);
+        if (exactIndex != -1) {
+            return yValues[exactIndex];
         }
 
-        return yValues[getCount() - 1];
+        int floorIndex = floorIndexOfX(x);
+        return interpolate(x, floorIndex);
     }
 
     @Override
@@ -237,6 +254,11 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
                 Point point = new Point(xValues[i], yValues[i]);
                 i++;
                 return point;
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException("remove");
             }
         };
     }

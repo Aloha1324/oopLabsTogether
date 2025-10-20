@@ -63,7 +63,7 @@ public class TabulatedFunctionOperationServiceTest {
         TabulatedFunctionOperationService service = new TabulatedFunctionOperationService(new ArrayTabulatedFunctionFactory());
 
         TabulatedFunction a = new ArrayTabulatedFunction(new double[]{0, 1}, new double[]{0, 1});
-        TabulatedFunction b = new ArrayTabulatedFunction(new double[]{0, 2}, new double[]{1, 2}); // несовпадающие значения x
+        TabulatedFunction b = new ArrayTabulatedFunction(new double[]{0, 2}, new double[]{1, 2});
 
         assertThrows(InconsistentFunctionsException.class, () -> service.add(a, b));
     }
@@ -292,5 +292,112 @@ public class TabulatedFunctionOperationServiceTest {
         assertEquals(24.0, multiplyResult.getY(1), 1e-10);
         assertEquals(0.6, divideResult.getY(0), 1e-10);
         assertEquals(0.6666666667, divideResult.getY(1), 1e-10);
+    }
+
+    // Тесты для покрытия InconsistentFunctionsException
+    @Test
+    void testInconsistentFunctionsExceptionDefaultConstructor() {
+        // Покрываем конструктор по умолчанию
+        InconsistentFunctionsException exception = new InconsistentFunctionsException();
+        assertNull(exception.getMessage());
+    }
+
+    @Test
+    void testInconsistentFunctionsExceptionWithMessage() {
+        // Покрываем конструктор с сообщением
+        String message = "Test message";
+        InconsistentFunctionsException exception = new InconsistentFunctionsException(message);
+        assertEquals(message, exception.getMessage());
+    }
+
+    @Test
+    void testInconsistentFunctionsExceptionWithEmptyMessage() {
+        // Покрываем конструктор с пустым сообщением
+        InconsistentFunctionsException exception = new InconsistentFunctionsException("");
+        assertEquals("", exception.getMessage());
+    }
+
+    @Test
+    void testInconsistentFunctionsExceptionWithNullMessage() {
+        // Покрываем конструктор с null сообщением
+        InconsistentFunctionsException exception = new InconsistentFunctionsException(null);
+        assertNull(exception.getMessage());
+    }
+
+    @Test
+    void testDoOperationWithDifferentXValuesThrowsDetailedException() {
+        TabulatedFunctionOperationService service = new TabulatedFunctionOperationService();
+
+        double[] xValues1 = {1.0, 2.0, 3.0};
+        double[] xValues2 = {1.0, 2.5, 3.0}; // Different X at index 1
+        double[] yValues1 = {1.0, 2.0, 3.0};
+        double[] yValues2 = {4.0, 5.0, 6.0};
+
+        TabulatedFunction func1 = new ArrayTabulatedFunction(xValues1, yValues1);
+        TabulatedFunction func2 = new ArrayTabulatedFunction(xValues2, yValues2);
+
+        InconsistentFunctionsException exception = assertThrows(InconsistentFunctionsException.class, () -> {
+            service.add(func1, func2);
+        });
+
+        assertTrue(exception.getMessage().contains("X values differ at index 1"));
+    }
+
+    @Test
+    void testDoOperationAllBranches() {
+        TabulatedFunctionOperationService service = new TabulatedFunctionOperationService();
+
+        // Test 1: Different count of points
+        double[] xValues1 = {1.0, 2.0, 3.0};
+        double[] xValues2 = {1.0, 2.0}; // Different count
+        double[] yValues1 = {1.0, 2.0, 3.0};
+        double[] yValues2 = {4.0, 5.0};
+
+        TabulatedFunction func1 = new ArrayTabulatedFunction(xValues1, yValues1);
+        TabulatedFunction func2 = new ArrayTabulatedFunction(xValues2, yValues2);
+
+        InconsistentFunctionsException exception1 = assertThrows(InconsistentFunctionsException.class, () -> {
+            service.add(func1, func2);
+        });
+        assertTrue(exception1.getMessage().contains("different number of points"));
+
+        // Test 2: Same count but different X values
+        double[] xValues3 = {1.0, 2.0, 3.0};
+        double[] xValues4 = {1.0, 2.1, 3.0}; // Different X at index 1
+        double[] yValues3 = {1.0, 2.0, 3.0};
+        double[] yValues4 = {4.0, 5.0, 6.0};
+
+        TabulatedFunction func3 = new ArrayTabulatedFunction(xValues3, yValues3);
+        TabulatedFunction func4 = new ArrayTabulatedFunction(xValues4, yValues4);
+
+        InconsistentFunctionsException exception2 = assertThrows(InconsistentFunctionsException.class, () -> {
+            service.add(func3, func4);
+        });
+        assertTrue(exception2.getMessage().contains("X values differ at index 1"));
+
+        // Test 3: Successful operation with exact same X values
+        double[] xValues5 = {1.0, 2.0, 3.0};
+        double[] yValues5 = {1.0, 2.0, 3.0};
+        double[] yValues6 = {4.0, 5.0, 6.0};
+
+        TabulatedFunction func5 = new ArrayTabulatedFunction(xValues5, yValues5);
+        TabulatedFunction func6 = new ArrayTabulatedFunction(xValues5, yValues6);
+
+        // This should not throw exception
+        assertDoesNotThrow(() -> service.add(func5, func6));
+    }
+
+    @Test
+    void testSubtractWithInconsistentFunctions() {
+        TabulatedFunctionOperationService service = new TabulatedFunctionOperationService();
+
+        TabulatedFunction a = new ArrayTabulatedFunction(new double[]{1.0, 2.0}, new double[]{1.0, 2.0});
+        TabulatedFunction b = new ArrayTabulatedFunction(new double[]{1.0, 3.0}, new double[]{3.0, 4.0});
+
+        InconsistentFunctionsException exception = assertThrows(InconsistentFunctionsException.class, () -> {
+            service.subtract(a, b);
+        });
+
+        assertTrue(exception.getMessage().contains("X values differ"));
     }
 }

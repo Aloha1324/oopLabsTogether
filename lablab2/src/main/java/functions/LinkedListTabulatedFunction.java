@@ -37,9 +37,7 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
             throw new IllegalArgumentException("At least 2 points required");
         if (xValues.length != yValues.length)
             throw new DifferentLengthOfArraysException("Arrays length mismatch");
-
         checkSorted(xValues);
-
         this.count = xValues.length;
         head = new Node(new Point(xValues[0], yValues[0]));
         Node current = head;
@@ -57,7 +55,6 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
             throw new IllegalArgumentException("At least 2 points required");
         if (xFrom >= xTo)
             throw new IllegalArgumentException("xFrom must be less than xTo");
-
         this.count = count;
         double step = (xTo - xFrom) / (count - 1);
         head = new Node(new Point(xFrom, func.apply(xFrom)));
@@ -121,7 +118,7 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         }
         Node current = head;
         Node prev = null;
-        while (current != null && current.value.x < x) {
+        while (current != null && Double.compare(current.value.x, x) < 0) {
             prev = current;
             current = current.next;
         }
@@ -184,7 +181,7 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
             throw new IllegalStateException("Insufficient data");
         if (x < leftBound())
             return 0;
-        if (x > rightBound())
+        if (x >= rightBound())
             return count - 2;
         int index = 0;
         Node node = head;
@@ -237,7 +234,6 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
     public LinkedListTabulatedFunction clone() {
         try {
             LinkedListTabulatedFunction cloned = (LinkedListTabulatedFunction) super.clone();
-
             if (head == null) {
                 cloned.head = null;
                 cloned.count = 0;
@@ -278,6 +274,11 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
                 currentNode = currentNode.next;
                 currentIndex++;
                 return point;
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
             }
         };
     }
