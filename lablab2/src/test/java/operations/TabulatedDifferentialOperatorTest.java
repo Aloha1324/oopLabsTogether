@@ -1,17 +1,18 @@
 package operations;
 
+import concurrent.SynchronizedTabulatedFunction;
 import functions.*;
 import functions.factory.ArrayTabulatedFunctionFactory;
 import functions.factory.LinkedListTabulatedFunctionFactory;
 import functions.factory.TabulatedFunctionFactory;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
-class TabulatedDifferentialOperatorTest {
+public class TabulatedDifferentialOperatorTest {
 
     static class TestSteppingDifferentialOperator extends SteppingDifferentialOperator {
         public TestSteppingDifferentialOperator(double step) {
@@ -29,7 +30,6 @@ class TabulatedDifferentialOperatorTest {
         }
     }
 
-    // Внутренний класс для тестирования функции с одной точкой
     static class SinglePointTabulatedFunction implements TabulatedFunction {
         private final double x;
         private final double y;
@@ -111,27 +111,25 @@ class TabulatedDifferentialOperatorTest {
         }
     }
 
-    // Специальная фабрика для тестирования, которая поддерживает одну точку
     static class SinglePointTabulatedFunctionFactory extends ArrayTabulatedFunctionFactory {
         @Override
         public TabulatedFunction create(double[] xValues, double[] yValues) {
             if (xValues.length == 1) {
                 return new SinglePointTabulatedFunction(xValues[0], yValues[0]);
             }
-            // Для двух и более точек используем родительскую реализацию
             return super.create(xValues, yValues);
         }
     }
 
     @Test
-    void testDefaultConstructor() {
+    public void testDefaultConstructor() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
         assertNotNull(operator.getFactory());
         assertTrue(operator.getFactory() instanceof ArrayTabulatedFunctionFactory);
     }
 
     @Test
-    void testConstructorWithFactory() {
+    public void testConstructorWithFactory() {
         TabulatedFunctionFactory factory = new LinkedListTabulatedFunctionFactory();
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator(factory);
         assertNotNull(operator.getFactory());
@@ -140,7 +138,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testSetFactory() {
+    public void testSetFactory() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
         TabulatedFunctionFactory newFactory = new LinkedListTabulatedFunctionFactory();
         operator.setFactory(newFactory);
@@ -149,7 +147,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testDeriveLinearFunctionWithArrayFactory() {
+    public void testDeriveLinearFunctionWithArrayFactory() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator(
                 new ArrayTabulatedFunctionFactory());
         double[] xValues = {0.0, 1.0, 2.0, 3.0};
@@ -168,7 +166,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testDeriveLinearFunctionWithLinkedListFactory() {
+    public void testDeriveLinearFunctionWithLinkedListFactory() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator(
                 new LinkedListTabulatedFunctionFactory());
         double[] xValues = {0.0, 1.0, 2.0, 3.0};
@@ -187,7 +185,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testDeriveQuadraticFunction() {
+    public void testDeriveQuadraticFunction() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
         double[] xValues = {0.0, 1.0, 2.0, 3.0};
         double[] yValues = {0.0, 1.0, 4.0, 9.0};
@@ -203,7 +201,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testDeriveConstantFunction() {
+    public void testDeriveConstantFunction() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
         double[] xValues = {0.0, 1.0, 2.0, 3.0};
         double[] yValues = {5.0, 5.0, 5.0, 5.0};
@@ -218,7 +216,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testDeriveTwoPointFunction() {
+    public void testDeriveTwoPointFunction() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
         double[] xValues = {1.0, 3.0};
         double[] yValues = {2.0, 8.0};
@@ -232,8 +230,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testDeriveSinglePointFunction() {
-        // Используем специальную фабрику для тестирования одной точки
+    public void testDeriveSinglePointFunction() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator(new SinglePointTabulatedFunctionFactory());
         double[] xValues = {1.0};
         double[] yValues = {5.0};
@@ -247,7 +244,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testDeriveWithDifferentStepSizes() {
+    public void testDeriveWithDifferentStepSizes() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
         double[] xValues = {0.0, 0.5, 1.5, 2.0};
         double[] yValues = {0.0, 0.25, 2.25, 4.0};
@@ -263,7 +260,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testDeriveUsingDirectAccessMethod() {
+    public void testDeriveUsingDirectAccessMethod() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
         double[] xValues = {0.0, 1.0, 2.0, 3.0};
         double[] yValues = {1.0, 2.0, 4.0, 8.0};
@@ -280,8 +277,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testDeriveUsingDirectAccessWithSinglePoint() {
-        // Используем специальную фабрику для тестирования одной точки
+    public void testDeriveUsingDirectAccessWithSinglePoint() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator(new SinglePointTabulatedFunctionFactory());
         double[] xValues = {2.0};
         double[] yValues = {3.0};
@@ -295,7 +291,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testDerivePreservesXValues() {
+    public void testDerivePreservesXValues() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
         double[] xValues = {-2.0, -1.0, 0.0, 1.0, 2.0};
         double[] yValues = {4.0, 1.0, 0.0, 1.0, 4.0};
@@ -310,7 +306,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testFactoryIntegration() {
+    public void testFactoryIntegration() {
         TabulatedFunctionFactory arrayFactory = new ArrayTabulatedFunctionFactory();
         TabulatedFunctionFactory linkedListFactory = new LinkedListTabulatedFunctionFactory();
 
@@ -335,92 +331,92 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testSteppingOperatorConstructorWithValidStep() {
+    public void testSteppingOperatorConstructorWithValidStep() {
         TestSteppingDifferentialOperator operator = new TestSteppingDifferentialOperator(0.1);
         assertEquals(0.1, operator.getStep(), 1e-10);
     }
 
     @Test
-    void testSteppingOperatorConstructorWithZeroStep() {
+    public void testSteppingOperatorConstructorWithZeroStep() {
         assertThrows(IllegalArgumentException.class, () ->
                 new TestSteppingDifferentialOperator(0.0));
     }
 
     @Test
-    void testSteppingOperatorConstructorWithNegativeStep() {
+    public void testSteppingOperatorConstructorWithNegativeStep() {
         assertThrows(IllegalArgumentException.class, () ->
                 new TestSteppingDifferentialOperator(-0.1));
     }
 
     @Test
-    void testSteppingOperatorConstructorWithNaNStep() {
+    public void testSteppingOperatorConstructorWithNaNStep() {
         assertThrows(IllegalArgumentException.class, () ->
                 new TestSteppingDifferentialOperator(Double.NaN));
     }
 
     @Test
-    void testSteppingOperatorConstructorWithPositiveInfinityStep() {
+    public void testSteppingOperatorConstructorWithPositiveInfinityStep() {
         assertThrows(IllegalArgumentException.class, () ->
                 new TestSteppingDifferentialOperator(Double.POSITIVE_INFINITY));
     }
 
     @Test
-    void testSteppingOperatorConstructorWithNegativeInfinityStep() {
+    public void testSteppingOperatorConstructorWithNegativeInfinityStep() {
         assertThrows(IllegalArgumentException.class, () ->
                 new TestSteppingDifferentialOperator(Double.NEGATIVE_INFINITY));
     }
 
     @Test
-    void testSteppingOperatorGetStep() {
+    public void testSteppingOperatorGetStep() {
         TestSteppingDifferentialOperator operator = new TestSteppingDifferentialOperator(0.5);
         double step = operator.getStep();
         assertEquals(0.5, step, 1e-10);
     }
 
     @Test
-    void testSteppingOperatorSetStepWithValidValue() {
+    public void testSteppingOperatorSetStepWithValidValue() {
         TestSteppingDifferentialOperator operator = new TestSteppingDifferentialOperator(0.1);
         operator.setStep(0.05);
         assertEquals(0.05, operator.getStep(), 1e-10);
     }
 
     @Test
-    void testSteppingOperatorSetStepWithZero() {
+    public void testSteppingOperatorSetStepWithZero() {
         TestSteppingDifferentialOperator operator = new TestSteppingDifferentialOperator(0.1);
         assertThrows(IllegalArgumentException.class, () -> operator.setStep(0.0));
         assertEquals(0.1, operator.getStep(), 1e-10);
     }
 
     @Test
-    void testSteppingOperatorSetStepWithNegativeValue() {
+    public void testSteppingOperatorSetStepWithNegativeValue() {
         TestSteppingDifferentialOperator operator = new TestSteppingDifferentialOperator(0.1);
         assertThrows(IllegalArgumentException.class, () -> operator.setStep(-0.1));
         assertEquals(0.1, operator.getStep(), 1e-10);
     }
 
     @Test
-    void testSteppingOperatorSetStepWithNaN() {
+    public void testSteppingOperatorSetStepWithNaN() {
         TestSteppingDifferentialOperator operator = new TestSteppingDifferentialOperator(0.1);
         assertThrows(IllegalArgumentException.class, () -> operator.setStep(Double.NaN));
         assertEquals(0.1, operator.getStep(), 1e-10);
     }
 
     @Test
-    void testSteppingOperatorSetStepWithPositiveInfinity() {
+    public void testSteppingOperatorSetStepWithPositiveInfinity() {
         TestSteppingDifferentialOperator operator = new TestSteppingDifferentialOperator(0.1);
         assertThrows(IllegalArgumentException.class, () -> operator.setStep(Double.POSITIVE_INFINITY));
         assertEquals(0.1, operator.getStep(), 1e-10);
     }
 
     @Test
-    void testSteppingOperatorSetStepWithNegativeInfinity() {
+    public void testSteppingOperatorSetStepWithNegativeInfinity() {
         TestSteppingDifferentialOperator operator = new TestSteppingDifferentialOperator(0.1);
         assertThrows(IllegalArgumentException.class, () -> operator.setStep(Double.NEGATIVE_INFINITY));
         assertEquals(0.1, operator.getStep(), 1e-10);
     }
 
     @Test
-    void testSteppingOperatorMultipleStepChanges() {
+    public void testSteppingOperatorMultipleStepChanges() {
         TestSteppingDifferentialOperator operator = new TestSteppingDifferentialOperator(0.1);
         operator.setStep(0.2);
         operator.setStep(0.3);
@@ -429,7 +425,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testSteppingOperatorDeriveMethod() {
+    public void testSteppingOperatorDeriveMethod() {
         TestSteppingDifferentialOperator operator = new TestSteppingDifferentialOperator(0.1);
         MathFunction testFunction = x -> x * x;
         MathFunction derivative = operator.derive(testFunction);
@@ -438,7 +434,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testSteppingOperatorExceptionMessages() {
+    public void testSteppingOperatorExceptionMessages() {
         Exception exception = assertThrows(IllegalArgumentException.class,
                 () -> new TestSteppingDifferentialOperator(-1.0));
         assertNotNull(exception.getMessage());
@@ -446,7 +442,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testLeftSteppingDifferentialOperator() {
+    public void testLeftSteppingDifferentialOperator() {
         LeftSteppingDifferentialOperator operator = new LeftSteppingDifferentialOperator(0.1);
         MathFunction sqrFunction = x -> x * x;
         MathFunction derivative = operator.derive(sqrFunction);
@@ -455,7 +451,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testRightSteppingDifferentialOperator() {
+    public void testRightSteppingDifferentialOperator() {
         RightSteppingDifferentialOperator operator = new RightSteppingDifferentialOperator(0.1);
         MathFunction sqrFunction = x -> x * x;
         MathFunction derivative = operator.derive(sqrFunction);
@@ -464,7 +460,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testMiddleSteppingDifferentialOperator() {
+    public void testMiddleSteppingDifferentialOperator() {
         MiddleSteppingDifferentialOperator operator = new MiddleSteppingDifferentialOperator(0.1);
         MathFunction sqrFunction = x -> x * x;
         MathFunction derivative = operator.derive(sqrFunction);
@@ -473,7 +469,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testOperatorsWithDifferentSteps() {
+    public void testOperatorsWithDifferentSteps() {
         double[] steps = {0.01, 0.001, 0.0001};
         MathFunction linearFunction = x -> 3 * x + 2;
 
@@ -493,7 +489,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testDeriveWithNonUniformXValues() {
+    public void testDeriveWithNonUniformXValues() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
         double[] xValues = {0.0, 0.5, 1.2, 2.0};
         double[] yValues = {0.0, 0.25, 1.44, 4.0};
@@ -509,7 +505,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testDeriveWithComplexXValues() {
+    public void testDeriveWithComplexXValues() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
         double[] xValues = {-2.0, -1.0, 0.5, 1.0, 2.5};
         double[] yValues = {4.0, 1.0, 0.25, 1.0, 6.25};
@@ -526,7 +522,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testDeriveUsingDirectAccessWithNonUniformX() {
+    public void testDeriveUsingDirectAccessWithNonUniformX() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
         double[] xValues = {0.0, 1.0, 3.0, 6.0};
         double[] yValues = {0.0, 1.0, 9.0, 36.0};
@@ -542,7 +538,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testDeriveWithMinimumPoints() {
+    public void testDeriveWithMinimumPoints() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
         double[] xValues = {1.0, 2.0};
         double[] yValues = {1.0, 4.0};
@@ -556,7 +552,7 @@ class TabulatedDifferentialOperatorTest {
     }
 
     @Test
-    void testDeriveWithThreePoints() {
+    public void testDeriveWithThreePoints() {
         TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
         double[] xValues = {0.0, 1.0, 2.0};
         double[] yValues = {0.0, 1.0, 4.0};
@@ -570,9 +566,8 @@ class TabulatedDifferentialOperatorTest {
         assertEquals(3.0, derivative.getY(2), 1e-10);
     }
 
-    // Дополнительный тест для проверки итератора
     @Test
-    void testSinglePointFunctionIterator() {
+    public void testSinglePointFunctionIterator() {
         SinglePointTabulatedFunction function = new SinglePointTabulatedFunction(1.0, 2.0);
         Iterator<Point> iterator = function.iterator();
 
@@ -583,5 +578,112 @@ class TabulatedDifferentialOperatorTest {
 
         assertFalse(iterator.hasNext());
         assertThrows(NoSuchElementException.class, iterator::next);
+    }
+
+    @Test
+    public void testDeriveSynchronouslyWithRegularFunction() {
+        double[] xValues = {1, 2, 3, 4};
+        double[] yValues = {1, 4, 9, 16};
+
+        TabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
+        TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
+
+        TabulatedFunction derivative = operator.deriveSynchronously(function);
+
+        assertEquals(4, derivative.getCount());
+        assertEquals(3.0, derivative.getY(0), 0.0001);
+        assertEquals(5.0, derivative.getY(1), 0.0001);
+        assertEquals(7.0, derivative.getY(2), 0.0001);
+        assertEquals(7.0, derivative.getY(3), 0.0001);
+    }
+
+    @Test
+    public void testDeriveSynchronouslyWithSynchronizedFunction() {
+        double[] xValues = {0, 1, 2, 3};
+        double[] yValues = {0, 1, 8, 27};
+
+        TabulatedFunction originalFunc = new LinkedListTabulatedFunction(xValues, yValues);
+        SynchronizedTabulatedFunction syncFunc = new SynchronizedTabulatedFunction(originalFunc);
+
+        TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
+
+        TabulatedFunction derivative = operator.deriveSynchronously(syncFunc);
+
+        assertEquals(4, derivative.getCount());
+        assertEquals(1.0, derivative.getY(0), 0.0001);
+        assertEquals(7.0, derivative.getY(1), 0.0001);
+        assertEquals(19.0, derivative.getY(2), 0.0001);
+        assertEquals(19.0, derivative.getY(3), 0.0001);
+    }
+
+    @Test
+    public void testDeriveSynchronouslyWithLinearFunction() {
+        double[] xValues = {0, 1, 2, 3};
+        double[] yValues = {2, 4, 6, 8};
+
+        TabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
+        TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
+
+        TabulatedFunction derivative = operator.deriveSynchronously(function);
+
+        assertEquals(4, derivative.getCount());
+        assertEquals(2.0, derivative.getY(0), 0.0001);
+        assertEquals(2.0, derivative.getY(1), 0.0001);
+        assertEquals(2.0, derivative.getY(2), 0.0001);
+        assertEquals(2.0, derivative.getY(3), 0.0001);
+    }
+
+    @Test
+    public void testDeriveSynchronouslyWithConstantFunction() {
+        double[] xValues = {0, 1, 2, 3};
+        double[] yValues = {5, 5, 5, 5};
+
+        TabulatedFunction function = new LinkedListTabulatedFunction(xValues, yValues);
+        TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
+
+        TabulatedFunction derivative = operator.deriveSynchronously(function);
+
+        assertEquals(4, derivative.getCount());
+        assertEquals(0.0, derivative.getY(0), 0.0001);
+        assertEquals(0.0, derivative.getY(1), 0.0001);
+        assertEquals(0.0, derivative.getY(2), 0.0001);
+        assertEquals(0.0, derivative.getY(3), 0.0001);
+    }
+
+
+    @Test
+    public void testDeriveSynchronouslyWithDifferentFactories() {
+        double[] xValues = {1, 2, 3};
+        double[] yValues = {1, 4, 9};
+
+        TabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
+
+        TabulatedDifferentialOperator arrayOperator = new TabulatedDifferentialOperator(new ArrayTabulatedFunctionFactory());
+        TabulatedDifferentialOperator linkedListOperator = new TabulatedDifferentialOperator(new LinkedListTabulatedFunctionFactory());
+
+        TabulatedFunction arrayDerivative = arrayOperator.deriveSynchronously(function);
+        TabulatedFunction linkedListDerivative = linkedListOperator.deriveSynchronously(function);
+
+        assertEquals(3, arrayDerivative.getCount());
+        assertEquals(3, linkedListDerivative.getCount());
+        assertEquals(arrayDerivative.getY(0), linkedListDerivative.getY(0), 0.0001);
+        assertEquals(arrayDerivative.getY(1), linkedListDerivative.getY(1), 0.0001);
+        assertEquals(arrayDerivative.getY(2), linkedListDerivative.getY(2), 0.0001);
+    }
+
+    @Test
+    public void testDeriveSynchronouslyWithLambdaReference() {
+        double[] xValues = {1, 2, 3};
+        double[] yValues = {2, 4, 6};
+
+        TabulatedFunction function = new ArrayTabulatedFunction(xValues, yValues);
+        TabulatedDifferentialOperator operator = new TabulatedDifferentialOperator();
+
+        TabulatedFunction derivative = operator.deriveSynchronously(function);
+
+        assertEquals(3, derivative.getCount());
+        assertEquals(2.0, derivative.getY(0), 0.0001);
+        assertEquals(2.0, derivative.getY(1), 0.0001);
+        assertEquals(2.0, derivative.getY(2), 0.0001);
     }
 }
