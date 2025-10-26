@@ -42,7 +42,6 @@ public class ArrayTabulatedFunctionRemovable implements Removable {
     }
 
     // Реализация метода remove() из интерфейса Removable
-    @Override
     public void remove(int index) {
         if (index < 0 || index >= count) {
             throw new IllegalArgumentException("Индекс выходит за границы массива: " + index +
@@ -102,7 +101,6 @@ public class ArrayTabulatedFunctionRemovable implements Removable {
         return xValues[count - 1];
     }
 
-    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("ArrayTabulatedFunctionRemovable[");

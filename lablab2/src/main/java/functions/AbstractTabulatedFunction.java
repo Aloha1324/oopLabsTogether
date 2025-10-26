@@ -50,7 +50,6 @@ public abstract class AbstractTabulatedFunction implements TabulatedFunction {
      * Реализация метода apply для вычисления значения функции в любой точке x.
      * Использует интерполяцию и экстраполяцию на основе табличных значений
      */
-    @Override
     public double apply(double x) {
         // Проверка на пустую таблицу
         if (getCount() == 0) {
@@ -106,7 +105,6 @@ public abstract class AbstractTabulatedFunction implements TabulatedFunction {
      * Возвращает строковое представление табулированной функции
      *строка в формате "ИмяКласса size = [количество точек]\n[x1; y1]\n[x2; y2]..."
      */
-    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append(getClass().getSimpleName()).append(" size = ").append(getCount());
@@ -124,7 +122,6 @@ public abstract class AbstractTabulatedFunction implements TabulatedFunction {
      * @param o объект для сравнения
      * @return true если функции идентичны (одинаковые точки в одинаковом порядке), false в противном случае
      */
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -149,7 +146,6 @@ public abstract class AbstractTabulatedFunction implements TabulatedFunction {
      * Вычисляет хэш-код функции на основе всех её точек
      * @return хэш-код функции
      */
-    @Override
     public int hashCode() {
         int result = 1;
 
@@ -169,7 +165,6 @@ public abstract class AbstractTabulatedFunction implements TabulatedFunction {
      * @return копия табулированной функции
      * @throws CloneNotSupportedException если клонирование не поддерживается
      */
-    @Override
     protected Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
@@ -186,7 +181,6 @@ public abstract class AbstractTabulatedFunction implements TabulatedFunction {
              * Проверяет наличие следующей точки
              * @return true если есть следующая точка, false в противном случае
              */
-            @Override
             public boolean hasNext() {
                 return currentIndex < getCount();
             }
@@ -196,7 +190,6 @@ public abstract class AbstractTabulatedFunction implements TabulatedFunction {
              * @return следующая точка
              * @throws NoSuchElementException если больше нет точек
              */
-            @Override
             public Point next() {
                 if (!hasNext()) {
                     throw new NoSuchElementException("No more points available");

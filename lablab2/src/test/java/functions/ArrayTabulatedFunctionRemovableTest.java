@@ -303,7 +303,6 @@ public class ArrayTabulatedFunctionRemovableTest {
     @Test
     public void testMathFunctionConstructorValues() {
         MathFunction linear = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 2 * x + 1;
             }

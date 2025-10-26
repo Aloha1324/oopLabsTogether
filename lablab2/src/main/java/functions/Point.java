@@ -14,12 +14,10 @@ public class Point implements Serializable {
         this.y = y;
     }
 
-    @Override
     public String toString() {
         return "(" + x + ", " + y + ")";
     }
 
-    @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
@@ -27,7 +25,6 @@ public class Point implements Serializable {
         return Double.compare(point.x, x) == 0 && Double.compare(point.y, y) == 0;
     }
 
-    @Override
     public int hashCode() {
         return Double.hashCode(x) * 31 + Double.hashCode(y);
     }

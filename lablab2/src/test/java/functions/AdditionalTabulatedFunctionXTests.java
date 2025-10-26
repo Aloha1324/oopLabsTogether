@@ -19,7 +19,6 @@ class AdditionalFunctionTests {
 
         // Создаем квадратичную функцию g(x) = x²
         MathFunction square = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * x;
             }
@@ -71,7 +70,6 @@ class AdditionalFunctionTests {
 
         // g(x) = 3x
         MathFunction g = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 3 * x;
             }
@@ -79,7 +77,6 @@ class AdditionalFunctionTests {
 
         // h(x) = x²
         MathFunction h = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * x;
             }
@@ -98,7 +95,6 @@ class AdditionalFunctionTests {
     void testTabulatedFunctionWithNewtonMethod() {
         // Создаем функцию f(x) = x² - 4 (корни x = ±2)
         MathFunction squareMinusFour = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * x - 4;
             }
@@ -106,7 +102,6 @@ class AdditionalFunctionTests {
 
         // Производная: f'(x) = 2x
         MathFunction derivative = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 2 * x;
             }
@@ -143,7 +138,6 @@ class AdditionalFunctionTests {
 
         // h(x) = x²
         MathFunction square = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * x;
             }
@@ -168,7 +162,6 @@ class AdditionalFunctionTests {
 
         // Идентичная функция
         MathFunction identity = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x;
             }
@@ -192,7 +185,6 @@ class AdditionalFunctionTests {
     void testConstantWithTabulatedFunction() {
         // Постоянная функция всегда возвращает 5
         MathFunction constant = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 5.0;
             }
@@ -256,7 +248,6 @@ class AdditionalFunctionTests {
 
         // Функция умножает на 2
         MathFunction timesTwo = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 2 * x;
             }
@@ -296,7 +287,6 @@ class AdditionalFunctionTests {
         for (int i = 0; i < functions.length; i++) {
             final int multiplier = i + 1;
             functions[i] = new MathFunction() {
-                @Override
                 public double apply(double x) {
                     return x * multiplier;
                 }

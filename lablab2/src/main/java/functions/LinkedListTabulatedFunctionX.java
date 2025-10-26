@@ -125,7 +125,6 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
      * Реализация метода remove из интерфейса Removable
      * Удаляет узел по указанному индексу
      */
-    @Override
     public void remove(int index) {
         if (index < 0 || index >= count) {
             throw new IllegalArgumentException("Индекс: " + index + " выходит за границы списка. Допустимый диапазон: 0-" + (count - 1));
@@ -154,7 +153,6 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
         count--;
     }
 
-    @Override
     public double getX(int index) {
         if (index < 0 || index >= count) {
             throw new IllegalArgumentException("Индекс: " + index + " выходит за границы списка. Допустимый диапазон: 0-" + (count - 1));
@@ -162,7 +160,6 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
         return getNode(index).x;
     }
 
-    @Override
     public double getY(int index) {
         if (index < 0 || index >= count) {
             throw new IllegalArgumentException("Индекс: " + index + " выходит за границы списка. Допустимый диапазон: 0-" + (count - 1));
@@ -170,7 +167,6 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
         return getNode(index).y;
     }
 
-    @Override
     public void setY(int index, double value) {
         if (index < 0 || index >= count) {
             throw new IllegalArgumentException("Индекс: " + index + " выходит за границы списка. Допустимый диапазон: 0-" + (count - 1));
@@ -178,7 +174,6 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
         getNode(index).y = value;
     }
 
-    @Override
     public int indexOfX(double x) {
         if (head == null) return -1;
 
@@ -192,7 +187,6 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
         return -1;
     }
 
-    @Override
     public int indexOfY(double y) {
         if (head == null) return -1;
 
@@ -206,7 +200,6 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
         return -1;
     }
 
-    @Override
     public double leftBound() {
         if (head == null) {
             throw new IllegalStateException("Список пуст");
@@ -214,7 +207,6 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
         return head.x;
     }
 
-    @Override
     public double rightBound() {
         if (head == null) {
             throw new IllegalStateException("Список пуст");
@@ -222,7 +214,6 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
         return head.prev.x;
     }
 
-    @Override
     protected int floorIndexOfX(double x) {
         if (head == null) {
             throw new IllegalStateException("Список пуст");
@@ -243,7 +234,6 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
         return count - 1;
     }
 
-    @Override
     protected double extrapolateLeft(double x) {
         // Убрана проверка на count == 1, так как теперь гарантируется минимум 2 точки
         Node first = head;
@@ -251,7 +241,6 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
         return interpolate(x, first.x, second.x, first.y, second.y);
     }
 
-    @Override
     protected double extrapolateRight(double x) {
         // Убрана проверка на count == 1, так как теперь гарантируется минимум 2 точки
         Node last = head.prev;
@@ -259,7 +248,6 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
         return interpolate(x, prevLast.x, last.x, prevLast.y, last.y);
     }
 
-    @Override
     protected double interpolate(double x, int floorIndex) {
         // Убрана проверка на count == 1, так как теперь гарантируется минимум 2 точки
         Node leftNode = getNode(floorIndex);
@@ -270,19 +258,16 @@ public class LinkedListTabulatedFunctionX extends AbstractTabulatedFunctionX imp
     /**
      * Реализация метода iterator() из интерфейса Iterable
      */
-    @Override
     public Iterator<Point> iterator() {
         return new Iterator<Point>() {
             private Node node = head;  // Текущий узел, начинаем с головы
             private int returnedCount = 0;  // Количество уже возвращенных элементов
 
-            @Override
             public boolean hasNext() {
                 // Элементы есть, если мы еще не вернули все точки
                 return returnedCount < count;
             }
 
-            @Override
             public Point next() {
                 if (!hasNext()) {
                     throw new NoSuchElementException("No more elements in the list");

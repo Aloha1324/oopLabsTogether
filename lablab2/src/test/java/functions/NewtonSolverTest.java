@@ -11,14 +11,12 @@ class NewtonSolverTest {
     void testApplyMethod() {
         // f(x) = x² - 4, корень x = 2
         MathFunction square = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * x - 4;
             }
         };
 
         MathFunction derivative = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 2 * x;
             }
@@ -38,14 +36,12 @@ class NewtonSolverTest {
     @DisplayName("Тестирование метода solve с разными начальными приближениями")
     void testSolveWithDifferentInitialGuesses() {
         MathFunction square = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * x - 4;
             }
         };
 
         MathFunction derivative = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 2 * x;
             }
@@ -64,14 +60,12 @@ class NewtonSolverTest {
     void testLinearFunction() {
         // f(x) = 2x - 6, корень x = 3
         MathFunction linear = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 2 * x - 6;
             }
         };
 
         MathFunction derivative = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 2.0;
             }
@@ -87,14 +81,12 @@ class NewtonSolverTest {
     @DisplayName("Тестирование случая с нулевой производной")
     void testZeroDerivative() {
         MathFunction constant = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 5.0; // Константа
             }
         };
 
         MathFunction zeroDerivative = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 0.0; // Нулевая производная
             }
@@ -111,7 +103,6 @@ class NewtonSolverTest {
     @DisplayName("Тестирование с null функциями в конструкторе")
     void testNullFunctions() {
         MathFunction validFunction = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x;
             }
@@ -134,14 +125,12 @@ class NewtonSolverTest {
     @DisplayName("Тестирование геттеров")
     void testGetters() {
         MathFunction function = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * x - 4;
             }
         };
 
         MathFunction derivative = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 2 * x;
             }
@@ -162,14 +151,12 @@ class NewtonSolverTest {
     @DisplayName("Тестирование конструктора с параметрами по умолчанию")
     void testDefaultConstructor() {
         MathFunction function = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * x - 9; // f(x) = x² - 9, корень x = 3
             }
         };
 
         MathFunction derivative = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 2 * x;
             }
@@ -190,14 +177,12 @@ class NewtonSolverTest {
     @DisplayName("Тестирование невалидных параметров в конструкторе")
     void testInvalidConstructorParameters() {
         MathFunction function = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x;
             }
         };
 
         MathFunction derivative = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 1.0;
             }
@@ -228,14 +213,12 @@ class NewtonSolverTest {
         // Функция, которая заведомо расходится при методе Ньютона: f(x) = x^(1/3)
         // У нее вертикальная касательная в точке x=0
         MathFunction problematicFunction = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return Math.cbrt(x); // x^(1/3)
             }
         };
 
         MathFunction derivative = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 1.0 / (3.0 * Math.cbrt(x * x)); // 1/(3*x^(2/3))
             }
@@ -254,14 +237,12 @@ class NewtonSolverTest {
     void testMaxIterationsExceeded() {
         // Функция с очень медленной сходимостью
         MathFunction slowConvergingFunction = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return Math.exp(x) - 2; // f(x) = e^x - 2, корень x = ln(2)
             }
         };
 
         MathFunction derivative = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return Math.exp(x);
             }
@@ -280,14 +261,12 @@ class NewtonSolverTest {
     void testStrictConvergenceSuccess() {
         // f(x) = x² - 4, корень x = 2
         MathFunction square = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * x - 4;
             }
         };
 
         MathFunction derivative = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 2 * x;
             }
@@ -305,7 +284,6 @@ class NewtonSolverTest {
     void testFunctionValueStoppingCriterion() {
         // Функция, которая сразу возвращает значение меньше tolerance
         MathFunction function = new MathFunction() {
-            @Override
             public double apply(double x) {
                 // Всегда возвращаем значение меньше tolerance
                 return 1e-11; // < 1e-10
@@ -313,7 +291,6 @@ class NewtonSolverTest {
         };
 
         MathFunction derivative = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return 1.0; // произвольная производная
             }
@@ -335,14 +312,12 @@ class NewtonSolverTest {
     void testTrigonometricFunction() {
         // f(x) = sin(x), корень x = π
         MathFunction sinFunction = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return Math.sin(x);
             }
         };
 
         MathFunction cosDerivative = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return Math.cos(x);
             }

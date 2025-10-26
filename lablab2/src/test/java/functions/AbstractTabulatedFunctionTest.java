@@ -135,12 +135,10 @@ public class AbstractTabulatedFunctionTest {
                 new double[]{0.0, 1.0, 2.0},
                 new double[]{0.0, 1.0, 4.0}
         ) {
-            @Override
             protected double interpolate(double x, int floorIndex) {
                 return getY(floorIndex) + (getY(floorIndex + 1) - getY(floorIndex)) *
                         (x - getX(floorIndex)) / (getX(floorIndex + 1) - getX(floorIndex));
             }
-            @Override
             protected int floorIndexOfX(double x) {
                 if (x < getX(0)) return 0;
                 if (x > getX(getCount() - 1)) return getCount() - 1;
@@ -149,11 +147,9 @@ public class AbstractTabulatedFunctionTest {
                 }
                 return getCount() - 2;
             }
-            @Override
             protected double extrapolateLeft(double x) {
                 return getY(0) + (getY(1) - getY(0)) * (x - getX(0)) / (getX(1) - getX(0));
             }
-            @Override
             protected double extrapolateRight(double x) {
                 int last = getCount() - 1;
                 return getY(last) + (getY(last) - getY(last - 1)) * (x - getX(last)) / (getX(last) - getX(last - 1));
@@ -169,19 +165,15 @@ public class AbstractTabulatedFunctionTest {
                 new double[]{0.0, 1.0, 2.0},
                 new double[]{0.0, 1.0, 4.0}
         ) {
-            @Override
             protected double extrapolateLeft(double x) {
                 return -1.0;
             }
-            @Override
             protected double extrapolateRight(double x) {
                 return 5.0;
             }
-            @Override
             protected int floorIndexOfX(double x) {
                 return 0;
             }
-            @Override
             protected double interpolate(double x, int floorIndex) {
                 return 0.0;
             }
@@ -205,19 +197,15 @@ public class AbstractTabulatedFunctionTest {
                 new double[]{1.0, 2.0, 3.0},
                 new double[]{1.0, 4.0, 9.0}
         ) {
-            @Override
             protected int floorIndexOfX(double x) {
                 return -1;
             }
-            @Override
             protected double extrapolateLeft(double x) {
                 return 0.0;
             }
-            @Override
             protected double extrapolateRight(double x) {
                 return 0.0;
             }
-            @Override
             protected double interpolate(double x, int floorIndex) {
                 return 0.0;
             }
@@ -231,19 +219,15 @@ public class AbstractTabulatedFunctionTest {
                 new double[]{1.0, 2.0, 3.0},
                 new double[]{1.0, 4.0, 9.0}
         ) {
-            @Override
             protected int floorIndexOfX(double x) {
                 return getCount();
             }
-            @Override
             protected double extrapolateLeft(double x) {
                 return 0.0;
             }
-            @Override
             protected double extrapolateRight(double x) {
                 return 0.0;
             }
-            @Override
             protected double interpolate(double x, int floorIndex) {
                 return 0.0;
             }
@@ -257,19 +241,15 @@ public class AbstractTabulatedFunctionTest {
                 new double[]{1.0, 2.0},
                 new double[]{1.0, 4.0}
         ) {
-            @Override
             protected int floorIndexOfX(double x) {
                 return 2;
             }
-            @Override
             protected double extrapolateLeft(double x) {
                 return 0.0;
             }
-            @Override
             protected double extrapolateRight(double x) {
                 return 0.0;
             }
-            @Override
             protected double interpolate(double x, int floorIndex) {
                 return 0.0;
             }
@@ -283,7 +263,6 @@ public class AbstractTabulatedFunctionTest {
                 new double[]{1.0, 2.0, 3.0},
                 new double[]{1.0, 4.0, 9.0}
         ) {
-            @Override
             protected int floorIndexOfX(double x) {
                 if (x <= getX(0)) return 0;
                 if (x >= getX(getCount() - 1)) return getCount() - 2;
@@ -292,15 +271,12 @@ public class AbstractTabulatedFunctionTest {
                 }
                 return getCount() - 2;
             }
-            @Override
             protected double extrapolateLeft(double x) {
                 return getY(0);
             }
-            @Override
             protected double extrapolateRight(double x) {
                 return getY(getCount() - 1);
             }
-            @Override
             protected double interpolate(double x, int floorIndex) {
                 return getY(floorIndex) + (getY(floorIndex + 1) - getY(floorIndex)) *
                         (x - getX(floorIndex)) / (getX(floorIndex + 1) - getX(floorIndex));
@@ -349,29 +325,17 @@ public class AbstractTabulatedFunctionTest {
                 new double[]{0.0, 1.0, 4.0}
         );
         AbstractTabulatedFunction function2 = new AbstractTabulatedFunction() {
-            @Override
             protected int floorIndexOfX(double x) { return 0; }
-            @Override
             protected double extrapolateLeft(double x) { return 0; }
-            @Override
             protected double extrapolateRight(double x) { return 0; }
-            @Override
             protected double interpolate(double x, int floorIndex) { return 0; }
-            @Override
             public int getCount() { return 3; }
-            @Override
             public double getX(int index) { return index; }
-            @Override
             public double getY(int index) { return index * index; }
-            @Override
             public void setY(int index, double value) {}
-            @Override
             public int indexOfX(double x) { return (int)x; }
-            @Override
             public int indexOfY(double y) { return (int)Math.sqrt(y); }
-            @Override
             public double leftBound() { return 0; }
-            @Override
             public double rightBound() { return 2; }
         };
         assertNotEquals(function1, function2);
@@ -640,22 +604,18 @@ public class AbstractTabulatedFunctionTest {
                 new double[]{1.0, 2.0, 3.0},
                 new double[]{1.0, 4.0, 9.0}
         ) {
-            @Override
             protected int floorIndexOfX(double x) {
                 if (x < 1.0) return 0;
                 if (x > 3.0) return 1;
                 if (x == 2.0) return 1;
                 return 0;
             }
-            @Override
             protected double extrapolateLeft(double x) {
                 return -1.0;
             }
-            @Override
             protected double extrapolateRight(double x) {
                 return 10.0;
             }
-            @Override
             protected double interpolate(double x, int floorIndex) {
                 return 5.0;
             }
@@ -691,47 +651,38 @@ public class AbstractTabulatedFunctionTest {
             this.yValues = yValues;
         }
 
-        @Override
         protected int floorIndexOfX(double x) {
             return 0;
         }
 
-        @Override
         protected double extrapolateLeft(double x) {
             return 0;
         }
 
-        @Override
         protected double extrapolateRight(double x) {
             return 0;
         }
 
-        @Override
         protected double interpolate(double x, int floorIndex) {
             return 0;
         }
 
-        @Override
         public int getCount() {
             return xValues.length;
         }
 
-        @Override
         public double getX(int index) {
             return xValues[index];
         }
 
-        @Override
         public double getY(int index) {
             return yValues[index];
         }
 
-        @Override
         public void setY(int index, double value) {
             yValues[index] = value;
         }
 
-        @Override
         public int indexOfX(double x) {
             for (int i = 0; i < xValues.length; i++) {
                 if (Math.abs(xValues[i] - x) < 1e-10) return i;
@@ -739,7 +690,6 @@ public class AbstractTabulatedFunctionTest {
             return -1;
         }
 
-        @Override
         public int indexOfY(double y) {
             for (int i = 0; i < yValues.length; i++) {
                 if (Math.abs(yValues[i] - y) < 1e-10) return i;
@@ -747,12 +697,10 @@ public class AbstractTabulatedFunctionTest {
             return -1;
         }
 
-        @Override
         public double leftBound() {
             return xValues.length > 0 ? xValues[0] : 0;
         }
 
-        @Override
         public double rightBound() {
             return xValues.length > 0 ? xValues[xValues.length - 1] : 0;
         }
@@ -761,7 +709,6 @@ public class AbstractTabulatedFunctionTest {
             return interpolate(x, leftX, rightX, leftY, rightY);
         }
 
-        @Override
         protected Object clone() throws CloneNotSupportedException {
             return super.clone();
         }

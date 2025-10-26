@@ -10,14 +10,12 @@ class CompositeFunctionTest {
         // f(x) = x + 1, g(x) = x * 2
         // h(x) = g(f(x)) = (x + 1) * 2
         MathFunction plusOne = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x + 1;
             }
         };
 
         MathFunction timesTwo = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * 2;
             }
@@ -35,14 +33,12 @@ class CompositeFunctionTest {
         // f(x) = x (тождественная), g(x) = x * x
         // h(x) = g(f(x)) = x * x
         MathFunction identity = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x;
             }
         };
 
         MathFunction square = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * x;
             }
@@ -63,21 +59,18 @@ class CompositeFunctionTest {
         // composite2 = h(composite1(x)) = [(x + 1) * 2] * [(x + 1) * 2]
 
         MathFunction plusOne = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x + 1;
             }
         };
 
         MathFunction timesTwo = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * 2;
             }
         };
 
         MathFunction square = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * x;
             }
@@ -99,7 +92,6 @@ class CompositeFunctionTest {
         // f(x) = x + 1
         // h(x) = f(f(x)) = (x + 1) + 1 = x + 2
         MathFunction plusOne = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x + 1;
             }
@@ -119,21 +111,18 @@ class CompositeFunctionTest {
         // composite2 = h(composite1(x)) = (x * x + 1) * 3
 
         MathFunction square = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * x;
             }
         };
 
         MathFunction plusOne = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x + 1;
             }
         };
 
         MathFunction timesThree = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * 3;
             }
@@ -151,7 +140,6 @@ class CompositeFunctionTest {
     void testNullFunctions() {
         // Проверяем обработку null аргументов
         MathFunction validFunction = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x;
             }
@@ -173,14 +161,12 @@ class CompositeFunctionTest {
     @Test
     void testGetters() {
         MathFunction first = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x + 1;
             }
         };
 
         MathFunction second = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * 2;
             }
@@ -201,21 +187,18 @@ class CompositeFunctionTest {
         // result = f(g(h(x))) = [(x + 1) * 2] * [(x + 1) * 2]
 
         MathFunction plusOne = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x + 1;
             }
         };
 
         MathFunction timesTwo = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * 2;
             }
         };
 
         MathFunction square = new MathFunction() {
-            @Override
             public double apply(double x) {
                 return x * x;
             }

@@ -41,7 +41,6 @@ public abstract class AbstractTabulatedFunctionX implements TabulatedFunction {
 
     //Реализация метода apply из MathFunction
     //Использует интерполяцию/экстраполяцию для вычисления значения в любой точке
-    @Override
     public double apply(double x) {
         // Если x меньше левой границы - экстраполяция слева
         if (x < leftBound()) {
@@ -65,7 +64,6 @@ public abstract class AbstractTabulatedFunctionX implements TabulatedFunction {
     }
 
     // количество точек в таблице
-    @Override
     public int getCount() {
         return count;
     }

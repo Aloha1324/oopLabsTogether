@@ -1,6 +1,5 @@
 package functions;
 
-import exceptions.ArrayIsNotSortedException;
 import exceptions.DifferentLengthOfArraysException;
 import exceptions.InterpolationException;
 
@@ -68,24 +67,20 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         }
     }
 
-    @Override
     public int getCount() {
         return count;
     }
 
-    @Override
     public double getX(int index) {
         checkIndex(index);
         return getNode(index).value.x;
     }
 
-    @Override
     public double getY(int index) {
         checkIndex(index);
         return getNode(index).value.y;
     }
 
-    @Override
     public void setY(int index, double value) {
         checkIndex(index);
         getNode(index).value.y = value;
@@ -132,7 +127,6 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         }
     }
 
-    @Override
     public int indexOfX(double x) {
         int index = 0;
         Node node = head;
@@ -145,7 +139,6 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         return -1;
     }
 
-    @Override
     public int indexOfY(double y) {
         int index = 0;
         Node node = head;
@@ -158,14 +151,12 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         return -1;
     }
 
-    @Override
     public double leftBound() {
         if (head == null)
             throw new IllegalStateException("Empty function");
         return head.value.x;
     }
 
-    @Override
     public double rightBound() {
         if (head == null)
             throw new IllegalStateException("Empty function");
@@ -175,7 +166,6 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         return node.value.x;
     }
 
-    @Override
     protected int floorIndexOfX(double x) {
         if (count < 2)
             throw new IllegalStateException("Insufficient data");
@@ -192,7 +182,6 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         return index;
     }
 
-    @Override
     protected double extrapolateLeft(double x) {
         double x0 = getX(0);
         double x1 = getX(1);
@@ -201,7 +190,6 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         return interpolate(x, x0, x1, y0, y1);
     }
 
-    @Override
     protected double extrapolateRight(double x) {
         int last = getCount() - 1;
         double x0 = getX(last - 1);
@@ -211,7 +199,6 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         return interpolate(x, x0, x1, y0, y1);
     }
 
-    @Override
     protected double interpolate(double x, int floorIndex) {
         if (floorIndex < 0 || floorIndex >= getCount() - 1)
             throw new IllegalArgumentException("Invalid floor index");
@@ -230,7 +217,6 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         return y0 + (y1 - y0) * (x - x0) / (x1 - x0);
     }
 
-    @Override
     public LinkedListTabulatedFunction clone() {
         try {
             LinkedListTabulatedFunction cloned = (LinkedListTabulatedFunction) super.clone();
@@ -254,18 +240,15 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         }
     }
 
-    @Override
     public Iterator<Point> iterator() {
         return new Iterator<>() {
             private Node currentNode = head;
             private int currentIndex = 0;
 
-            @Override
             public boolean hasNext() {
                 return currentIndex < count;
             }
 
-            @Override
             public Point next() {
                 if (!hasNext()) {
                     throw new NoSuchElementException("No more elements");
@@ -276,7 +259,6 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
                 return point;
             }
 
-            @Override
             public void remove() {
                 throw new UnsupportedOperationException();
             }

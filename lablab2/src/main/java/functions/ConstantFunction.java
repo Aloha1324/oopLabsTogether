@@ -7,7 +7,6 @@ public class ConstantFunction implements MathFunction {
         this.value = value;
     }
 
-    @Override
     public double apply(double x) {return value;}
 }
 

@@ -23,7 +23,6 @@ public class CompositeFunction implements MathFunction {
     //Применяет сложную функцию к аргументу
     //x аргумент функции
 
-    @Override
     public double apply(double x) {
         // Сначала применяем первую функцию
         double intermediateResult = firstFunction.apply(x);

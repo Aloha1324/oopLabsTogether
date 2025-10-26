@@ -1,7 +1,5 @@
 package functions;
 
-import exceptions.ArrayIsNotSortedException;
-import exceptions.DifferentLengthOfArraysException;
 import exceptions.InterpolationException;
 import java.io.Serializable;
 import java.util.Arrays;
@@ -89,33 +87,28 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
         yValues = newYValues;
     }
 
-    @Override
     public int getCount() {
         return xValues.length;
     }
 
-    @Override
     public double getX(int index) {
         if (index < 0 || index >= getCount())
             throw new IllegalArgumentException("Index out of bounds: " + index);
         return xValues[index];
     }
 
-    @Override
     public double getY(int index) {
         if (index < 0 || index >= getCount())
             throw new IllegalArgumentException("Index out of bounds: " + index);
         return yValues[index];
     }
 
-    @Override
     public void setY(int index, double value) {
         if (index < 0 || index >= getCount())
             throw new IllegalArgumentException("Index out of bounds: " + index);
         yValues[index] = value;
     }
 
-    @Override
     public int indexOfX(double x) {
         for (int i = 0; i < getCount(); i++) {
             if (Double.compare(xValues[i], x) == 0) {
@@ -125,7 +118,6 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
         return -1;
     }
 
-    @Override
     public int indexOfY(double y) {
         for (int i = 0; i < getCount(); i++) {
             if (Double.compare(yValues[i], y) == 0) {
@@ -135,17 +127,14 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
         return -1;
     }
 
-    @Override
     public double leftBound() {
         return xValues[0];
     }
 
-    @Override
     public double rightBound() {
         return xValues[getCount() - 1];
     }
 
-    @Override
     protected int floorIndexOfX(double x) {
         int count = getCount();
         if (x < xValues[0]) {
@@ -163,18 +152,15 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
         return count - 2;
     }
 
-    @Override
     protected double extrapolateLeft(double x) {
         return interpolate(x, xValues[0], xValues[1], yValues[0], yValues[1]);
     }
 
-    @Override
     protected double extrapolateRight(double x) {
         int count = getCount();
         return interpolate(x, xValues[count - 2], xValues[count - 1], yValues[count - 2], yValues[count - 1]);
     }
 
-    @Override
     protected double interpolate(double x, int floorIndex) {
         if (floorIndex < 0 || floorIndex >= getCount() - 1)
             throw new IllegalArgumentException("Invalid floor index: " + floorIndex);
@@ -189,7 +175,6 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
         return leftY + ((x - leftX) * (rightY - leftY)) / (rightX - leftX);
     }
 
-    @Override
     public double apply(double x) {
         if (x < xValues[0]) {
             return extrapolateLeft(x);
@@ -207,7 +192,6 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
         return interpolate(x, floorIndex);
     }
 
-    @Override
     public ArrayTabulatedFunction clone() {
         try {
             ArrayTabulatedFunction cloned = (ArrayTabulatedFunction) super.clone();
@@ -219,7 +203,6 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
         }
     }
 
-    @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
@@ -227,27 +210,22 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
         return super.equals(that);
     }
 
-    @Override
     public int hashCode() {
         return super.hashCode();
     }
 
-    @Override
     public String toString() {
         return super.toString();
     }
 
-    @Override
     public Iterator<Point> iterator() {
         return new Iterator<Point>() {
             private int i = 0;
 
-            @Override
             public boolean hasNext() {
                 return i < getCount();
             }
 
-            @Override
             public Point next() {
                 if (!hasNext())
                     throw new java.util.NoSuchElementException();
@@ -256,7 +234,6 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
                 return point;
             }
 
-            @Override
             public void remove() {
                 throw new UnsupportedOperationException("remove");
             }

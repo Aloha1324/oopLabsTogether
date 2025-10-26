@@ -19,10 +19,8 @@ public class TabulatedDifferentialOperatorTest {
             super(step);
         }
 
-        @Override
         public MathFunction derive(MathFunction function) {
             return new MathFunction() {
-                @Override
                 public double apply(double x) {
                     return function.apply(x) * 2;
                 }
@@ -39,49 +37,40 @@ public class TabulatedDifferentialOperatorTest {
             this.y = y;
         }
 
-        @Override
         public int getCount() {
             return 1;
         }
 
-        @Override
         public double getX(int index) {
             if (index != 0) throw new IllegalArgumentException("Index must be 0 for single point function");
             return x;
         }
 
-        @Override
         public double getY(int index) {
             if (index != 0) throw new IllegalArgumentException("Index must be 0 for single point function");
             return y;
         }
 
-        @Override
         public void setY(int index, double value) {
             throw new UnsupportedOperationException("Not supported for single point function");
         }
 
-        @Override
         public int indexOfX(double x) {
             return (Math.abs(this.x - x) < 1e-10) ? 0 : -1;
         }
 
-        @Override
         public int indexOfY(double y) {
             return (Math.abs(this.y - y) < 1e-10) ? 0 : -1;
         }
 
-        @Override
         public double leftBound() {
             return x;
         }
 
-        @Override
         public double rightBound() {
             return x;
         }
 
-        @Override
         public double apply(double x) {
             if (Math.abs(this.x - x) < 1e-10) {
                 return y;
@@ -89,17 +78,14 @@ public class TabulatedDifferentialOperatorTest {
             throw new IllegalArgumentException("x value is not in the function domain");
         }
 
-        @Override
         public Iterator<Point> iterator() {
             return new Iterator<Point>() {
                 private boolean hasNext = true;
 
-                @Override
                 public boolean hasNext() {
                     return hasNext;
                 }
 
-                @Override
                 public Point next() {
                     if (!hasNext) {
                         throw new NoSuchElementException("No more points");
@@ -112,7 +98,6 @@ public class TabulatedDifferentialOperatorTest {
     }
 
     static class SinglePointTabulatedFunctionFactory extends ArrayTabulatedFunctionFactory {
-        @Override
         public TabulatedFunction create(double[] xValues, double[] yValues) {
             if (xValues.length == 1) {
                 return new SinglePointTabulatedFunction(xValues[0], yValues[0]);

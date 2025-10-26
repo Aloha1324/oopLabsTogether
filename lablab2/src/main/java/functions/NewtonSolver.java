@@ -43,7 +43,6 @@ public class NewtonSolver implements MathFunction {
      * @param x начальное приближение для поиска корня
      * @return найденный корень уравнения function(x) = 0
      */
-    @Override
     public double apply(double x) {
         // Используем x как начальное приближение и вызываем метод solve
         return solve(x, false);
