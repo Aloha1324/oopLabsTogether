@@ -2,7 +2,14 @@ package concurrent;
 
 import functions.Point;
 import functions.TabulatedFunction;
+import operations.TabulatedFunctionOperationService;
+
 import java.util.Iterator;
+
+
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 
 public class SynchronizedTabulatedFunction implements TabulatedFunction {
     private final TabulatedFunction function;
@@ -68,6 +75,31 @@ public class SynchronizedTabulatedFunction implements TabulatedFunction {
 
     @Override
     public synchronized Iterator<Point> iterator() {
-        return function.iterator();
+        // Создаем копию точек в синхронизированном блоке
+        Point[] pointsCopy = TabulatedFunctionOperationService.asPoints(function);
+
+        return new Iterator<Point>() {
+            private int currentIndex = 0;
+            private final Point[] points = pointsCopy;
+
+            @Override
+            public boolean hasNext() {
+                return currentIndex < points.length;
+            }
+
+            @Override
+            public Point next() {
+                if (!hasNext()) {
+                    throw new NoSuchElementException("No more elements in iterator");
+                }
+                return points[currentIndex++];
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException("Remove operation is not supported");
+            }
+        };
     }
 }
+

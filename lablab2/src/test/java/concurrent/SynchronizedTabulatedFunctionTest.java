@@ -8,6 +8,13 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+
+
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
+
+
 public class SynchronizedTabulatedFunctionTest {
 
     @Test
@@ -152,4 +159,155 @@ public class SynchronizedTabulatedFunctionTest {
         assertEquals(1.0, syncFunc.apply(1.0), 0.0001);
         assertEquals(2.5, syncFunc.apply(1.5), 0.0001);
     }
+
+
+    @Test
+    void testIteratorHasNext() {
+        TabulatedFunction innerFunc = new LinkedListTabulatedFunction(0, 5, 3);
+        SynchronizedTabulatedFunction syncFunc = new SynchronizedTabulatedFunction(innerFunc);
+
+        Iterator<Point> iterator = syncFunc.iterator();
+
+        assertTrue(iterator.hasNext(), "Iterator should have next element");
+
+        // Пройдем по всем элементам
+        iterator.next();
+        assertTrue(iterator.hasNext(), "Iterator should have second element");
+
+        iterator.next();
+        assertTrue(iterator.hasNext(), "Iterator should have third element");
+
+        iterator.next();
+        assertFalse(iterator.hasNext(), "Iterator should not have more elements after last");
+    }
+
+    @Test
+    void testIteratorNext() {
+        TabulatedFunction innerFunc = new LinkedListTabulatedFunction(0, 10, 3);
+        SynchronizedTabulatedFunction syncFunc = new SynchronizedTabulatedFunction(innerFunc);
+
+        Iterator<Point> iterator = syncFunc.iterator();
+
+        Point first = iterator.next();
+        assertEquals(0.0, first.x, 1e-9, "First point x should be 0");
+        assertEquals(0.0, first.y, 1e-9, "First point y should be 0");
+
+        Point second = iterator.next();
+        assertEquals(5.0, second.x, 1e-9, "Second point x should be 5");
+        assertEquals(5.0, second.y, 1e-9, "Second point y should be 5");
+
+        Point third = iterator.next();
+        assertEquals(10.0, third.x, 1e-9, "Third point x should be 10");
+        assertEquals(10.0, third.y, 1e-9, "Third point y should be 10");
+    }
+
+    @Test
+    void testIteratorNextThrowsException() {
+        TabulatedFunction innerFunc = new LinkedListTabulatedFunction(0, 2, 2);
+        SynchronizedTabulatedFunction syncFunc = new SynchronizedTabulatedFunction(innerFunc);
+
+        Iterator<Point> iterator = syncFunc.iterator();
+
+        iterator.next();
+        iterator.next();
+
+        assertThrows(NoSuchElementException.class, iterator::next,
+                "Should throw NoSuchElementException when no more elements");
+    }
+
+    @Test
+    void testIteratorRemoveThrowsException() {
+        TabulatedFunction innerFunc = new LinkedListTabulatedFunction(0, 2, 2);
+        SynchronizedTabulatedFunction syncFunc = new SynchronizedTabulatedFunction(innerFunc);
+
+        Iterator<Point> iterator = syncFunc.iterator();
+        iterator.next();
+
+        assertThrows(UnsupportedOperationException.class, iterator::remove,
+                "Should throw UnsupportedOperationException for remove operation");
+    }
+
+    @Test
+    void testIteratorWithSingleElement() {
+        TabulatedFunction innerFunc = new LinkedListTabulatedFunction(1, 5, 1);
+        SynchronizedTabulatedFunction syncFunc = new SynchronizedTabulatedFunction(innerFunc);
+
+        Iterator<Point> iterator = syncFunc.iterator();
+
+        assertTrue(iterator.hasNext(), "Iterator should have one element");
+        Point point = iterator.next();
+        assertEquals(1.0, point.x, 1e-9, "Single point x should be 1");
+        assertEquals(5.0, point.y, 1e-9, "Single point y should be 5");
+        assertFalse(iterator.hasNext(), "Iterator should not have more elements");
+    }
+
+    @Test
+    void testIteratorWithEmptyFunction() {
+        // Создаем функцию с 0 точками (если такая возможность есть)
+        // Если нет, то тестируем с минимальным количеством точек (1)
+        TabulatedFunction innerFunc = new LinkedListTabulatedFunction(0, 0, 1);
+        SynchronizedTabulatedFunction syncFunc = new SynchronizedTabulatedFunction(innerFunc);
+
+        Iterator<Point> iterator = syncFunc.iterator();
+
+        // Для функции с 1 точкой
+        assertTrue(iterator.hasNext(), "Iterator should have at least one element");
+        iterator.next();
+
+        // Если бы была возможность создать пустую функцию:
+        // assertFalse(iterator.hasNext(), "Iterator should be empty for empty function");
+    }
+
+    @Test
+    void testIteratorIsolationFromModifications() {
+        TabulatedFunction innerFunc = new LinkedListTabulatedFunction(0, 4, 3);
+        SynchronizedTabulatedFunction syncFunc = new SynchronizedTabulatedFunction(innerFunc);
+
+        // Получаем итератор
+        Iterator<Point> iterator = syncFunc.iterator();
+
+        // Модифицируем исходную функцию
+        syncFunc.setY(0, 100);
+        syncFunc.setY(1, 200);
+        syncFunc.setY(2, 300);
+
+        // Итератор должен работать со старыми значениями (копией)
+        Point first = iterator.next();
+        assertEquals(0.0, first.x, 1e-9, "First point x should be original 0");
+        assertEquals(0.0, first.y, 1e-9, "First point y should be original 0, not modified 100");
+
+        Point second = iterator.next();
+        assertEquals(2.0, second.x, 1e-9, "Second point x should be original 2");
+        assertEquals(2.0, second.y, 1e-9, "Second point y should be original 2, not modified 200");
+
+        Point third = iterator.next();
+        assertEquals(4.0, third.x, 1e-9, "Third point x should be original 4");
+        assertEquals(4.0, third.y, 1e-9, "Third point y should be original 4, not modified 300");
+    }
+
+    @Test
+    void testMultipleIteratorsIndependent() {
+        TabulatedFunction innerFunc = new LinkedListTabulatedFunction(0, 2, 2);
+        SynchronizedTabulatedFunction syncFunc = new SynchronizedTabulatedFunction(innerFunc);
+
+        Iterator<Point> iterator1 = syncFunc.iterator();
+        Iterator<Point> iterator2 = syncFunc.iterator();
+
+        // Оба итератора должны работать независимо
+        Point point1 = iterator1.next();
+        Point point2 = iterator2.next();
+
+        assertEquals(point1.x, point2.x, 1e-9, "Both iterators should return same x for first element");
+        assertEquals(point1.y, point2.y, 1e-9, "Both iterators should return same y for first element");
+
+        // Пройдем один итератор до конца
+        iterator1.next();
+        assertFalse(iterator1.hasNext(), "First iterator should be exhausted");
+        assertTrue(iterator2.hasNext(), "Second iterator should still have elements");
+
+        iterator2.next();
+        assertFalse(iterator2.hasNext(), "Second iterator should be exhausted after consuming all elements");
+    }
+
+
 }
