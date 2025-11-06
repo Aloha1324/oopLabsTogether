@@ -5,28 +5,27 @@ import functions.TabulatedFunction;
 import operations.TabulatedFunctionOperationService;
 
 import java.util.Iterator;
-
-
-import java.util.Iterator;
 import java.util.NoSuchElementException;
-
 
 public class SynchronizedTabulatedFunction implements TabulatedFunction {
     private final TabulatedFunction function;
-    private final Object lock;
 
+    // Исправленный конструктор - убрано поле lock
     public SynchronizedTabulatedFunction(TabulatedFunction function) {
         this.function = function;
-        this.lock = this;
     }
 
+    // Интерфейс для операций, выполняемых в синхронизированном контексте
     public interface Operation<T> {
         T apply(SynchronizedTabulatedFunction func);
     }
 
+    // Метод для выполнения произвольных операций в синхронизированном контексте
     public synchronized <T> T doSynchronously(Operation<? extends T> operation) {
         return operation.apply(this);
     }
+
+    // Синхронизированные методы доступа к данным функции
 
     @Override
     public synchronized int getCount() {
@@ -78,6 +77,7 @@ public class SynchronizedTabulatedFunction implements TabulatedFunction {
         // Создаем копию точек в синхронизированном блоке
         Point[] pointsCopy = TabulatedFunctionOperationService.asPoints(function);
 
+        // Возвращаем итератор, работающий с копией данных (не требует синхронизации)
         return new Iterator<Point>() {
             private int currentIndex = 0;
             private final Point[] points = pointsCopy;
@@ -102,4 +102,3 @@ public class SynchronizedTabulatedFunction implements TabulatedFunction {
         };
     }
 }
-
