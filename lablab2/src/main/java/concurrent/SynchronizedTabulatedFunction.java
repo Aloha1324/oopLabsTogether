@@ -79,7 +79,6 @@ public class SynchronizedTabulatedFunction implements TabulatedFunction {
                 @Override
                 public boolean hasNext() {
                     return currentIndex < points.length;
-
                 }
 
                 @Override
