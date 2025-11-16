@@ -1,8 +1,8 @@
 package concurrent;
 
 import functions.TabulatedFunction;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.Logger;
+import org.LoggerFactory;
 
 public class MultiplyingTask implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(MultiplyingTask.class);
