@@ -3,7 +3,22 @@
   <component name="JavadocGenerationManager">
     <option name="OUTPUT_DIRECTORY" value="$PROJECT_DIR$/../../../../../projects/lablab2/docs" />
   </component>
+<<<<<<< HEAD
   <component name="ProjectRootManager" version="2" languageLevel="JDK_25" default="true" project-jdk-name="25" project-jdk-type="JavaSDK">
+=======
+<<<<<<< HEAD
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/lablab2/pom.xml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_25" default="true" project-jdk-name="25" project-jdk-type="JavaSDK">
+=======
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_24" project-jdk-name="25" project-jdk-type="JavaSDK">
+>>>>>>> 26b8f04c9030c180c6c2d3bbaa40a2362075dd4a
+>>>>>>> 9cb9d878e03ff0858d2c7e34518d5fc4f928ee45
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>
