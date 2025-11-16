@@ -1,29 +1,41 @@
-# Папка output никогда не попадает в репозиторий
-/output/
-
-# Папка input - по желанию (можно закомментировать, если нужна в репозитории)
-/input/
-
-# Стандартные правила для Java/Maven
 target/
-*.jar
-*.war
-*.ear
-*.zip
-*.tar.gz
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
 
-# Логи
-*.log
-
-# Файлы IDE
-.idea/
-*.iml
+### IntelliJ IDEA ###
+.idea/modules.xml
+.idea/jarRepositories.xml
+.idea/compiler.xml
+.idea/libraries/
 *.iws
+*.iml
+*.ipr
 
-# Системные файлы
-.DS_Store
-Thumbs.db
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
 
-# Файлы сборки
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
 build/
-out/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+output/
+input/
