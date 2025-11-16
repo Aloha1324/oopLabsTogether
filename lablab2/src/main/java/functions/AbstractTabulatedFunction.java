@@ -4,71 +4,56 @@ import exceptions.ArrayIsNotSortedException;
 import exceptions.DifferentLengthOfArraysException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Абстрактный класс для табулированных функций, реализующий общий функционал
- * для различных способов хранения данных (массивы, связные списки)
- */
 public abstract class AbstractTabulatedFunction implements TabulatedFunction {
+    private static final Logger logger = LoggerFactory.getLogger(AbstractTabulatedFunction.class);
 
-    /**
-     * Метод поиска индекса максимального значения x, которое меньше заданного x
-     * Для набора значений x [-3., 4., 6.] метод, применённый к 4.5, должен вернуть 1
-     * Если все x больше заданного, метод должен вернуть 0
-     * Если все x меньше заданного, метод должен вернуть count
-     */
     protected abstract int floorIndexOfX(double x);
-
-    /**
-     * Метод экстраполяции для значений слева от минимального x
-     */
     protected abstract double extrapolateLeft(double x);
-
-    /**
-     * Метод экстраполяции для значений справа от максимального x
-     */
     protected abstract double extrapolateRight(double x);
-
-    /**
-     * Метод интерполяции с указанием индекса интервала
-     */
     protected abstract double interpolate(double x, int floorIndex);
 
-    /**
-     * Защищенный метод с реализацией линейной интерполяции
-     */
     protected double interpolate(double x, double leftX, double rightX, double leftY, double rightY) {
-        // Проверка на совпадение граничных точек
+        logger.trace("Интерполяция: x={}, leftX={}, rightX={}, leftY={}, rightY={}",
+                x, leftX, rightX, leftY, rightY);
+
         if (leftX == rightX) {
+            logger.debug("Граничные точки совпадают, возвращаем среднее значение");
             return (leftY + rightY) / 2.0;
         }
-        // Формула линейной интерполяции
-        return leftY + (rightY - leftY) * (x - leftX) / (rightX - leftX);
+
+        double result = leftY + (rightY - leftY) * (x - leftX) / (rightX - leftX);
+        logger.debug("Результат интерполяции: {}", result);
+        return result;
     }
 
-    /**
-     * Реализация метода apply для вычисления значения функции в любой точке x.
-     * Использует интерполяцию и экстраполяцию на основе табличных значений
-     */
     public double apply(double x) {
-        // Проверка на пустую таблицу
+        logger.debug("Вычисление apply для x={}", x);
+
         if (getCount() == 0) {
+            logger.error("Попытка вычислить значение для пустой табулированной функции");
             throw new IllegalStateException("Tabulated function is empty");
         }
 
-        // Определение положения x относительно границ функции
         if (x < leftBound()) {
+            logger.debug("x={} меньше левой границы {}, используем экстраполяцию слева", x, leftBound());
             return extrapolateLeft(x);
         } else if (x > rightBound()) {
+            logger.debug("x={} больше правой границы {}, используем экстраполяцию справа", x, rightBound());
             return extrapolateRight(x);
         } else {
             int exactIndex = indexOfX(x);
             if (exactIndex != -1) {
+                logger.debug("Точное совпадение x={} найдено в индексе {}", x, exactIndex);
                 return getY(exactIndex);
             } else {
                 int floorIndex = floorIndexOfX(x);
-                // Дополнительная проверка корректности индекса
+                logger.debug("Интерполяция x={} в интервале с индексом {}", x, floorIndex);
+
                 if (floorIndex < 0 || floorIndex >= getCount()) {
+                    logger.error("Некорректный floorIndex: {} для x={}", floorIndex, x);
                     throw new IllegalStateException("Invalid floor index calculated: " + floorIndex);
                 }
                 return interpolate(x, floorIndex);
@@ -76,77 +61,82 @@ public abstract class AbstractTabulatedFunction implements TabulatedFunction {
         }
     }
 
-    /**
-     * Статический метод для проверки одинаковой длины массивов x и y
-     * @param xValues массив значений x
-     * @param yValues массив значений y
-     * @throws DifferentLengthOfArraysException если массивы разной длины
-     */
     public static void checkLengthIsTheSame(double[] xValues, double[] yValues) {
+        logger.debug("Проверка длины массивов: xValues.length={}, yValues.length={}",
+                xValues.length, yValues.length);
+
         if (xValues.length != yValues.length) {
+            logger.error("Массивы разной длины: xValues={}, yValues={}",
+                    xValues.length, yValues.length);
             throw new DifferentLengthOfArraysException("Arrays xValues and yValues must have the same length");
         }
+        logger.debug("Проверка длины массивов пройдена успешно");
     }
 
-    /**
-     * Статический метод для проверки отсортированности массива x по возрастанию
-     * @param xValues массив значений x
-     * @throws ArrayIsNotSortedException если массив не отсортирован по возрастанию
-     */
     public static void checkSorted(double[] xValues) {
+        logger.debug("Проверка отсортированности массива xValues длиной {}", xValues.length);
+
         for (int i = 1; i < xValues.length; i++) {
             if (xValues[i] <= xValues[i - 1]) {
+                logger.error("Массив не отсортирован: xValues[{}]={} <= xValues[{}]={}",
+                        i, xValues[i], i-1, xValues[i-1]);
                 throw new ArrayIsNotSortedException("xValues array must be sorted in ascending order");
             }
         }
+        logger.debug("Проверка отсортированности пройдена успешно");
     }
 
-    /**
-     * Возвращает строковое представление табулированной функции
-     *строка в формате "ИмяКласса size = [количество точек]\n[x1; y1]\n[x2; y2]..."
-     */
     public String toString() {
+        logger.trace("Генерация строкового представления функции");
+
         StringBuilder sb = new StringBuilder();
         sb.append(getClass().getSimpleName()).append(" size = ").append(getCount());
 
-        // Используем цикл for-each с итератором
         for (Point point : this) {
             sb.append("\n[").append(point.x).append("; ").append(point.y).append("]");
         }
 
-        return sb.toString();
+        String result = sb.toString();
+        logger.debug("Сгенерировано строковое представление: {}", result);
+        return result;
     }
 
-    /**
-     * Сравнивает две табулированные функции на равенство
-     * @param o объект для сравнения
-     * @return true если функции идентичны (одинаковые точки в одинаковом порядке), false в противном случае
-     */
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        logger.trace("Сравнение объектов: this={}, other={}", this, o);
+
+        if (this == o) {
+            logger.debug("Сравнение с тем же объектом - равны");
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            logger.debug("Объекты разных классов или другой объект null - не равны");
+            return false;
+        }
 
         TabulatedFunction that = (TabulatedFunction) o;
 
-        // Проверка количества точек
-        if (getCount() != that.getCount()) return false;
+        if (getCount() != that.getCount()) {
+            logger.debug("Разное количество точек: this.count={}, that.count={}",
+                    getCount(), that.getCount());
+            return false;
+        }
 
-        // Поэлементное сравнение всех точек
         for (int i = 0; i < getCount(); i++) {
             if (Double.compare(getX(i), that.getX(i)) != 0 ||
                     Double.compare(getY(i), that.getY(i)) != 0) {
+                logger.debug("Точки различаются в индексе {}: this[x={}, y={}], that[x={}, y={}]",
+                        i, getX(i), getY(i), that.getX(i), that.getY(i));
                 return false;
             }
         }
 
+        logger.debug("Объекты идентичны");
         return true;
     }
 
-    /**
-     * Вычисляет хэш-код функции на основе всех её точек
-     * @return хэш-код функции
-     */
     public int hashCode() {
+        logger.trace("Вычисление хэш-кода функции");
+
         int result = 1;
 
         for (int i = 0; i < getCount(); i++) {
@@ -157,45 +147,34 @@ public abstract class AbstractTabulatedFunction implements TabulatedFunction {
             result = 31 * result + (int) (yBits ^ (yBits >>> 32));
         }
 
+        logger.debug("Вычисленный хэш-код: {}", result);
         return result;
     }
 
-    /**
-     * Создает и возвращает копию объекта
-     * @return копия табулированной функции
-     * @throws CloneNotSupportedException если клонирование не поддерживается
-     */
     protected Object clone() throws CloneNotSupportedException {
+        logger.trace("Клонирование объекта");
         return super.clone();
     }
 
-    /**
-     * Возвращает итератор для прохода по всем точкам функции
-     * @return итератор точек
-     */
     public Iterator<Point> iterator() {
+        logger.trace("Создание итератора для функции");
         return new Iterator<Point>() {
             private int currentIndex = 0;
 
-            /**
-             * Проверяет наличие следующей точки
-             * @return true если есть следующая точка, false в противном случае
-             */
             public boolean hasNext() {
-                return currentIndex < getCount();
+                boolean hasNext = currentIndex < getCount();
+                logger.trace("Проверка наличия следующей точки: {}", hasNext);
+                return hasNext;
             }
 
-            /**
-             * Возвращает следующую точку функции
-             * @return следующая точка
-             * @throws NoSuchElementException если больше нет точек
-             */
             public Point next() {
                 if (!hasNext()) {
+                    logger.error("Попытка получить следующую точку при отсутствии элементов");
                     throw new NoSuchElementException("No more points available");
                 }
 
                 Point point = new Point(getX(currentIndex), getY(currentIndex));
+                logger.trace("Возвращена точка {}: [{}, {}]", currentIndex, point.x, point.y);
                 currentIndex++;
                 return point;
             }

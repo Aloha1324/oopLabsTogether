@@ -3,127 +3,133 @@ package io;
 import functions.TabulatedFunction;
 import functions.LinkedListTabulatedFunction;
 import operations.TabulatedDifferentialOperator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 
-/**
- * Класс для сериализации и десериализации табулированных функций
- */
 public class LinkedListTabulatedFunctionSerialization {
 
-    public static void main(String[] args) {
-        // Часть 1: Создание функций и их сериализация
-        serializeFunctions();
+    private static final Logger logger = LoggerFactory.getLogger(LinkedListTabulatedFunctionSerialization.class);
 
-        // Часть 2: Десериализация функций и вывод в консоль
+    public static void main(String[] args) {
+        logger.info("Запуск LinkedListTabulatedFunctionSerialization");
+
+        serializeFunctions();
         deserializeFunctions();
+
+        logger.info("LinkedListTabulatedFunctionSerialization завершен");
     }
 
     private static void serializeFunctions() {
-        System.out.println("=== СЕРИАЛИЗАЦИЯ ФУНКЦИЙ ===");
+        logger.info("=== НАЧАЛО СЕРИАЛИЗАЦИИ ФУНКЦИЙ ===");
 
-        // Создаем папку output если её нет
         File outputDir = new File("output");
         if (!outputDir.exists()) {
+            logger.debug("Попытка создать директорию output");
             if (outputDir.mkdir()) {
-                System.out.println("Создана папка output");
+                logger.info("Директория output создана");
             } else {
-                System.err.println("Не удалось создать папку output");
+                logger.error("Не удалось создать директорию output");
                 return;
             }
         }
 
-        // Используем try-with-resources для файлового потока записи
         try (FileOutputStream fos = new FileOutputStream("output/serialized linked list functions.bin");
              BufferedOutputStream bos = new BufferedOutputStream(fos)) {
 
-            System.out.println("Создание исходной функции...");
-
-            // Создаем исходную табулированную функцию типа LinkedListTabulatedFunction
+            logger.debug("Создание исходной функции");
             double[] xValues = {0.0, 1.0, 2.0, 3.0, 4.0};
-            double[] yValues = {0.0, 1.0, 4.0, 9.0, 16.0}; // y = x^2
+            double[] yValues = {0.0, 1.0, 4.0, 9.0, 16.0};
             TabulatedFunction originalFunction = new LinkedListTabulatedFunction(xValues, yValues);
+            logger.info("Создана исходная функция с {} точками", originalFunction.getCount());
 
-            System.out.println("Вычисление производных...");
-
-            // Находим первую и вторую производные
+            logger.debug("Вычисление производных");
             TabulatedDifferentialOperator differentialOperator = new TabulatedDifferentialOperator();
+
+            logger.info("Вычисление первой производной");
             TabulatedFunction firstDerivative = differentialOperator.derive(originalFunction);
+            logger.debug("Первая производная вычислена, количество точек: {}", firstDerivative.getCount());
+
+            logger.info("Вычисление второй производной");
             TabulatedFunction secondDerivative = differentialOperator.derive(firstDerivative);
+            logger.debug("Вторая производная вычислена, количество точек: {}", secondDerivative.getCount());
 
-            // Выводим информацию о функциях перед сериализацией
-            System.out.println("Исходная функция: " + originalFunction.toString());
-            System.out.println("Первая производная: " + firstDerivative.toString());
-            System.out.println("Вторая производная: " + secondDerivative.toString());
+            logger.debug("Информация о функциях перед сериализацией:");
+            logger.debug("Исходная функция: {}", originalFunction.toString());
+            logger.debug("Первая производная: {}", firstDerivative.toString());
+            logger.debug("Вторая производная: {}", secondDerivative.toString());
 
-            System.out.println("Сериализация функций в файл...");
+            logger.info("Начало сериализации функций");
 
-            // Сериализуем все три функции в поток
+            logger.debug("Сериализация исходной функции");
             FunctionsIO.serialize(bos, originalFunction);
-            FunctionsIO.serialize(bos, firstDerivative);
-            FunctionsIO.serialize(bos, secondDerivative);
+            logger.debug("Исходная функция сериализована");
 
-            System.out.println("Функции успешно сериализованы в файл: output/serialized linked list functions.bin");
-            System.out.println("Размер файла: " + new File("output/serialized linked list functions.bin").length() + " байт");
+            logger.debug("Сериализация первой производной");
+            FunctionsIO.serialize(bos, firstDerivative);
+            logger.debug("Первая производная сериализована");
+
+            logger.debug("Сериализация второй производной");
+            FunctionsIO.serialize(bos, secondDerivative);
+            logger.debug("Вторая производная сериализована");
+
+            File file = new File("output/serialized linked list functions.bin");
+            logger.info("Функции успешно сериализованы в файл: {}, размер: {} байт",
+                    file.getAbsolutePath(), file.length());
 
         } catch (IOException e) {
-            System.err.println("Ошибка при сериализации функций:");
-            e.printStackTrace();
+            logger.error("Ошибка при сериализации функций", e);
         }
     }
 
     private static void deserializeFunctions() {
-        System.out.println("\n=== ДЕСЕРИАЛИЗАЦИЯ ФУНКЦИЙ ===");
+        logger.info("=== НАЧАЛО ДЕСЕРИАЛИЗАЦИИ ФУНКЦИЙ ===");
 
         File file = new File("output/serialized linked list functions.bin");
         if (!file.exists()) {
-            System.err.println("Файл не найден: " + file.getAbsolutePath());
-            System.err.println("Сначала выполните сериализацию функций");
+            logger.error("Файл не найден: {}", file.getAbsolutePath());
             return;
         }
 
-        // Используем try-with-resources для файлового потока чтения
         try (FileInputStream fis = new FileInputStream("output/serialized linked list functions.bin");
              BufferedInputStream bis = new BufferedInputStream(fis)) {
 
-            System.out.println("Десериализация функций из файла...");
+            logger.info("Десериализация функций из файла");
 
-            // Десериализуем все три функции из файла
+            logger.debug("Десериализация исходной функции");
             TabulatedFunction deserializedOriginal = FunctionsIO.deserialize(bis);
+            logger.debug("Исходная функция десериализована, тип: {}, точки: {}",
+                    deserializedOriginal.getClass().getSimpleName(), deserializedOriginal.getCount());
+
+            logger.debug("Десериализация первой производной");
             TabulatedFunction deserializedFirstDerivative = FunctionsIO.deserialize(bis);
+            logger.debug("Первая производная десериализована, тип: {}, точки: {}",
+                    deserializedFirstDerivative.getClass().getSimpleName(), deserializedFirstDerivative.getCount());
+
+            logger.debug("Десериализация второй производной");
             TabulatedFunction deserializedSecondDerivative = FunctionsIO.deserialize(bis);
+            logger.debug("Вторая производная десериализована, тип: {}, точки: {}",
+                    deserializedSecondDerivative.getClass().getSimpleName(), deserializedSecondDerivative.getCount());
 
-            // Выводим значения всех функций в консоль
-            System.out.println("\n=== ДЕСЕРИАЛИЗОВАННЫЕ ФУНКЦИИ ===");
+            logger.info("Все функции успешно десериализованы");
 
-            System.out.println("1. Исходная функция:");
-            System.out.println(deserializedOriginal.toString());
-            System.out.println("Тип: " + deserializedOriginal.getClass().getSimpleName());
-            System.out.println("Количество точек: " + deserializedOriginal.getCount());
+            logger.debug("Вывод информации о десериализованных функциях:");
+            logger.debug("Исходная функция: {}", deserializedOriginal.toString());
+            logger.debug("Первая производная: {}", deserializedFirstDerivative.toString());
+            logger.debug("Вторая производная: {}", deserializedSecondDerivative.toString());
 
-            System.out.println("\n2. Первая производная:");
-            System.out.println(deserializedFirstDerivative.toString());
-            System.out.println("Тип: " + deserializedFirstDerivative.getClass().getSimpleName());
-            System.out.println("Количество точек: " + deserializedFirstDerivative.getCount());
-
-            System.out.println("\n3. Вторая производная:");
-            System.out.println(deserializedSecondDerivative.toString());
-            System.out.println("Тип: " + deserializedSecondDerivative.getClass().getSimpleName());
-            System.out.println("Количество точек: " + deserializedSecondDerivative.getCount());
-
-            // Дополнительная проверка: выводим точки второй производной
-            System.out.println("\n=== ТОЧКИ ВТОРОЙ ПРОИЗВОДНОЙ ===");
+            logger.debug("Детальная информация о точках второй производной:");
             for (int i = 0; i < deserializedSecondDerivative.getCount(); i++) {
                 double x = deserializedSecondDerivative.getX(i);
                 double y = deserializedSecondDerivative.getY(i);
-                System.out.printf("Точка %d: x = %.2f, y = %.2f%n", i, x, y);
+                logger.debug("Точка {}: x = {:.2f}, y = {:.2f}", i, x, y);
             }
 
         } catch (IOException e) {
-            System.err.println("Ошибка ввода-вывода при десериализации:");
-            e.printStackTrace();
+            logger.error("Ошибка ввода-вывода при десериализации", e);
         } catch (ClassNotFoundException e) {
-            System.err.println("Ошибка: класс не найден при десериализации:");
-            e.printStackTrace();
+            logger.error("Класс не найден при десериализации", e);
         }
     }
 }
