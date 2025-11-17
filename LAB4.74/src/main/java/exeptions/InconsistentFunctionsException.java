@@ -1,4 +1,4 @@
-package exceptions;
+package exeptions;
 
 public class InconsistentFunctionsException extends RuntimeException {
 
