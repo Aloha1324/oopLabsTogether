@@ -8,10 +8,11 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/lablab2/pom.xlm" />
+        <option value="$PROJECT_DIR$/LAB4.74/pom.xml" />
       </list>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_24" project-jdk-name="25" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_25" default="true" project-jdk-name="25" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>
