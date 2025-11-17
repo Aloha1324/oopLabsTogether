@@ -1,4 +1,4 @@
-package concurent;
+package concurrent;
 
 import functions.LinkedListTabulatedFunction;
 import functions.UnitFunction;
