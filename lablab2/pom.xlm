@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>Lab4</artifactId>
+    <artifactId>lab5</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -21,6 +21,8 @@
     </properties>
 
     <dependencies>
+
+
         <!-- Ваши существующие зависимости -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

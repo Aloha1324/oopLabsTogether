@@ -26,6 +26,16 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Function> functions = new ArrayList<>();
 
+    // Конструкторы
+    public User() {}  // Пустой конструктор (обязателен для JPA)
+
+    // Конструктор с параметрами
+    public User(String username, String passwordHash) {
+        this.username = username;
+        this.passwordHash = passwordHash;
+        this.createdAt = LocalDateTime.now();
+    }
+
     // Геттеры и сеттеры
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
