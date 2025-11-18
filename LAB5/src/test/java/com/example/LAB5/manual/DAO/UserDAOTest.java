@@ -45,7 +45,7 @@ class UserDAOTest {
         Map<String, Object> foundUser = userDAO.findByUsername(username);
         assertNotNull(foundUser);
         assertEquals(username, foundUser.get("username"));
-        assertEquals(passwordHash, foundUser.get("password_hash"));
+        assertEquals(passwordHash, foundUser.get("password"));
     }
 
     @Test
@@ -68,7 +68,6 @@ class UserDAOTest {
         String baseUsername = uniqueUsername("searchuser");
         userDAO.createUser(baseUsername + "_alpha", "pass1");
         userDAO.createUser(baseUsername + "_beta", "pass2");
-        userDAO.createUser("other_user_123", "pass3");
 
         List<Map<String, Object>> foundUsers = userDAO.findByUsernameLike("searchuser");
 
@@ -106,7 +105,7 @@ class UserDAOTest {
         Map<String, Object> foundUser = userDAO.findById(userId);
         assertNotNull(foundUser);
         assertEquals(newUsername, foundUser.get("username"));
-        assertEquals(newPasswordHash, foundUser.get("password_hash"));
+        assertEquals(newPasswordHash, foundUser.get("password"));
     }
 
     @Test
@@ -124,7 +123,7 @@ class UserDAOTest {
 
         Map<String, Object> foundUser = userDAO.findByUsername(username);
         assertNotNull(foundUser);
-        assertEquals(newHash, foundUser.get("password_hash"));
+        assertEquals(newHash, foundUser.get("password"));
     }
 
     @Test
@@ -169,11 +168,9 @@ class UserDAOTest {
         assertTrue(newCount >= initialCount + 2);
     }
 
-
     @AfterEach
     void tearDown() {
         try {
-            // Очистка тестовых данных
             List<Map<String, Object>> allUsers = userDAO.findAll();
             int deletedCount = 0;
 
