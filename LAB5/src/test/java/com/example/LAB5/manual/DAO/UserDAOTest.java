@@ -1,6 +1,5 @@
 package com.example.LAB5.manual.DAO;
 
-import com.example.LAB5.manual.DAO.UserDAO;
 import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

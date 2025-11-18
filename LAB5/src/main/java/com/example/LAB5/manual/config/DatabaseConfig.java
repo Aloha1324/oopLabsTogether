@@ -5,13 +5,13 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConfig {
-    private static final String URL = "jdbc:postgresql://localhost:5432/your_database_name";
-    private static final String USER = "your_username";
-    private static final String PASSWORD = "your_password";
+    // Используйте эти настройки (как в application.properties)
+    private static final String URL = "jdbc:postgresql://localhost:5432/DB_LAB5";
+    private static final String USER = "postgres";
+    private static final String PASSWORD = "A2D5T97YU8"; // замените на ваш пароль
 
     static {
         try {
-            // Регистрируем драйвер PostgreSQL
             Class.forName("org.postgresql.Driver");
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("PostgreSQL JDBC Driver not found", e);
@@ -22,7 +22,6 @@ public class DatabaseConfig {
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 
-    // Метод для тестирования подключения
     public static boolean testConnection() {
         try (Connection conn = getConnection()) {
             return conn != null && !conn.isClosed();
@@ -30,14 +29,5 @@ public class DatabaseConfig {
             System.err.println("Connection test failed: " + e.getMessage());
             return false;
         }
-    }
-
-    // Геттеры для параметров (опционально)
-    public static String getUrl() {
-        return URL;
-    }
-
-    public static String getUser() {
-        return USER;
     }
 }
