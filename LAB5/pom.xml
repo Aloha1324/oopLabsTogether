@@ -8,7 +8,7 @@
     <artifactId>LAB5</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <!-- ОБНОВИТЕ ДО Spring Boot 3.x -->
+    <!-- Spring Boot 3.x -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -20,11 +20,17 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- Java 17 ОБЯЗАТЕЛЬНА для Spring Boot 3.x -->
+
         <java.version>17</java.version>
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+
         <!-- Spring Boot Data JPA -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
