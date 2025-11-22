@@ -18,7 +18,7 @@ public interface FunctionRepository extends JpaRepository<Function, Long> {
 
     List<Function> findByNameContaining(String name);
 
-    @Query("SELECT COUNT(f) FROM Function f WHERE f.user = :user")
+    @Query("SELECT COUNT(f) FROM Function f WHERE f.user = :userr")
     int countByUser(@Param("user") User user);
 
     @Query("SELECT f FROM Function f WHERE f.expression LIKE %:expressionPart%")
