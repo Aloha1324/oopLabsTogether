@@ -20,7 +20,7 @@ public class Function {
     private String expression;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id") // nullable = true (по данным из БД)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @Column(name = "created_at")
@@ -64,6 +64,11 @@ public class Function {
 
     public List<Point> getPoints() { return points; }
     public void setPoints(List<Point> points) { this.points = points; }
+
+    // Добавленные методы
+    public String getSignature() {
+        return this.name + ":" + this.expression;
+    }
 
     @Override
     public String toString() {

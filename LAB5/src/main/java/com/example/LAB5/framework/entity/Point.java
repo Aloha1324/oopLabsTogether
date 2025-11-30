@@ -65,6 +65,15 @@ public class Point {
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
+    // Добавленные методы
+    public Double getX() {
+        return this.xValue;
+    }
+
+    public Double getY() {
+        return this.yValue;
+    }
+
     @Override
     public String toString() {
         return "Point{id=" + id + ", x=" + xValue + ", y=" + yValue +
