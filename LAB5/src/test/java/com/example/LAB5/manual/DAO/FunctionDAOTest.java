@@ -29,7 +29,6 @@ class FunctionDAOTest {
         userDAO = new UserDAO();
         functionDAO = new FunctionDAO();
 
-        // Создаем тестового пользователя
         String username = uniqueUsername("func_test_user");
         testUserId = createTestUser(username, "test_password_hash");
         logger.info("Используем пользователя с ID: {} для тестов функций", testUserId);
@@ -75,12 +74,10 @@ class FunctionDAOTest {
     @Test
     @Order(2)
     void testFindByUserId() {
-        // Создаем несколько функций для тестового пользователя
         functionDAO.createFunction("linear_func", testUserId, "2*x + 3");
         functionDAO.createFunction("quadratic_func", testUserId, "x^2");
         functionDAO.createFunction("cubic_func", testUserId, "x^3");
 
-        // Создаем другого пользователя и функцию для него
         String otherUsername = uniqueUsername("other_user");
         Long otherUserId = createTestUser(otherUsername, "other_pass");
         functionDAO.createFunction("other_func", otherUserId, "sin(x)");
@@ -172,7 +169,7 @@ class FunctionDAOTest {
         Map<String, Object> foundFunction = functionDAO.findById(functionId);
         assertNotNull(foundFunction);
         assertEquals(updatedExpression, foundFunction.get("expression"));
-        assertEquals(functionName, foundFunction.get("name")); // Имя не должно измениться
+        assertEquals(functionName, foundFunction.get("name"));
     }
 
     @Test
@@ -193,24 +190,20 @@ class FunctionDAOTest {
     @Test
     @Order(9)
     void testDeleteFunctionsByUserId() {
-        // Создаем функции для тестового пользователя
         functionDAO.createFunction("func1", testUserId, "x");
         functionDAO.createFunction("func2", testUserId, "x^2");
 
-        // Создаем другого пользователя и функцию
         String otherUsername = uniqueUsername("user_for_delete_test");
         Long otherUserId = createTestUser(otherUsername, "pass");
         functionDAO.createFunction("other_func", otherUserId, "sin(x)");
 
-        // Удаляем функции тестового пользователя
-        boolean deleted = functionDAO.deleteFunctionsByUserId(testUserId);
-        assertTrue(deleted);
+        // Метод возвращает int (количество удаленных функций), а не boolean
+        int deletedCount = functionDAO.deleteFunctionsByUserId(testUserId);
+        assertTrue(deletedCount > 0);
 
-        // Проверяем, что функции тестового пользователя удалены
         List<Map<String, Object>> remainingFunctions = functionDAO.findByUserId(testUserId);
         assertTrue(remainingFunctions.isEmpty());
 
-        // Проверяем, что функция другого пользователя осталась
         List<Map<String, Object>> otherUserFunctions = functionDAO.findByUserId(otherUserId);
         assertFalse(otherUserFunctions.isEmpty());
     }
@@ -259,7 +252,6 @@ class FunctionDAOTest {
 
         assertFalse(functionCounts.isEmpty());
 
-        // Проверяем, что наш тестовый пользователь есть в статистике
         boolean foundTestUser = functionCounts.stream()
                 .anyMatch(count -> testUserId.equals(count.get("user_id")));
         assertTrue(foundTestUser);
@@ -267,45 +259,24 @@ class FunctionDAOTest {
 
     @AfterEach
     void tearDown() {
-        try {
-            // Очистка тестовых данных
-            cleanTestData();
-        } catch (Exception e) {
-            logger.warn("Ошибка при очистке тестовых данных: {}", e.getMessage());
-        }
+        cleanTestData();
     }
 
     private void cleanTestData() {
-        // Очищаем тестовые функции
-        List<Map<String, Object>> allFunctions = functionDAO.findAll();
-        int deletedFunctions = 0;
+        long startTime = System.currentTimeMillis();
 
-        for (Map<String, Object> function : allFunctions) {
-            Long userId = (Long) function.get("user_id");
-            Map<String, Object> user = userDAO.findById(userId);
-            if (user != null) {
-                String username = (String) user.get("username");
-                if (username != null && username.startsWith(testPrefix)) {
-                    functionDAO.deleteFunction((Long) function.get("id"));
-                    deletedFunctions++;
-                }
+        try {
+            // САМЫЙ БЫСТРЫЙ ВАРИАНТ ОЧИСТКИ
+            int deletedFunctions = functionDAO.deleteFunctionsByUsernamePrefix(testPrefix);
+            int deletedUsers = userDAO.deleteUsersByUsernamePrefix(testPrefix);
+
+            if (deletedUsers > 0 || deletedFunctions > 0) {
+                logger.debug("⚡ Очистка за {} мс: {} пользователей, {} функций",
+                        System.currentTimeMillis() - startTime, deletedUsers, deletedFunctions);
             }
-        }
 
-        // Очищаем тестовых пользователей
-        List<Map<String, Object>> allUsers = userDAO.findAll();
-        int deletedUsers = 0;
-
-        for (Map<String, Object> user : allUsers) {
-            String username = (String) user.get("username");
-            if (username != null && username.startsWith(testPrefix)) {
-                userDAO.deleteUser((Long) user.get("id"));
-                deletedUsers++;
-            }
-        }
-
-        if (deletedFunctions > 0 || deletedUsers > 0) {
-            logger.info("Очищено {} функций и {} пользователей", deletedFunctions, deletedUsers);
+        } catch (Exception e) {
+            logger.warn("Ошибка при быстрой очистке: {}", e.getMessage());
         }
     }
 }

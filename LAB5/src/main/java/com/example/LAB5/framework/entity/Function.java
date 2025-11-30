@@ -1,6 +1,5 @@
 package com.example.LAB5.framework.entity;
 
-
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,12 +19,12 @@ public class Function {
     @Column(name = "expression", nullable = false, columnDefinition = "TEXT")
     private String expression;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id") // nullable = true (по данным из БД)
+    private User user;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
 
     @OneToMany(mappedBy = "function", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Point> points = new ArrayList<>();
@@ -57,17 +56,17 @@ public class Function {
     public String getExpression() { return expression; }
     public void setExpression(String expression) { this.expression = expression; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     public List<Point> getPoints() { return points; }
     public void setPoints(List<Point> points) { this.points = points; }
 
     @Override
     public String toString() {
-        return "Function{id=" + id + ", name='" + name + "', expression='" + expression + "'}";
+        return "Function{id=" + id + ", name='" + name + "', expression='" + expression + "', createdAt=" + createdAt + "}";
     }
 }

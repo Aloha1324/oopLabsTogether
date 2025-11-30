@@ -5,20 +5,23 @@ import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@TestPropertySource(locations = "classpath:application-test.properties")
-@Transactional
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@SpringBootTest
+@Transactional
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class UserRepositoryTest {
 
     private static final Logger logger = LoggerFactory.getLogger(UserRepositoryTest.class);
@@ -35,7 +38,7 @@ class UserRepositoryTest {
     }
 
     private String uniqueUsername(String baseName) {
-        return testPrefix + baseName + "_" + System.currentTimeMillis();
+        return testPrefix + baseName + "_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 4);
     }
 
     private User createTestUser(String username) {
@@ -193,17 +196,37 @@ class UserRepositoryTest {
 
     @Test
     @Order(9)
+    void testDeleteById() {
+        logger.info("=== Тест удаления пользователя по ID ===");
+
+        String username = uniqueUsername("delete_by_id_test");
+        User user = createTestUser(username);
+        Long userId = user.getId();
+
+        userRepository.deleteById(userId);
+
+        Optional<User> foundUser = userRepository.findById(userId);
+        assertFalse(foundUser.isPresent());
+
+        logger.info("Пользователь удален по ID: {}", userId);
+    }
+
+    @Test
+    @Order(10)
     void testUserNotFound() {
         logger.info("=== Тест поиска несуществующего пользователя ===");
 
         Optional<User> nonExistentUser = userRepository.findById(999999L);
         assertFalse(nonExistentUser.isPresent());
 
+        Optional<User> nonExistentByUsername = userRepository.findByUsername("non_existent_user_12345");
+        assertFalse(nonExistentByUsername.isPresent());
+
         logger.info("Несуществующий пользователь не найден (ожидаемо)");
     }
 
     @Test
-    @Order(10)
+    @Order(11)
     void testFindUsersByUsernamePattern() {
         logger.info("=== Тест поиска пользователей по шаблону ===");
 
@@ -223,30 +246,175 @@ class UserRepositoryTest {
         logger.info("Найдено {} пользователей по шаблону '{}'", foundUsers.size(), pattern);
     }
 
+    @Test
+    @Order(12)
+    void testBatchOperations() {
+        logger.info("=== Тест пакетных операций ===");
+
+        // Создание пользователей с уникальными именами
+        String batchPrefix = testPrefix + "batch_" + System.currentTimeMillis() + "_";
+
+        List<User> users = Arrays.asList(
+                createTestUser(batchPrefix + "1"),
+                createTestUser(batchPrefix + "2"),
+                createTestUser(batchPrefix + "3")
+        );
+
+        // Сохранение всех
+        List<User> savedUsers = userRepository.saveAll(users);
+        assertEquals(3, savedUsers.size());
+
+        // Проверка сохранения - ищем ТОЛЬКО по нашему уникальному префиксу
+        List<User> foundBatchUsers = userRepository.findAll().stream()
+                .filter(u -> u.getUsername().startsWith(batchPrefix))
+                .collect(Collectors.toList());
+        assertEquals(3, foundBatchUsers.size(),
+                "Должны найтись только что созданные 3 пользователя с префиксом: " + batchPrefix);
+
+        // Удаление всех
+        userRepository.deleteAll(foundBatchUsers);
+
+        // Проверка что удалены - снова ищем по нашему префиксу
+        List<User> remainingBatchUsers = userRepository.findAll().stream()
+                .filter(u -> u.getUsername().startsWith(batchPrefix))
+                .collect(Collectors.toList());
+        assertEquals(0, remainingBatchUsers.size(),
+                "После удаления не должно остаться пользователей с префиксом: " + batchPrefix);
+
+        logger.info("Пакетные операции завершены успешно");
+    }
+
+    @Test
+    @Order(13)
+    void testTransactionalBehavior() {
+        logger.info("=== Тест транзакционного поведения ===");
+
+        String username = uniqueUsername("transaction_test");
+
+        // Должно работать в транзакции
+        User user = userRepository.save(new User(username, "hash"));
+        assertNotNull(user.getId());
+
+        // Должно найтись в той же транзакции
+        Optional<User> found = userRepository.findByUsername(username);
+        assertTrue(found.isPresent());
+        assertEquals(username, found.get().getUsername());
+
+        logger.info("Транзакционное поведение проверено успешно");
+    }
+
+    @Test
+    @Order(14)
+    void testUniqueUsernameConstraint() {
+        logger.info("=== Тест ограничения уникальности имени ===");
+
+        String username = uniqueUsername("unique_test");
+        createTestUser(username);
+
+        // Попытка создать пользователя с тем же именем
+        User duplicateUser = new User(username, "another_hash");
+
+        // Должно выбросить исключение при сохранении
+        assertThrows(DataIntegrityViolationException.class, () -> {
+            userRepository.save(duplicateUser);
+            userRepository.flush(); // Принудительно выполняем SQL чтобы поймать исключение
+        });
+
+        logger.info("Ограничение уникальности имени проверено успешно");
+    }
+
+    @Test
+    @Order(15)
+    void testDeleteAllUsers() {
+        logger.info("=== Тест удаления всех пользователей ===");
+
+        // Создаем тестовых пользователей
+        createTestUser(uniqueUsername("delete_all_1"));
+        createTestUser(uniqueUsername("delete_all_2"));
+
+        // Получаем всех пользователей с нашим префиксом
+        List<User> testUsers = userRepository.findAll().stream()
+                .filter(user -> user.getUsername().startsWith(testPrefix))
+                .collect(Collectors.toList());
+
+        assertFalse(testUsers.isEmpty());
+
+        // Удаляем всех
+        userRepository.deleteAll(testUsers);
+
+        // Проверяем что удалились
+        List<User> remainingTestUsers = userRepository.findAll().stream()
+                .filter(user -> user.getUsername().startsWith(testPrefix))
+                .collect(Collectors.toList());
+
+        assertEquals(0, remainingTestUsers.size());
+        logger.info("Удалено всех тестовых пользователей: {}", testUsers.size());
+    }
+
+    @Test
+    @Order(16)
+    void testEmptyResultScenarios() {
+        logger.info("=== Тест сценариев с пустыми результатами ===");
+
+        // Поиск по несуществующему шаблону
+        List<User> emptyPatternResult = userRepository.findUsersByUsernamePattern("non_existent_pattern_12345");
+        assertTrue(emptyPatternResult.isEmpty());
+
+        // Поиск по несуществующей части имени
+        List<User> emptyContainingResult = userRepository.findByUsernameContaining("non_existent_part_12345");
+        assertTrue(emptyContainingResult.isEmpty());
+
+        logger.info("Сценарии с пустыми результатами отработали корректно");
+    }
+
+    @Test
+    @Order(17)
+    void testUserEntityProperties() {
+        logger.info("=== Тест свойств сущности User ===");
+
+        String username = uniqueUsername("entity_test");
+        User user = new User(username, "test_hash");
+
+        // Проверка до установки ID
+        assertNull(user.getId());
+
+        // Сохранение и проверка
+        User savedUser = userRepository.save(user);
+        assertNotNull(savedUser.getId());
+        assertEquals(username, savedUser.getUsername());
+        assertEquals("test_hash", savedUser.getPasswordHash());
+
+        // Проверка toString
+        String toString = savedUser.toString();
+        assertTrue(toString.contains("id=" + savedUser.getId()));
+        assertTrue(toString.contains("username='" + username + "'"));
+
+        logger.info("Свойства сущности User проверены: {}", savedUser);
+    }
+
     @AfterEach
     void tearDown() {
-        try {
-            cleanTestData();
-        } catch (Exception e) {
-            logger.warn("Ошибка при очистке тестовых данных: {}", e.getMessage());
-        }
+        cleanTestData();
     }
 
     private void cleanTestData() {
-        logger.info("Очистка тестовых данных...");
+        try {
+            // Эффективная очистка через кастомный запрос
+            List<User> testUsers = userRepository.findAll().stream()
+                    .filter(user -> user.getUsername().startsWith(testPrefix))
+                    .collect(Collectors.toList());
 
-        List<User> allUsers = userRepository.findAll();
-        int deletedCount = 0;
-
-        for (User user : allUsers) {
-            if (user.getUsername().startsWith(testPrefix)) {
-                userRepository.delete(user);
-                deletedCount++;
+            if (!testUsers.isEmpty()) {
+                userRepository.deleteAll(testUsers);
+                logger.info("Очищено {} тестовых пользователей", testUsers.size());
             }
+        } catch (Exception e) {
+            logger.error("Ошибка при очистке тестовых данных: {}", e.getMessage());
         }
+    }
 
-        if (deletedCount > 0) {
-            logger.info("Очищено {} тестовых пользователей", deletedCount);
-        }
+    @AfterAll
+    static void tearDownAll() {
+        logger.info("Все тесты завершены. Префикс тестов: {}", testPrefix);
     }
 }

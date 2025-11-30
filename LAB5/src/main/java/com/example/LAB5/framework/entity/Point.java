@@ -17,20 +17,25 @@ public class Point {
     @Column(name = "y_value", nullable = false)
     private Double yValue;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "function_id", nullable = false)
     private Function function;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
     // Конструкторы
     public Point() {}
 
-    public Point(Double xValue, Double yValue, Function function) {
+    public Point(Double xValue, Double yValue, Function function, User user) {
         this.xValue = xValue;
         this.yValue = yValue;
         this.function = function;
+        this.user = user;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -51,14 +56,19 @@ public class Point {
     public Double getYValue() { return yValue; }
     public void setYValue(Double yValue) { this.yValue = yValue; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
     public Function getFunction() { return function; }
     public void setFunction(Function function) { this.function = function; }
 
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
     @Override
     public String toString() {
-        return "Point{id=" + id + ", x=" + xValue + ", y=" + yValue + "}";
+        return "Point{id=" + id + ", x=" + xValue + ", y=" + yValue +
+                ", functionId=" + (function != null ? function.getId() : "null") +
+                ", userId=" + (user != null ? user.getId() : "null") + "}";
     }
 }

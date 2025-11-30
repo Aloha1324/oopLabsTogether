@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -17,7 +16,6 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@TestPropertySource(locations = "classpath:application-test.properties")
 @Transactional
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class FunctionRepositoryTest {
@@ -128,7 +126,253 @@ class FunctionRepositoryTest {
 
         logger.info("Найдено {} функций для пользователя ID={}", functions.size(), user.getId());
     }
+    @Test
+    @Order(12)
+    void testFindByNameExactMatch() {
+        logger.info("=== Тест поиска функции по точному имени ===");
 
+        User user = createTestUser();
+        String exactName = uniqueName("exact_match_function");
+
+        Function function = createTestFunction(user, exactName, "x^2 + 1");
+
+        Optional<Function> foundFunction = functionRepository.findByName(exactName);
+        assertTrue(foundFunction.isPresent());
+        assertEquals(exactName, foundFunction.get().getName());
+        assertEquals(user.getId(), foundFunction.get().getUser().getId());
+
+        logger.info("Функция найдена по точному имени: {}", exactName);
+    }
+
+    @Test
+    @Order(13)
+    void testFindByIdBetween() {
+        logger.info("=== Тест поиска функций по диапазону ID ===");
+
+        User user = createTestUser();
+
+        Function func1 = createTestFunction(user, uniqueName("range1"), "x");
+        Function func2 = createTestFunction(user, uniqueName("range2"), "x^2");
+        Function func3 = createTestFunction(user, uniqueName("range3"), "x^3");
+
+        List<Function> functionsInRange = functionRepository.findByIdBetween(func1.getId(), func3.getId());
+        assertTrue(functionsInRange.size() >= 3);
+
+        functionsInRange.forEach(func -> {
+            assertTrue(func.getId() >= func1.getId());
+            assertTrue(func.getId() <= func3.getId());
+        });
+
+        logger.info("Найдено {} функций в диапазоне ID", functionsInRange.size());
+    }
+
+    @Test
+    @Order(14)
+    void testFindByUserOrderByNameAsc() {
+        logger.info("=== Тест поиска функций с сортировкой по имени ===");
+
+        User user = createTestUser();
+
+        createTestFunction(user, uniqueName("zeta"), "z");
+        createTestFunction(user, uniqueName("alpha"), "a");
+        createTestFunction(user, uniqueName("beta"), "b");
+
+        List<Function> sortedFunctions = functionRepository.findByUserOrderByNameAsc(user);
+        assertFalse(sortedFunctions.isEmpty());
+
+        // Проверяем сортировку
+        for (int i = 0; i < sortedFunctions.size() - 1; i++) {
+            String currentName = sortedFunctions.get(i).getName();
+            String nextName = sortedFunctions.get(i + 1).getName();
+            assertTrue(currentName.compareTo(nextName) <= 0);
+        }
+
+        logger.info("Функции отсортированы по имени, количество: {}", sortedFunctions.size());
+    }
+
+    @Test
+    @Order(15)
+    void testExistsByNameAndUser() {
+        logger.info("=== Тест проверки существования функции ===");
+
+        User user = createTestUser();
+        String functionName = uniqueName("existence_check");
+
+        // Проверяем перед созданием
+        Boolean existsBefore = functionRepository.existsByNameAndUser(functionName, user);
+        assertFalse(existsBefore);
+
+        // Создаем функцию
+        createTestFunction(user, functionName, "x + y");
+
+        // Проверяем после создания
+        Boolean existsAfter = functionRepository.existsByNameAndUser(functionName, user);
+        assertTrue(existsAfter);
+
+        logger.info("Проверка существования: до создания - {}, после создания - {}",
+                existsBefore, existsAfter);
+    }
+
+    @Test
+    @Order(16)
+    void testDeleteByUser() {
+        logger.info("=== Тест удаления функций по пользователю ===");
+
+        User user = createTestUser();
+
+        createTestFunction(user, uniqueName("to_delete1"), "x");
+        createTestFunction(user, uniqueName("to_delete2"), "x^2");
+        createTestFunction(user, uniqueName("to_delete3"), "x^3");
+
+        // Проверяем что функции созданы
+        List<Function> userFunctionsBefore = functionRepository.findByUser(user);
+        assertEquals(3, userFunctionsBefore.size());
+
+        // Удаляем все функции пользователя
+        functionRepository.deleteByUser(user);
+
+        // Проверяем что функции удалены
+        List<Function> userFunctionsAfter = functionRepository.findByUser(user);
+        assertTrue(userFunctionsAfter.isEmpty());
+
+        logger.info("Все функции пользователя удалены, было: {}", userFunctionsBefore.size());
+    }
+
+    @Test
+    @Order(17)
+    void testCountAllFunctions() {
+        logger.info("=== Тест подсчета всех функций ===");
+
+        long initialCount = functionRepository.count();
+
+        User user = createTestUser();
+        createTestFunction(user, uniqueName("count1"), "x");
+        createTestFunction(user, uniqueName("count2"), "x^2");
+
+        long finalCount = functionRepository.count();
+        assertEquals(initialCount + 2, finalCount);
+
+        logger.info("Общее количество функций: было {}, стало {}", initialCount, finalCount);
+    }
+
+    @Test
+    @Order(18)
+    void testFindByNameStartingWith() {
+        logger.info("=== Тест поиска функций по префиксу имени ===");
+
+        User user = createTestUser();
+        String prefix = testPrefix + "prefix_";
+
+        createTestFunction(user, prefix + "function1", "x + 1");
+        createTestFunction(user, prefix + "function2", "x^2 + 1");
+        createTestFunction(user, uniqueName("other_function"), "sin(x)");
+
+        List<Function> foundFunctions = functionRepository.findByNameStartingWith(prefix);
+        assertEquals(2, foundFunctions.size());
+
+        foundFunctions.forEach(func ->
+                assertTrue(func.getName().startsWith(prefix))
+        );
+
+        logger.info("Найдено {} функций с префиксом '{}'", foundFunctions.size(), prefix);
+    }
+
+    @Test
+    @Order(19)
+    void testFindByNameEndingWith() {
+        logger.info("=== Тест поиска функций по суффиксу имени ===");
+
+        User user = createTestUser();
+        String suffix = "_suffix_test";
+
+        createTestFunction(user, uniqueName("func1") + suffix, "x");
+        createTestFunction(user, uniqueName("func2") + suffix, "x^2");
+        createTestFunction(user, uniqueName("func3"), "x^3"); // без суффикса
+
+        List<Function> foundFunctions = functionRepository.findByNameEndingWith(suffix);
+        assertEquals(2, foundFunctions.size());
+
+        foundFunctions.forEach(func ->
+                assertTrue(func.getName().endsWith(suffix))
+        );
+
+        logger.info("Найдено {} функций с суффиксом '{}'", foundFunctions.size(), suffix);
+    }
+
+    @Test
+    @Order(20)
+    void testFindByUserIn() {
+        logger.info("=== Тест поиска функций по нескольким пользователям ===");
+
+        User user1 = createTestUser();
+        User user2 = createTestUser();
+        User user3 = createTestUser();
+
+        createTestFunction(user1, uniqueName("user1_func"), "x");
+        createTestFunction(user2, uniqueName("user2_func"), "x^2");
+        createTestFunction(user3, uniqueName("user3_func"), "x^3");
+
+        List<User> users = List.of(user1, user2);
+        List<Function> functions = functionRepository.findByUserIn(users);
+
+        assertEquals(2, functions.size());
+
+        functions.forEach(func -> {
+            Long userId = func.getUser().getId();
+            assertTrue(userId == user1.getId() || userId == user2.getId());
+        });
+
+        logger.info("Найдено {} функций для {} пользователей", functions.size(), users.size());
+    }
+
+    @Test
+    @Order(21)
+    void testComplexSearchScenario() {
+        logger.info("=== Тест сложного сценария поиска ===");
+
+        User user = createTestUser();
+
+        // Создаем различные функции
+        Function linear = createTestFunction(user, uniqueName("linear_complex"), "2*x + 3");
+        Function quadratic = createTestFunction(user, uniqueName("quadratic_complex"), "x^2 + 2*x + 1");
+        Function trigonometric = createTestFunction(user, uniqueName("trigonometric_complex"), "sin(x) + cos(x)");
+
+        // Комплексные проверки
+        List<Function> byUser = functionRepository.findByUser(user);
+        assertEquals(3, byUser.size());
+
+        List<Function> byNameContaining = functionRepository.findByNameContaining("complex");
+        assertEquals(3, byNameContaining.size());
+
+        List<Function> byExpression = functionRepository.findByExpressionContaining("x");
+        assertTrue(byExpression.size() >= 3);
+
+        long count = functionRepository.countByUser(user);
+        assertEquals(3, count);
+
+        logger.info("Комплексный сценарий выполнен: создано 3 функции, найдено {} по пользователю", byUser.size());
+    }
+
+    @Test
+    @Order(22)
+    void testPerformanceWithMultipleUsers() {
+        logger.info("=== Тест производительности с множеством пользователей ===");
+
+        int userCount = 5;
+        int functionsPerUser = 3;
+
+        for (int i = 0; i < userCount; i++) {
+            User user = createTestUser();
+            for (int j = 0; j < functionsPerUser; j++) {
+                createTestFunction(user, uniqueName("user" + i + "_func" + j), "x^" + j);
+            }
+        }
+
+        List<Function> allFunctions = functionRepository.findAll();
+        assertTrue(allFunctions.size() >= userCount * functionsPerUser);
+
+        logger.info("Создано {} пользователей с {} функциями каждый", userCount, functionsPerUser);
+    }
     @Test
     @Order(4)
     void testFindAll() {

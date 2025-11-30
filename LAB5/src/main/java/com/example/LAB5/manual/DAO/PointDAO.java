@@ -9,20 +9,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class PointDAO {
     private static final Logger logger = LoggerFactory.getLogger(PointDAO.class);
 
     // CREATE
     public Long createPoint(Long functionId, Double xValue, Double yValue) {
-        String sql = "INSERT INTO points (function_id, x_value, y_value) VALUES (?, ?, ?)";
+        // Сначала получаем user_id из функции
+        Long userId = getUserIdByFunctionId(functionId);
+
+        String sql = "INSERT INTO points (function_id, user_id, x_value, y_value) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setLong(1, functionId);
-            stmt.setDouble(2, xValue);
-            stmt.setDouble(3, yValue);
+            stmt.setLong(2, userId);
+            stmt.setDouble(3, xValue);
+            stmt.setDouble(4, yValue);
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
@@ -45,15 +50,19 @@ public class PointDAO {
     }
 
     public int createPointsBatch(List<Object[]> points) {
-        String sql = "INSERT INTO points (function_id, x_value, y_value) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO points (function_id, user_id, x_value, y_value) VALUES (?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             for (Object[] point : points) {
-                stmt.setLong(1, (Long) point[0]);
-                stmt.setDouble(2, (Double) point[1]);
-                stmt.setDouble(3, (Double) point[2]);
+                Long functionId = (Long) point[0];
+                Long userId = getUserIdByFunctionId(functionId);
+
+                stmt.setLong(1, functionId);
+                stmt.setLong(2, userId);
+                stmt.setDouble(3, (Double) point[1]);
+                stmt.setDouble(4, (Double) point[2]);
                 stmt.addBatch();
             }
 
@@ -67,6 +76,27 @@ public class PointDAO {
             return totalInserted;
         } catch (SQLException e) {
             logger.error("Ошибка при batch создании точек", e);
+            throw new RuntimeException("Database error", e);
+        }
+    }
+
+    // Вспомогательный метод для получения user_id по function_id
+    private Long getUserIdByFunctionId(Long functionId) {
+        String sql = "SELECT user_id FROM functions WHERE id = ?";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, functionId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getLong("user_id");
+            } else {
+                throw new SQLException("Функция с ID " + functionId + " не найдена");
+            }
+        } catch (SQLException e) {
+            logger.error("Ошибка при получении user_id для функции {}", functionId, e);
             throw new RuntimeException("Database error", e);
         }
     }
@@ -129,6 +159,35 @@ public class PointDAO {
             return points;
         } catch (SQLException e) {
             logger.error("Ошибка при поиске точек по function_id: {}", functionId, e);
+            throw new RuntimeException("Database error", e);
+        }
+    }
+
+    public List<Map<String, Object>> findByFunctionIds(List<Long> functionIds) {
+        if (functionIds == null || functionIds.isEmpty()) {
+            logger.debug("Список functionIds пуст, возвращаем пустой список точек");
+            return new ArrayList<>();
+        }
+
+        // Создаем строку с перечислением ID через запятую: "1,2,3,4"
+        String ids = functionIds.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(","));
+
+        String sql = "SELECT * FROM points WHERE function_id IN (" + ids + ")";
+        List<Map<String, Object>> points = new ArrayList<>();
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                points.add(mapResultSetToMap(rs));
+            }
+            logger.debug("Найдено {} точек для {} функций", points.size(), functionIds.size());
+            return points;
+        } catch (SQLException e) {
+            logger.error("Ошибка при поиске точек для function_ids: {}", functionIds, e);
             throw new RuntimeException("Database error", e);
         }
     }
@@ -370,7 +429,7 @@ public class PointDAO {
         }
     }
 
-    public boolean deletePointsByFunctionId(Long functionId) {
+    public int deletePointsByFunctionId(Long functionId) {
         String sql = "DELETE FROM points WHERE function_id = ?";
 
         try (Connection conn = DatabaseConfig.getConnection();
@@ -378,19 +437,17 @@ public class PointDAO {
 
             stmt.setLong(1, functionId);
             int affectedRows = stmt.executeUpdate();
-            boolean deleted = affectedRows > 0;
 
-            if (deleted) {
-                logger.info("Удалено {} точек функции {}", affectedRows, functionId);
-            }
-            return deleted;
+            logger.info("Удалено {} точек функции {}", affectedRows, functionId);
+            return affectedRows;
+
         } catch (SQLException e) {
             logger.error("Ошибка при удалении точек функции {}", functionId, e);
             throw new RuntimeException("Database error", e);
         }
     }
 
-    public boolean deletePointsByFunctionIdAndXRange(Long functionId, Double maxX) {
+    public int deletePointsByFunctionIdAndXRange(Long functionId, Double maxX) {
         String sql = "DELETE FROM points WHERE function_id = ? AND x_value < ?";
 
         try (Connection conn = DatabaseConfig.getConnection();
@@ -399,25 +456,239 @@ public class PointDAO {
             stmt.setLong(1, functionId);
             stmt.setDouble(2, maxX);
             int affectedRows = stmt.executeUpdate();
-            boolean deleted = affectedRows > 0;
 
-            if (deleted) {
-                logger.info("Удалено {} точек функции {} с x < {}", affectedRows, functionId, maxX);
-            }
-            return deleted;
+            logger.info("Удалено {} точек функции {} с x < {}", affectedRows, functionId, maxX);
+            return affectedRows;
+
         } catch (SQLException e) {
             logger.error("Ошибка при удалении точек по диапазону x", e);
             throw new RuntimeException("Database error", e);
         }
     }
 
+    // НОВЫЕ МЕТОДЫ ДЛЯ УДАЛЕНИЯ ПО ПРЕФИКСУ
+
+    /**
+     * Удаление точек по префиксу имени пользователя
+     * Используется для очистки тестовых данных
+     * @param prefix префикс имени пользователя
+     * @return количество удаленных точек
+     */
+    public int deletePointsByUsernamePrefix(String prefix) {
+        String sql = "DELETE FROM points WHERE function_id IN " +
+                "(SELECT id FROM functions WHERE user_id IN " +
+                "(SELECT id FROM users WHERE username LIKE ?))";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, prefix + "%");
+            int affectedRows = stmt.executeUpdate();
+
+            logger.info("Удалено {} точек по префиксу пользователя: {}", affectedRows, prefix);
+            return affectedRows;
+
+        } catch (SQLException e) {
+            logger.error("Ошибка при удалении точек по префиксу пользователя: {}", prefix, e);
+            throw new RuntimeException("Database error", e);
+        }
+    }
+
+    /**
+     * Безопасное удаление точек по префиксу с проверкой существования
+     * @param prefix префикс имени пользователя
+     * @return количество удаленных точек, -1 в случае ошибки
+     */
+    public int safeDeletePointsByUsernamePrefix(String prefix) {
+        String checkSql = "SELECT COUNT(*) as count FROM points WHERE function_id IN " +
+                "(SELECT id FROM functions WHERE user_id IN " +
+                "(SELECT id FROM users WHERE username LIKE ?))";
+        String deleteSql = "DELETE FROM points WHERE function_id IN " +
+                "(SELECT id FROM functions WHERE user_id IN " +
+                "(SELECT id FROM users WHERE username LIKE ?))";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+             PreparedStatement deleteStmt = conn.prepareStatement(deleteSql)) {
+
+            // Проверяем количество точек для удаления
+            checkStmt.setString(1, prefix + "%");
+            ResultSet rs = checkStmt.executeQuery();
+
+            int countToDelete = 0;
+            if (rs.next()) {
+                countToDelete = rs.getInt("count");
+            }
+
+            if (countToDelete == 0) {
+                logger.debug("Нет точек для удаления с префиксом: {}", prefix);
+                return 0;
+            }
+
+            // Выполняем удаление
+            deleteStmt.setString(1, prefix + "%");
+            int affectedRows = deleteStmt.executeUpdate();
+
+            logger.info("Удалено {} точек по префиксу пользователя: {}", affectedRows, prefix);
+            return affectedRows;
+
+        } catch (SQLException e) {
+            logger.error("Ошибка при безопасном удалении точек по префиксу: {}", prefix, e);
+            return -1;
+        }
+    }
+
+    /**
+     * Удаление точек по префиксу теста (альтернативное название для удобства)
+     * @param testPrefix префикс теста
+     * @return количество удаленных точек
+     */
+    public int deletePointsByTestPrefix(String testPrefix) {
+        return deletePointsByUsernamePrefix(testPrefix);
+    }
+
+    /**
+     * Получение количества точек по префиксу пользователя
+     * @param prefix префикс имени пользователя
+     * @return количество точек
+     */
+    public int getPointsCountByUsernamePrefix(String prefix) {
+        String sql = "SELECT COUNT(*) as count FROM points WHERE function_id IN " +
+                "(SELECT id FROM functions WHERE user_id IN " +
+                "(SELECT id FROM users WHERE username LIKE ?))";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, prefix + "%");
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                int count = rs.getInt("count");
+                logger.debug("Найдено {} точек с префиксом пользователя: {}", count, prefix);
+                return count;
+            }
+            return 0;
+
+        } catch (SQLException e) {
+            logger.error("Ошибка при подсчете точек по префиксу: {}", prefix, e);
+            throw new RuntimeException("Database error", e);
+        }
+    }
+
+    /**
+     * Получение информации о точках по префиксу пользователя
+     * @param prefix префикс имени пользователя
+     * @return список точек с информацией
+     */
+    public List<Map<String, Object>> getPointsByUsernamePrefix(String prefix) {
+        String sql = "SELECT p.*, f.name as function_name, u.username " +
+                "FROM points p " +
+                "JOIN functions f ON p.function_id = f.id " +
+                "JOIN users u ON p.user_id = u.id " +
+                "WHERE u.username LIKE ?";
+
+        List<Map<String, Object>> points = new ArrayList<>();
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, prefix + "%");
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Map<String, Object> point = mapResultSetToMap(rs);
+                point.put("function_name", rs.getString("function_name"));
+                point.put("username", rs.getString("username"));
+                points.add(point);
+            }
+
+            logger.debug("Найдено {} точек с префиксом пользователя: {}", points.size(), prefix);
+            return points;
+
+        } catch (SQLException e) {
+            logger.error("Ошибка при получении точек по префиксу: {}", prefix, e);
+            throw new RuntimeException("Database error", e);
+        }
+    }
+
+    /**
+     * Полное удаление всех тестовых данных по префиксу (точки + функции + пользователи)
+     * ВАЖНО: Этот метод должен использоваться только в тестах
+     * @param prefix префикс теста
+     * @return Map с результатами удаления
+     */
+    public Map<String, Integer> deleteAllTestDataByPrefix(String prefix) {
+        Map<String, Integer> results = new HashMap<>();
+
+        try {
+            // 1. Удаляем точки
+            int pointsDeleted = deletePointsByUsernamePrefix(prefix);
+            results.put("points_deleted", pointsDeleted);
+
+            // 2. Удаляем функции (этот метод должен быть в FunctionDAO)
+            // int functionsDeleted = functionDAO.deleteFunctionsByUsernamePrefix(prefix);
+            // results.put("functions_deleted", functionsDeleted);
+
+            // 3. Удаляем пользователей (этот метод должен быть в UserDAO)
+            // int usersDeleted = userDAO.deleteUsersByUsernamePrefix(prefix);
+            // results.put("users_deleted", usersDeleted);
+
+            logger.info("Полная очистка тестовых данных по префиксу {}: удалено {} точек",
+                    prefix, pointsDeleted);
+
+            return results;
+
+        } catch (Exception e) {
+            logger.error("Ошибка при полной очистке тестовых данных по префиксу: {}", prefix, e);
+            results.put("error", -1);
+            return results;
+        }
+    }
+
+    // Вспомогательные методы
+
     private Map<String, Object> mapResultSetToMap(ResultSet rs) throws SQLException {
         Map<String, Object> point = new HashMap<>();
         point.put("id", rs.getLong("id"));
         point.put("function_id", rs.getLong("function_id"));
+        point.put("user_id", rs.getLong("user_id"));
         point.put("x_value", rs.getDouble("x_value"));
         point.put("y_value", rs.getDouble("y_value"));
         point.put("created_at", rs.getTimestamp("created_at"));
         return point;
+    }
+
+    /**
+     * Проверка существования точек по префиксу пользователя
+     * @param prefix префикс имени пользователя
+     * @return true если точки существуют, false если нет
+     */
+    public boolean hasPointsWithUsernamePrefix(String prefix) {
+        return getPointsCountByUsernamePrefix(prefix) > 0;
+    }
+
+    /**
+     * Удаление точек по ID пользователя
+     * @param userId ID пользователя
+     * @return количество удаленных точек
+     */
+    public int deletePointsByUserId(Long userId) {
+        String sql = "DELETE FROM points WHERE function_id IN " +
+                "(SELECT id FROM functions WHERE user_id = ?)";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, userId);
+            int affectedRows = stmt.executeUpdate();
+
+            logger.info("Удалено {} точек пользователя с ID: {}", affectedRows, userId);
+            return affectedRows;
+
+        } catch (SQLException e) {
+            logger.error("Ошибка при удалении точек пользователя с ID: {}", userId, e);
+            throw new RuntimeException("Database error", e);
+        }
     }
 }
