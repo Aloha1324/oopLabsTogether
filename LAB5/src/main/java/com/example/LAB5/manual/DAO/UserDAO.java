@@ -198,6 +198,28 @@ public class UserDAO {
         }
     }
 
+    // ДОБАВЛЕННЫЙ МЕТОД
+    public List<Map<String, Object>> findByRole(String role) {
+        String sql = "SELECT * FROM users WHERE role = ?";
+        List<Map<String, Object>> users = new ArrayList<>();
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, role);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                users.add(mapResultSetToMap(rs));
+            }
+            logger.debug("Найдено {} пользователей с ролью: {}", users.size(), role);
+            return users;
+        } catch (SQLException e) {
+            logger.error("Ошибка при поиске пользователей по роли: {}", role, e);
+            throw new RuntimeException("Database error", e);
+        }
+    }
+
     public boolean existsByUsername(String username) {
         String sql = "SELECT COUNT(*) as count FROM users WHERE username = ?";
 

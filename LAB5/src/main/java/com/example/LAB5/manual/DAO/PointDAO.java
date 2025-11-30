@@ -216,6 +216,35 @@ public class PointDAO {
         }
     }
 
+    // ДОБАВЛЕННЫЕ МЕТОДЫ
+    public List<Map<String, Object>> findByXRange(Long functionId, Double minX, Double maxX) {
+        return findByFunctionIdAndXRange(functionId, minX, maxX);
+    }
+
+    public List<Map<String, Object>> findByYRange(Long functionId, Double minY, Double maxY) {
+        String sql = "SELECT * FROM points WHERE function_id = ? AND y_value BETWEEN ? AND ?";
+        List<Map<String, Object>> points = new ArrayList<>();
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setLong(1, functionId);
+            stmt.setDouble(2, minY);
+            stmt.setDouble(3, maxY);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                points.add(mapResultSetToMap(rs));
+            }
+            logger.debug("Найдено {} точек для функции {} в диапазоне y [{}, {}]",
+                    points.size(), functionId, minY, maxY);
+            return points;
+        } catch (SQLException e) {
+            logger.error("Ошибка при поиске точек по диапазону y", e);
+            throw new RuntimeException("Database error", e);
+        }
+    }
+
     public List<Map<String, Object>> findByYValueGreaterThan(Double yValue) {
         String sql = "SELECT * FROM points WHERE y_value > ?";
         List<Map<String, Object>> points = new ArrayList<>();
