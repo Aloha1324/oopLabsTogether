@@ -24,7 +24,7 @@ public class BreadthFirstSearch {
         this.pointRepository = pointRepository;
     }
 
-    public List<Object> search(Object root, SearchService.SearchCriteria criteria) {
+    public List<Object> search(Object root, FrameworkSearchService.SearchCriteria criteria) {
         logger.info("Starting Breadth-First Search");
         List<Object> results = new ArrayList<>();
         Set<Object> visited = new HashSet<>();
@@ -69,7 +69,7 @@ public class BreadthFirstSearch {
         return results;
     }
 
-    private boolean matchesCriteria(Object node, SearchService.SearchCriteria criteria) {
+    private boolean matchesCriteria(Object node, FrameworkSearchService.SearchCriteria criteria) {
         // Такая же реализация как в DepthFirstSearch
         if (criteria.name() == null && criteria.type() == null) {
             return true;
