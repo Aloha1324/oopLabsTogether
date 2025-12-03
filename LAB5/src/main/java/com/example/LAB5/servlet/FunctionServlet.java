@@ -10,12 +10,32 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
-@WebServlet("/functions")
+@WebServlet("/api/v1/functions/*")
 public class FunctionServlet extends HttpServlet {
-    private List<FunctionDTO> functions = new ArrayList<>();
-    private Gson gson = new Gson();
+    private static final Logger logger = Logger.getLogger(FunctionServlet.class.getName());
+    private final List<FunctionDTO> functions = new ArrayList<>();
+    private final Gson gson = new Gson();
     private Long currentId = 1L;
+
+    // Для доступа из других сервлетов
+    public List<FunctionDTO> getFunctions() {
+        return functions;
+    }
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        // Регистрируем себя в контексте
+        getServletContext().setAttribute("functionServlet", this);
+
+        // Добавляем тестовую функцию
+        FunctionDTO testFunc = new FunctionDTO(1L, "Test Function", "x^2");
+        testFunc.setId(currentId++);
+        functions.add(testFunc);
+        logger.info("FunctionServlet initialized with test function");
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -24,29 +44,37 @@ public class FunctionServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        String idParam = request.getParameter("id");
-        String userIdParam = request.getParameter("userId");
+        String pathInfo = request.getPathInfo();
+        logger.info("GET /api/v1/functions" + (pathInfo != null ? pathInfo : ""));
 
-        if (idParam != null) {
-            Long id = Long.parseLong(idParam);
-            FunctionDTO function = functions.stream()
-                    .filter(f -> f.getId().equals(id))
-                    .findFirst()
-                    .orElse(null);
-
-            if (function != null) {
-                response.getWriter().write(gson.toJson(function));
+        try {
+            if (pathInfo == null || pathInfo.equals("/")) {
+                // GET /api/v1/functions - все функции
+                logger.info("Returning all functions, count: " + functions.size());
+                response.getWriter().write(gson.toJson(functions));
             } else {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                // GET /api/v1/functions/{id} - конкретная функция
+                Long id = extractIdFromPath(pathInfo);
+                if (id == null) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    logger.warning("Invalid ID format: " + pathInfo);
+                    return;
+                }
+
+                logger.info("Looking for function with id: " + id);
+                FunctionDTO function = findFunctionById(id);
+
+                if (function != null) {
+                    response.getWriter().write(gson.toJson(function));
+                    logger.info("Function found: " + function.getName());
+                } else {
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    logger.warning("Function not found with id: " + id);
+                }
             }
-        } else if (userIdParam != null) {
-            Long userId = Long.parseLong(userIdParam);
-            List<FunctionDTO> userFunctions = functions.stream()
-                    .filter(f -> f.getUserId().equals(userId))
-                    .toList();
-            response.getWriter().write(gson.toJson(userFunctions));
-        } else {
-            response.getWriter().write(gson.toJson(functions));
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            logger.severe("Error in GET /functions: " + e.getMessage());
         }
     }
 
@@ -54,61 +82,184 @@ public class FunctionServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        FunctionDTO function = gson.fromJson(request.getReader(), FunctionDTO.class);
-        function.setId(currentId++);
-        functions.add(function);
-
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        response.setStatus(HttpServletResponse.SC_CREATED);
-        response.getWriter().write(gson.toJson(function));
+
+        String pathInfo = request.getPathInfo();
+        logger.info("POST /api/v1/functions" + (pathInfo != null ? pathInfo : ""));
+
+        try {
+            if (pathInfo != null && !pathInfo.equals("/")) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                logger.warning("POST should not have path parameters");
+                return;
+            }
+
+            // Читаем JSON
+            FunctionDTO newFunction = gson.fromJson(request.getReader(), FunctionDTO.class);
+
+            // Проверяем обязательные поля
+            if (newFunction.getName() == null || newFunction.getName().trim().isEmpty() ||
+                    newFunction.getSignature() == null || newFunction.getSignature().trim().isEmpty() ||
+                    newFunction.getUserId() == null) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                logger.warning("Missing required fields (name, signature, or userId)");
+                return;
+            }
+
+            // Проверяем существование пользователя
+            UserServlet userServlet = (UserServlet) getServletContext().getAttribute("userServlet");
+            if (userServlet != null) {
+                boolean userExists = userServlet.getUsers().stream()
+                        .anyMatch(u -> u.getId().equals(newFunction.getUserId()));
+                if (!userExists) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    logger.warning("User not found with id: " + newFunction.getUserId());
+                    return;
+                }
+            }
+
+            // Устанавливаем ID
+            newFunction.setId(currentId++);
+            functions.add(newFunction);
+
+            response.setStatus(HttpServletResponse.SC_CREATED);
+            response.getWriter().write(gson.toJson(newFunction));
+            logger.info("Function created successfully: " + newFunction.getName() +
+                    " (id: " + newFunction.getId() + ", user: " + newFunction.getUserId() + ")");
+
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            logger.severe("Error creating function: " + e.getMessage());
+        }
     }
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String idParam = request.getParameter("id");
-        if (idParam == null) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
-        Long id = Long.parseLong(idParam);
-        FunctionDTO updatedFunction = gson.fromJson(request.getReader(), FunctionDTO.class);
+        String pathInfo = request.getPathInfo();
+        logger.info("PUT /api/v1/functions" + (pathInfo != null ? pathInfo : ""));
 
-        for (int i = 0; i < functions.size(); i++) {
-            if (functions.get(i).getId().equals(id)) {
-                updatedFunction.setId(id);
-                functions.set(i, updatedFunction);
-
-                response.setContentType("application/json");
-                response.setCharacterEncoding("UTF-8");
-                response.getWriter().write(gson.toJson(updatedFunction));
+        try {
+            if (pathInfo == null || pathInfo.equals("/")) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                logger.warning("PUT requires function ID in path");
                 return;
             }
-        }
 
-        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            Long id = extractIdFromPath(pathInfo);
+            if (id == null) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
+
+            // Читаем обновленные данные
+            FunctionDTO updatedData = gson.fromJson(request.getReader(), FunctionDTO.class);
+
+            // Находим существующую функцию
+            FunctionDTO existingFunction = findFunctionById(id);
+            if (existingFunction == null) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                logger.warning("Function not found for update, id: " + id);
+                return;
+            }
+
+            // Обновляем поля (сохраняем ID)
+            if (updatedData.getName() != null && !updatedData.getName().trim().isEmpty()) {
+                existingFunction.setName(updatedData.getName());
+            }
+
+            if (updatedData.getSignature() != null && !updatedData.getSignature().trim().isEmpty()) {
+                existingFunction.setSignature(updatedData.getSignature());
+            }
+
+            if (updatedData.getUserId() != null) {
+                // Проверяем существование пользователя
+                UserServlet userServlet = (UserServlet) getServletContext().getAttribute("userServlet");
+                if (userServlet != null) {
+                    boolean userExists = userServlet.getUsers().stream()
+                            .anyMatch(u -> u.getId().equals(updatedData.getUserId()));
+                    if (!userExists) {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        logger.warning("User not found with id: " + updatedData.getUserId());
+                        return;
+                    }
+                }
+                existingFunction.setUserId(updatedData.getUserId());
+            }
+
+            response.getWriter().write(gson.toJson(existingFunction));
+            logger.info("Function updated successfully: " + existingFunction.getName());
+
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            logger.severe("Error updating function: " + e.getMessage());
+        }
     }
 
     @Override
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String idParam = request.getParameter("id");
-        if (idParam == null) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            return;
+        String pathInfo = request.getPathInfo();
+        logger.info("DELETE /api/v1/functions" + (pathInfo != null ? pathInfo : ""));
+
+        try {
+            if (pathInfo == null || pathInfo.equals("/")) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                logger.warning("DELETE requires function ID in path");
+                return;
+            }
+
+            Long id = extractIdFromPath(pathInfo);
+            if (id == null) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
+
+            // Также нужно удалить все точки этой функции
+            PointServlet pointServlet = (PointServlet) getServletContext().getAttribute("pointServlet");
+            if (pointServlet != null) {
+                pointServlet.getPoints().removeIf(point -> point.getFunctionId().equals(id));
+                logger.info("Removed points for function id: " + id);
+            }
+
+            boolean removed = functions.removeIf(func -> func.getId().equals(id));
+
+            if (removed) {
+                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+                logger.info("Function deleted successfully, id: " + id);
+            } else {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                logger.warning("Function not found for deletion, id: " + id);
+            }
+
+        } catch (Exception e) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            logger.severe("Error deleting function: " + e.getMessage());
         }
+    }
 
-        Long id = Long.parseLong(idParam);
-        boolean removed = functions.removeIf(function -> function.getId().equals(id));
+    // Вспомогательные методы
+    private FunctionDTO findFunctionById(Long id) {
+        return functions.stream()
+                .filter(f -> f.getId().equals(id))
+                .findFirst()
+                .orElse(null);
+    }
 
-        if (removed) {
-            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-        } else {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+    private Long extractIdFromPath(String pathInfo) {
+        try {
+            if (pathInfo.startsWith("/")) {
+                return Long.parseLong(pathInfo.substring(1));
+            }
+            return Long.parseLong(pathInfo);
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 }
