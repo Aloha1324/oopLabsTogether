@@ -44,9 +44,7 @@ User DTOs:
 {
 "id": "long",
 "username": "string",
-"email": "string",
-"createdAt": "timestamp",
-"updatedAt": "timestamp"
+"email": "string"
 }
 
 // UpdateUserRequest (для PUT /api/v1/users/{id})
@@ -69,8 +67,7 @@ Function DTOs:
 "id": "long",
 "userId": "long",
 "name": "string",
-"signature": "string",
-"createdAt": "timestamp"
+"signature": "string"
 }
 
 // UpdateFunctionRequest (для PUT /api/v1/functions/{id})
@@ -94,8 +91,7 @@ Point DTOs:
 "id": "long",
 "functionId": "long",
 "xValue": "number",
-"yValue": "number",
-"createdAt": "timestamp"
+"yValue": "number"
 }
 
 // UpdatePointRequest (для PUT /api/v1/points/{id})
