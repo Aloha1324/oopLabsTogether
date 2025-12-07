@@ -713,6 +713,8 @@ public class UserDAO {
         }
     }
 
+
+
     private Map<String, Object> mapResultSetToMap(ResultSet rs) throws SQLException {
         Map<String, Object> user = new HashMap<>();
         user.put("id", rs.getLong("id"));

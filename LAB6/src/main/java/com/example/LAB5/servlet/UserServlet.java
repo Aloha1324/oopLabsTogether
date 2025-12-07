@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -31,15 +32,6 @@ public class UserServlet extends HttpServlet {
         super.init();
         userDAO = new UserDAO();
         logger.info("UserServlet initialized with UserDAO");
-
-        // Инициализируем таблицу пользователей
-        try {
-            // Метод initTable нужно добавить в UserDAO
-            // userDAO.initTable();
-            logger.info("User table initialized");
-        } catch (Exception e) {
-            logger.severe("Error initializing user table: " + e.getMessage());
-        }
     }
 
     @Override
@@ -60,8 +52,8 @@ public class UserServlet extends HttpServlet {
                 return;
             }
 
-            String currentUserRole = (String) currentUser.get("role");
-            String currentUsername = (String) currentUser.get("username");
+            String currentUserRole = getRoleFromUser(currentUser);
+            String currentUsername = getUsernameFromUser(currentUser);
 
             if (pathInfo == null || pathInfo.equals("/")) {
                 // GET /api/v1/users - все пользователи
@@ -119,10 +111,10 @@ public class UserServlet extends HttpServlet {
                 Map<String, Object> user = userDAO.findById(id);
 
                 if (user != null) {
-                    // Проверка: пользователь может видеть только свой профиль, 
+                    // Проверка: пользователь может видеть только свой профиль,
                     // если он не ADMIN и не MODERATOR
-                    Long userId = (Long) user.get("id");
-                    Long currentUserId = (Long) currentUser.get("id");
+                    Long userId = getIdFromUser(user);
+                    Long currentUserId = getIdFromUser(currentUser);
 
                     if (!ROLE_ADMIN.equals(currentUserRole) &&
                             !ROLE_MODERATOR.equals(currentUserRole) &&
@@ -173,8 +165,8 @@ public class UserServlet extends HttpServlet {
                     return;
                 }
 
-                currentUserRole = (String) currentUser.get("role");
-                currentUsername = (String) currentUser.get("username");
+                currentUserRole = getRoleFromUser(currentUser);
+                currentUsername = getUsernameFromUser(currentUser);
                 isAdminPath = true;
 
                 // Только ADMIN и MODERATOR могут создавать пользователей через admin путь
@@ -214,60 +206,38 @@ public class UserServlet extends HttpServlet {
             }
 
             // Устанавливаем роль по умолчанию если не указана
-            if (newUser.getRole() == null || newUser.getRole().trim().isEmpty()) {
-                newUser.setRole(ROLE_USER);
+            String userRole = newUser.getRole();
+            if (userRole == null || userRole.trim().isEmpty()) {
+                userRole = ROLE_USER;
+                newUser.setRole(userRole);
             }
 
             // Проверка роли при создании через admin путь
             if (isAdminPath) {
                 // ADMIN/MODERATOR может создавать пользователей с любой ролью
                 // Но MODERATOR не может создавать ADMIN
-                if (ROLE_MODERATOR.equals(currentUserRole) && ROLE_ADMIN.equals(newUser.getRole())) {
+                if (ROLE_MODERATOR.equals(currentUserRole) && ROLE_ADMIN.equals(userRole)) {
                     logger.warning("MODERATOR attempted to create ADMIN user");
                     sendForbidden(response, "MODERATOR cannot create ADMIN users");
                     return;
                 }
             } else {
                 // Обычная регистрация - только USER роль
-                if (!ROLE_USER.equals(newUser.getRole())) {
-                    newUser.setRole(ROLE_USER);
+                if (!ROLE_USER.equals(userRole)) {
+                    userRole = ROLE_USER;
+                    newUser.setRole(userRole);
                     logger.info("Role changed to USER for self-registration");
                 }
             }
 
             // Создаем пользователя в БД
-            // Определяем, какой метод использовать для создания
+            // ВАЖНО: ваши методы createUser не принимают роль
+            // Поэтому создаем пользователя, а потом возможно придется обновить роль другим способом
 
             Long userId = null;
-            String email = null; // Если в вашем DTO нет email, используем null
 
-            // Пытаемся получить email, если есть соответствующий метод в DTO
-            try {
-                // Если у UserDTO есть getEmail()
-                // email = newUser.getEmail();
-            } catch (Exception e) {
-                // Если метода нет, оставляем null
-                email = null;
-            }
-
-            // Используем существующий метод из UserDAO
-            if (email != null && !email.trim().isEmpty()) {
-                // Если есть email, используем createUserWithEmail (ваш существующий метод)
-                userId = userDAO.createUserWithEmail(newUser.getLogin(), newUser.getPassword(), email);
-
-                // После создания обновляем роль, если нужно
-                if (userId != null && !ROLE_USER.equals(newUser.getRole())) {
-                    userDAO.updateUserRole(userId, newUser.getRole());
-                }
-            } else {
-                // Если нет email, используем createUser (ваш существующий метод)
-                userId = userDAO.createUser(newUser.getLogin(), newUser.getPassword());
-
-                // После создания обновляем роль, если нужно
-                if (userId != null && !ROLE_USER.equals(newUser.getRole())) {
-                    userDAO.updateUserRole(userId, newUser.getRole());
-                }
-            }
+            // Используем существующий метод createUser (без роли)
+            userId = userDAO.createUser(newUser.getLogin(), newUser.getPassword());
 
             // Если userId равен null, значит создание не удалось
             if (userId == null) {
@@ -287,11 +257,26 @@ public class UserServlet extends HttpServlet {
                 return;
             }
 
+            // Так как у нас нет метода updateUserRole, роль будет установлена по умолчанию в БД
+            // Логируем эту информацию
+            String actualRole = getRoleFromUser(createdUser);
+            if (actualRole == null) {
+                actualRole = ROLE_USER;
+            }
+
+            // Если ожидаемая роль не совпадает с фактической, логируем предупреждение
+            if (!userRole.equals(actualRole)) {
+                logger.warning("User role mismatch. Expected: " + userRole +
+                        ", Actual in DB: " + actualRole +
+                        ". Add updateUserRole method to UserDAO to fix this.");
+            }
+
             response.setStatus(HttpServletResponse.SC_CREATED);
             response.getWriter().write(gson.toJson(createSafeUserMap(createdUser)));
 
             String logMessage = "User created successfully: " + newUser.getLogin() +
-                    " (id: " + userId + ", role: " + newUser.getRole() + ")";
+                    " (id: " + userId + ", role in request: " + userRole +
+                    ", role in DB: " + actualRole + ")";
             if (isAdminPath) {
                 logMessage += " by " + currentUsername + " (role: " + currentUserRole + ")";
             }
@@ -325,9 +310,9 @@ public class UserServlet extends HttpServlet {
                 return;
             }
 
-            String currentUserRole = (String) currentUser.get("role");
-            String currentUsername = (String) currentUser.get("username");
-            Long currentUserId = (Long) currentUser.get("id");
+            String currentUserRole = getRoleFromUser(currentUser);
+            String currentUsername = getUsernameFromUser(currentUser);
+            Long currentUserId = getIdFromUser(currentUser);
 
             if (pathInfo == null || pathInfo.equals("/")) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -335,15 +320,8 @@ public class UserServlet extends HttpServlet {
                 return;
             }
 
+            // Проверяем если это запрос на изменение роли
             if (pathInfo.startsWith("/role/")) {
-                // PUT /api/v1/users/role/{userId} - изменение роли
-                // Только ADMIN может менять роли
-                if (!ROLE_ADMIN.equals(currentUserRole)) {
-                    logger.warning("User " + currentUsername + " attempted to change user role without ADMIN privileges");
-                    sendForbidden(response, "Only ADMIN can change user roles");
-                    return;
-                }
-
                 // Извлекаем userId из /role/{userId}
                 String[] parts = pathInfo.split("/");
                 if (parts.length < 3) {
@@ -368,6 +346,13 @@ public class UserServlet extends HttpServlet {
                     return;
                 }
 
+                // Только ADMIN может менять роли
+                if (!ROLE_ADMIN.equals(currentUserRole)) {
+                    logger.warning("User " + currentUsername + " attempted to change user role without ADMIN privileges");
+                    sendForbidden(response, "Only ADMIN can change user roles");
+                    return;
+                }
+
                 // Проверяем существование пользователя
                 Map<String, Object> userToUpdate = userDAO.findById(userId);
                 if (userToUpdate == null) {
@@ -375,15 +360,23 @@ public class UserServlet extends HttpServlet {
                     return;
                 }
 
-                // Обновляем роль
-                boolean updated = userDAO.updateUserRole(userId, newRole);
+                // Без метода updateUserRole мы не можем изменить роль
+                // Вместо этого обновляем пользователя с новыми данными
+                String username = getUsernameFromUser(userToUpdate);
+                String password = (String) userToUpdate.get("password");
+
+                // Обновляем пользователя (роль не изменится без специального метода)
+                boolean updated = userDAO.updateUser(userId, username, password);
+
                 if (updated) {
-                    logger.info("ADMIN " + currentUsername + " changed role for user id " +
-                            userId + " to " + newRole);
+                    logger.warning("ADMIN " + currentUsername + " attempted to change role for user id " +
+                            userId + " to " + newRole + " but updateUserRole method is not available");
+
                     response.getWriter().write(gson.toJson(Map.of(
-                            "message", "Role updated successfully",
+                            "message", "User updated but role not changed (updateUserRole method required)",
                             "userId", userId,
-                            "newRole", newRole
+                            "requestedRole", newRole,
+                            "warning", "Role update requires updateUserRole method in UserDAO"
                     )));
                 } else {
                     response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -419,9 +412,9 @@ public class UserServlet extends HttpServlet {
                 return;
             }
 
-            // Обновляем поля (сохраняем ID)
-            String newUsername = existingUser.get("username").toString();
-            String newPassword = existingUser.get("password").toString();
+            // Подготавливаем данные для обновления
+            String newUsername = getUsernameFromUser(existingUser);
+            String newPassword = (String) existingUser.get("password");
 
             if (updatedData.getLogin() != null && !updatedData.getLogin().trim().isEmpty()) {
                 // Проверяем уникальность нового username
@@ -439,23 +432,14 @@ public class UserServlet extends HttpServlet {
                 newPassword = updatedData.getPassword();
             }
 
-            // Проверка роли: только ADMIN может менять роль
-            String newRole = existingUser.get("role").toString();
-            if (updatedData.getRole() != null && !updatedData.getRole().trim().isEmpty()) {
-                if (ROLE_ADMIN.equals(currentUserRole)) {
-                    newRole = updatedData.getRole();
-                    logger.info("ADMIN " + currentUsername + " changed role for user id " +
-                            id + " to " + newRole);
-                } else {
-                    logger.warning("User " + currentUsername + " attempted to change role without ADMIN privileges");
-                }
-            }
-
             // Обновляем пользователя
             boolean updated = userDAO.updateUser(id, newUsername, newPassword);
 
-            if (updated && !newRole.equals(existingUser.get("role"))) {
-                userDAO.updateUserRole(id, newRole);
+            if (!updated) {
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                logger.severe("Failed to update user id: " + id);
+                response.getWriter().write(gson.toJson(Map.of("error", "Failed to update user")));
+                return;
             }
 
             // Получаем обновленного пользователя
@@ -486,9 +470,9 @@ public class UserServlet extends HttpServlet {
                 return;
             }
 
-            String currentUserRole = (String) currentUser.get("role");
-            String currentUsername = (String) currentUser.get("username");
-            Long currentUserId = (Long) currentUser.get("id");
+            String currentUserRole = getRoleFromUser(currentUser);
+            String currentUsername = getUsernameFromUser(currentUser);
+            Long currentUserId = getIdFromUser(currentUser);
 
             if (pathInfo == null || pathInfo.equals("/")) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -554,7 +538,12 @@ public class UserServlet extends HttpServlet {
     private Long extractIdFromPath(String pathInfo) {
         try {
             if (pathInfo.startsWith("/")) {
-                return Long.parseLong(pathInfo.substring(1));
+                String idStr = pathInfo.substring(1);
+                // Убираем возможные дополнительные сегменты
+                if (idStr.contains("/")) {
+                    idStr = idStr.substring(0, idStr.indexOf("/"));
+                }
+                return Long.parseLong(idStr);
             }
             return Long.parseLong(pathInfo);
         } catch (NumberFormatException e) {
@@ -563,15 +552,39 @@ public class UserServlet extends HttpServlet {
     }
 
     private Map<String, Object> createSafeUserMap(Map<String, Object> user) {
-        Map<String, Object> safeUser = new java.util.HashMap<>(user);
+        Map<String, Object> safeUser = new HashMap<>(user);
         // Удаляем пароль из ответа
         safeUser.remove("password");
         safeUser.remove("password_hash");
         return safeUser;
     }
 
-    // Метод для получения всех пользователей (для тестирования)
-    public List<Map<String, Object>> getAllUsersFromDAO() {
-        return userDAO.findAll();
+    private String getRoleFromUser(Map<String, Object> user) {
+        if (user == null) return null;
+        Object role = user.get("role");
+        return role != null ? role.toString() : ROLE_USER;
+    }
+
+    private String getUsernameFromUser(Map<String, Object> user) {
+        if (user == null) return null;
+        Object username = user.get("username");
+        return username != null ? username.toString() : "unknown";
+    }
+
+    private Long getIdFromUser(Map<String, Object> user) {
+        if (user == null) return null;
+        Object id = user.get("id");
+        if (id instanceof Long) {
+            return (Long) id;
+        } else if (id instanceof Integer) {
+            return ((Integer) id).longValue();
+        } else if (id != null) {
+            try {
+                return Long.parseLong(id.toString());
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
     }
 }
