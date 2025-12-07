@@ -26,15 +26,15 @@ public class FunctionDAO {
     }
 
     // CREATE
-    public Long createFunction(String name, Long userId, String signature) {
-        String sql = "INSERT INTO functions (name, user_id, signature) VALUES (?, ?, ?)";
+    public Long createFunction(String name, Long userId, String expression) {
+        String sql = "INSERT INTO functions (name, user_id, expression) VALUES (?, ?, ?)";
 
         try (Connection conn = DatabaseConfig.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             stmt.setString(1, name);
             stmt.setLong(2, userId);
-            stmt.setString(3, signature);
+            stmt.setString(3, expression);
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
@@ -123,13 +123,7 @@ public class FunctionDAO {
             stmt.setInt(1, limit);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    Map<String, Object> function = new HashMap<>();
-                    function.put("id", rs.getLong("id"));
-                    function.put("name", rs.getString("name"));
-                    function.put("user_id", rs.getLong("user_id"));
-                    function.put("expression", rs.getString("expression"));
-                    function.put("created_at", rs.getTimestamp("created_at"));
-                    functions.add(function);
+                    functions.add(mapResultSetToMap(rs));
                 }
             }
             logger.debug("Получено {} функций с ограничением LIMIT {}", functions.size(), limit);
@@ -873,7 +867,7 @@ public class FunctionDAO {
         function.put("id", rs.getLong("id"));
         function.put("name", rs.getString("name"));
         function.put("user_id", rs.getLong("user_id"));
-        function.put("signature", rs.getString("signature"));
+        function.put("expression", rs.getString("expression"));
         function.put("created_at", rs.getTimestamp("created_at"));
         return function;
     }

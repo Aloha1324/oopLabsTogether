@@ -24,7 +24,7 @@ public class HierarchySearch {
         this.pointRepository = pointRepository;
     }
 
-    public List<Object> search(Object root, SearchService.SearchCriteria criteria) {
+    public List<Object> search(Object root, FrameworkSearchService.SearchCriteria criteria) {
         logger.info("Starting Hierarchy Search");
         List<Object> results = new ArrayList<>();
 
@@ -40,7 +40,7 @@ public class HierarchySearch {
         return results;
     }
 
-    private void searchUserHierarchy(User user, SearchService.SearchCriteria criteria, List<Object> results, int depth) {
+    private void searchUserHierarchy(User user, FrameworkSearchService.SearchCriteria criteria, List<Object> results, int depth) {
         if (depth > criteria.maxDepth() && criteria.maxDepth() > 0) {
             return;
         }
@@ -56,7 +56,7 @@ public class HierarchySearch {
         }
     }
 
-    private void searchFunctionHierarchy(Function function, SearchService.SearchCriteria criteria, List<Object> results, int depth) {
+    private void searchFunctionHierarchy(Function function, FrameworkSearchService.SearchCriteria criteria, List<Object> results, int depth) {
         if (depth > criteria.maxDepth() && criteria.maxDepth() > 0) {
             return;
         }
@@ -72,7 +72,7 @@ public class HierarchySearch {
         }
     }
 
-    private void searchPointHierarchy(Point point, SearchService.SearchCriteria criteria, List<Object> results, int depth) {
+    private void searchPointHierarchy(Point point, FrameworkSearchService.SearchCriteria criteria, List<Object> results, int depth) {
         if (depth > criteria.maxDepth() && criteria.maxDepth() > 0) {
             return;
         }
@@ -82,7 +82,7 @@ public class HierarchySearch {
         }
     }
 
-    private boolean matchesCriteria(Object node, SearchService.SearchCriteria criteria) {
+    private boolean matchesCriteria(Object node, FrameworkSearchService.SearchCriteria criteria) {
         // Такая же реализация как в других классах поиска
         if (criteria.name() == null && criteria.type() == null) {
             return true;

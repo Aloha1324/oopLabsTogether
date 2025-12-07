@@ -46,7 +46,7 @@ class UserDTOTest {
 
         assertTrue(userString.startsWith("UserDTO{"));
         assertTrue(userString.contains("id=1"));
-        assertTrue(userString.contains("login='testuser'"));
+        assertTrue(userString.contains("username='testuser'")); // Изменено с login на username
         assertTrue(userString.contains("role='ADMIN'"));
         assertFalse(userString.contains("password="));
         assertTrue(userString.endsWith("}"));

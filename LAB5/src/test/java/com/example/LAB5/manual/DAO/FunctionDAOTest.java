@@ -211,17 +211,32 @@ class FunctionDAOTest {
     @Test
     @Order(10)
     void testFindAllFunctions() {
-        int initialCount = functionDAO.findAll().size();
+        List<Map<String, Object>> initialFunctions = functionDAO.findAll();
+        int initialCount = initialFunctions.size();
+        logger.info("Начальное количество функций: {}", initialCount);
 
-        functionDAO.createFunction("find_all_1", testUserId, "x + 1");
-        functionDAO.createFunction("find_all_2", testUserId, "x^2 + 2");
-        functionDAO.createFunction("find_all_3", testUserId, "sin(x)");
+        // Создаем функции с уникальными именами
+        String uniquePrefix = testPrefix + "find_all_";
+        functionDAO.createFunction(uniquePrefix + "1", testUserId, "x + 1");
+        functionDAO.createFunction(uniquePrefix + "2", testUserId, "x^2 + 2");
+        functionDAO.createFunction(uniquePrefix + "3", testUserId, "sin(x)");
 
         List<Map<String, Object>> allFunctions = functionDAO.findAll();
+        int finalCount = allFunctions.size();
+        logger.info("Конечное количество функций: {}", finalCount);
 
         assertFalse(allFunctions.isEmpty());
-        assertTrue(allFunctions.size() >= initialCount + 3);
-        logger.info("Найдено {} функций", allFunctions.size());
+
+        // Проверяем, что количество увеличилось
+        assertTrue(finalCount >= initialCount + 3,
+                String.format("Ожидалось >= %d, но получено %d", initialCount + 3, finalCount));
+
+        // Альтернативная проверка: убедиться, что наши функции создались
+        List<Map<String, Object>> ourFunctions = allFunctions.stream()
+                .filter(func -> ((String) func.get("name")).startsWith(uniquePrefix))
+                .toList();
+
+        assertEquals(3, ourFunctions.size(), "Должно быть создано 3 функции с префиксом " + uniquePrefix);
     }
 
     @Test

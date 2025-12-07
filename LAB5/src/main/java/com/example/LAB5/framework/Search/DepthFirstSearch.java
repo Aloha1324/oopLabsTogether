@@ -24,7 +24,7 @@ public class DepthFirstSearch {
         this.pointRepository = pointRepository;
     }
 
-    public List<Object> search(Object root, SearchService.SearchCriteria criteria) {
+    public List<Object> search(Object root, FrameworkSearchService.SearchCriteria criteria) {
         logger.info("Starting Depth-First Search");
         List<Object> results = new ArrayList<>();
         Set<Object> visited = new HashSet<>();
@@ -35,7 +35,7 @@ public class DepthFirstSearch {
         return results;
     }
 
-    private void dfs(Object node, SearchService.SearchCriteria criteria, List<Object> results, Set<Object> visited, int depth) {
+    private void dfs(Object node, FrameworkSearchService.SearchCriteria criteria, List<Object> results, Set<Object> visited, int depth) {
         if (node == null || visited.contains(node) || (criteria.maxDepth() > 0 && depth > criteria.maxDepth())) {
             return;
         }
@@ -53,7 +53,7 @@ public class DepthFirstSearch {
         }
     }
 
-    private boolean matchesCriteria(Object node, SearchService.SearchCriteria criteria) {
+    private boolean matchesCriteria(Object node, FrameworkSearchService.SearchCriteria criteria) {
         if (criteria.name() == null && criteria.type() == null) {
             return true;
         }

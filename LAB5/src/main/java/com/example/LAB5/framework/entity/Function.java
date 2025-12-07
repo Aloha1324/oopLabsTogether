@@ -65,10 +65,6 @@ public class Function {
     public List<Point> getPoints() { return points; }
     public void setPoints(List<Point> points) { this.points = points; }
 
-    // Добавленные методы
-    public String getSignature() {
-        return this.name + ":" + this.expression;
-    }
 
     @Override
     public String toString() {
