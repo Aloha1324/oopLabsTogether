@@ -1,0 +1,9 @@
+-------------------------------------------------------------------------------
+Test set: com.example.LAB5.manual.service.ManualPerformanceComparisonTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.002 s <<< FAILURE! - in com.example.LAB5.manual.service.ManualPerformanceComparisonTest
+com.example.LAB5.manual.service.ManualPerformanceComparisonTest  Time elapsed: 0.002 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.ManualPerformanceComparisonTest.setUp(ManualPerformanceComparisonTest.java:36)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+

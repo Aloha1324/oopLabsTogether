@@ -1,0 +1,139 @@
+-------------------------------------------------------------------------------
+Test set: com.example.LAB5.manual.DAO.PointDAOTest
+-------------------------------------------------------------------------------
+Tests run: 27, Failures: 0, Errors: 27, Skipped: 0, Time elapsed: 0.011 s <<< FAILURE! - in com.example.LAB5.manual.DAO.PointDAOTest
+testFindByFunctionId  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetPointsCountByUsernamePrefix  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testDeletePoint  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testFindByXValue  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testUpdatePoint  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testCreatePoint  Time elapsed: 0.002 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetFunctionStatistics  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testCreatePointsBatch  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testUpdatePointsYValueByFunction  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetPointsWithFunctionName  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testFindByFunctionIds  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testCreatePointsBatchEmptyList  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetPointsOrderedByX  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testDeletePointsByUsernamePrefix  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testFindByFunctionIdsEmptyList  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetPointsByUsernamePrefix  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testDeletePointsByFunctionIdAndXRange  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testUpdatePointYValue  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetPointCountByFunction  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testDeletePointsByFunctionId  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testFindByYValueGreaterThan  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testHasPointsWithUsernamePrefix  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testFindAllPoints  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testSafeDeletePointsByUsernamePrefix  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testFindByFunctionIdAndXRange  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testDeletePointsByUserId  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.setUp(PointDAOTest.java:37)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+com.example.LAB5.manual.DAO.PointDAOTest  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.DAO.PointDAOTest.tearDownAll(PointDAOTest.java:111)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+

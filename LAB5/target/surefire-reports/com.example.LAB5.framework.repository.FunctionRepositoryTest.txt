@@ -1,0 +1,92 @@
+-------------------------------------------------------------------------------
+Test set: com.example.LAB5.framework.repository.FunctionRepositoryTest
+-------------------------------------------------------------------------------
+Tests run: 22, Failures: 0, Errors: 22, Skipped: 0, Time elapsed: 3.493 s <<< FAILURE! - in com.example.LAB5.framework.repository.FunctionRepositoryTest
+testSaveAndFindById  Time elapsed: 0.004 s  <<< ERROR!
+java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory
+Caused by: java.lang.ClassNotFoundException: javax.persistence.EntityManagerFactory
+
+testFindByUser  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testFindByUserId  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testFindAll  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testFindByNameContaining  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testCountByUser  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testUpdateFunction  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testDeleteFunction  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testFunctionNotFound  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testFindByExpressionContaining  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testFindByUserIdAndNameContaining  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testFindByNameExactMatch  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testFindByIdBetween  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testFindByUserOrderByNameAsc  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testExistsByNameAndUser  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testDeleteByUser  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testCountAllFunctions  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testFindByNameStartingWith  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testFindByNameEndingWith  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testFindByUserIn  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testComplexSearchScenario  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testPerformanceWithMultipleUsers  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+

@@ -1,0 +1,99 @@
+-------------------------------------------------------------------------------
+Test set: com.example.LAB5.manual.service.PointServiceTest
+-------------------------------------------------------------------------------
+Tests run: 19, Failures: 0, Errors: 19, Skipped: 0, Time elapsed: 0.014 s <<< FAILURE! - in com.example.LAB5.manual.service.PointServiceTest
+testDeletePointsByXRange  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetPointsByFunctionId  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testFindMinYPoint  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testDeletePoint  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testCalculateFunction  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetPointById  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testUpdatePoint  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testCreatePoint  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetPointStatistics  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testCreatePointsBatch  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGenerateFunctionPoints  Time elapsed: 0.007 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testRecalculatePoints  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetAllPoints  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testIsXValueUnique  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testFindRoots  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testDeletePointsByFunctionId  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testFindMaxYPoint  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetPointsByXRange  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetPointsByYRange  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.PointServiceTest.setUp(PointServiceTest.java:42)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+

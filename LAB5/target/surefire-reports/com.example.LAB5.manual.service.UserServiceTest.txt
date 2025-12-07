@@ -1,0 +1,132 @@
+-------------------------------------------------------------------------------
+Test set: com.example.LAB5.manual.service.UserServiceTest
+-------------------------------------------------------------------------------
+Tests run: 25, Failures: 1, Errors: 24, Skipped: 0, Time elapsed: 0.013 s <<< FAILURE! - in com.example.LAB5.manual.service.UserServiceTest
+testGetUserById_NotFound  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testGetUserById_NotFound(UserServiceTest.java:77)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testMultipleServiceOperations  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testMultipleServiceOperations(UserServiceTest.java:333)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testCreateUserWithEmail  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testCreateUserWithEmail(UserServiceTest.java:52)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testChangePassword_Success  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testChangePassword_Success(UserServiceTest.java:255)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetUsersByUsernamePattern  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testGetUsersByUsernamePattern(UserServiceTest.java:126)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testSearchUsers  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testSearchUsers(UserServiceTest.java:312)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetAllUsers  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testGetAllUsers(UserServiceTest.java:102)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testUpdateUser  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testUpdateUser(UserServiceTest.java:144)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testServiceErrorHandling  Time elapsed: 0.002 s  <<< FAILURE!
+org.opentest4j.AssertionFailedError: Unexpected exception type thrown ==> expected: <java.lang.Exception> but was: <java.lang.NoClassDefFoundError>
+	at com.example.LAB5.manual.service.UserServiceTest.testServiceErrorHandling(UserServiceTest.java:371)
+Caused by: java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.lambda$testServiceErrorHandling$0(UserServiceTest.java:372)
+	at com.example.LAB5.manual.service.UserServiceTest.testServiceErrorHandling(UserServiceTest.java:371)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testDeleteUser_NotFound  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testDeleteUser_NotFound(UserServiceTest.java:207)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testValidateUserCredentials_Valid  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testValidateUserCredentials_Valid(UserServiceTest.java:215)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testUpdateUser_NotFound  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testUpdateUser_NotFound(UserServiceTest.java:174)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetTotalUsersCount  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testGetTotalUsersCount(UserServiceTest.java:293)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testUserExists  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testUserExists(UserServiceTest.java:243)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetUserByUsername  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testGetUserByUsername(UserServiceTest.java:85)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testCreateUser  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testCreateUser(UserServiceTest.java:36)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testDeleteUserByUsername  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testDeleteUserByUsername(UserServiceTest.java:195)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testChangePassword_WrongOldPassword  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testChangePassword_WrongOldPassword(UserServiceTest.java:270)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testDeleteUser  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testDeleteUser(UserServiceTest.java:182)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetUserById  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testGetUserById(UserServiceTest.java:66)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testUpdateUserEmail  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testUpdateUserEmail(UserServiceTest.java:160)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testValidateUserCredentials_UserNotFound  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testValidateUserCredentials_UserNotFound(UserServiceTest.java:234)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testResetPassword  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testResetPassword(UserServiceTest.java:282)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testGetUserByUsername_NotFound  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testGetUserByUsername_NotFound(UserServiceTest.java:95)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+
+testValidateUserCredentials_InvalidPassword  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class com.example.LAB5.manual.config.DatabaseConfig
+	at com.example.LAB5.manual.service.UserServiceTest.testValidateUserCredentials_InvalidPassword(UserServiceTest.java:225)
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.ExceptionInInitializerError: PostgreSQL JDBC Driver not found [in thread "main"]
+

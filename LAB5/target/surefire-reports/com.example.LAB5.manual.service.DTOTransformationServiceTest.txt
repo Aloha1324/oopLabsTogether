@@ -1,0 +1,140 @@
+-------------------------------------------------------------------------------
+Test set: com.example.LAB5.manual.service.DTOTransformationServiceTest
+-------------------------------------------------------------------------------
+Tests run: 34, Failures: 0, Errors: 34, Skipped: 0, Time elapsed: 2.585 s <<< FAILURE! - in com.example.LAB5.manual.service.DTOTransformationServiceTest
+testTransformFunctionDTOToMap  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testExtractFunctionId_NotFound  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformEmptyMapToUserDTO  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformUserMapToDTO_WithInvalidData  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testExtractFunctionId  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformUserMapToDTO_WithMissingFields  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformPointDTOToMapWithAllFields  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformUserDTOToMap_WithNullValues  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformPointDTOToMap  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformPointMapToDTO_WithInvalidDouble  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testCreateUserMap_WithNullRole  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformUserDTOWithAllNullsToMap  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testExtractLogin_NotFound  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformUserDTOToMap  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testValidFunctionMap  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformPointMapToDTO_WithAlternativeKeys  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testCreateUserMap  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testValidUserMap  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformFunctionMapToDTO_WithAlternativeKeys  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testCreatePointMap  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformFunctionMapToDTO  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformNullMapToUserDTO  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testCreateFunctionMap  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformPointMapToDTO_WithSpecialDoubleValues  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformPointMapToDTO  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testCreateUserMapWithEmptyStrings  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformUserDTOToMapWithAllFields  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testExtractFunctionName  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testValidPointMap  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformFunctionDTOToMapWithAllFields  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformFunctionMapToDTO_WithInvalidUserId  Time elapsed: 0.001 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testTransformUserMapToDTO  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testExtractLogin  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+
+testCreatePointMapWithSpecialValues  Time elapsed: 0 s  <<< ERROR!
+java.lang.NoClassDefFoundError: Could not initialize class org.springframework.data.jpa.util.BeanDefinitionUtils
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.NoClassDefFoundError: javax/persistence/EntityManagerFactory [in thread "main"]
+

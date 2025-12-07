@@ -651,6 +651,68 @@ public class UserDAO {
         }
     }
 
+    /**
+     * Создание пользователя с ролью (для Basic Auth)
+     */
+    public Long createUserWithRole(String username, String password, String role, String email) {
+        String sql = "INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+            stmt.setString(3, email);
+            stmt.setString(4, role != null ? role : "USER");
+
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Создание пользователя не удалось");
+            }
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    Long id = generatedKeys.getLong(1);
+                    logger.info("Создан пользователь с ID: {}, username: {}, role: {}",
+                            id, username, role);
+                    return id;
+                } else {
+                    throw new SQLException("Создание пользователя не удалось, ID не получен");
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Ошибка при создании пользователя: {}", username, e);
+            throw new RuntimeException("Database error", e);
+        }
+    }
+
+    /**
+     * Обновление роли пользователя (для выдачи прав)
+     */
+    public boolean updateUserRole(Long id, String newRole) {
+        String sql = "UPDATE users SET role = ? WHERE id = ?";
+
+        try (Connection conn = DatabaseConfig.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, newRole);
+            stmt.setLong(2, id);
+
+            int affectedRows = stmt.executeUpdate();
+            boolean updated = affectedRows > 0;
+
+            if (updated) {
+                logger.info("Обновлена роль пользователя с ID: {} на {}", id, newRole);
+            } else {
+                logger.warn("Пользователь с ID {} не найден для обновления роли", id);
+            }
+            return updated;
+        } catch (SQLException e) {
+            logger.error("Ошибка при обновлении роли пользователя с ID: {}", id, e);
+            throw new RuntimeException("Database error", e);
+        }
+    }
+
     private Map<String, Object> mapResultSetToMap(ResultSet rs) throws SQLException {
         Map<String, Object> user = new HashMap<>();
         user.put("id", rs.getLong("id"));
