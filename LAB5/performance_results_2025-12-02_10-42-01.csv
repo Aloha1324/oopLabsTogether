@@ -1,0 +1,12 @@
+Operation,Time(ms)
+User Create,102,000
+User Read,84,535
+Function Create,179,617
+Function Read,203,596
+Point Create,271,128
+Points Read,87,929
+Batch Create (100 points),9318,329
+Get All Users,85,249
+Get All Functions,128,560
+Search Users,83,521
+Search Functions,82,417
