@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -234,7 +235,7 @@ class FunctionDAOTest {
         // Альтернативная проверка: убедиться, что наши функции создались
         List<Map<String, Object>> ourFunctions = allFunctions.stream()
                 .filter(func -> ((String) func.get("name")).startsWith(uniquePrefix))
-                .toList();
+                .collect(Collectors.toList());
 
         assertEquals(3, ourFunctions.size(), "Должно быть создано 3 функции с префиксом " + uniquePrefix);
     }
