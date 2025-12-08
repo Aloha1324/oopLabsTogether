@@ -657,6 +657,8 @@ public class UserDAO {
         user.put("username", rs.getString("username"));
         user.put("password", rs.getString("password"));
         user.put("email", rs.getString("email"));
+        user.put("created_at", rs.getTimestamp("created_at"));
+        user.put("updated_at", rs.getTimestamp("updated_at"));
         return user;
     }
 }
