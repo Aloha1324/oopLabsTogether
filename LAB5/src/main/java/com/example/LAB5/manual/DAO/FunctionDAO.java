@@ -868,7 +868,6 @@ public class FunctionDAO {
         function.put("name", rs.getString("name"));
         function.put("user_id", rs.getLong("user_id"));
         function.put("expression", rs.getString("expression"));
-        function.put("created_at", rs.getTimestamp("created_at"));
         return function;
     }
 }
