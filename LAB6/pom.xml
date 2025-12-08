@@ -5,6 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
+<<<<<<< HEAD
     <artifactId>LAB5</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
@@ -84,3 +85,15 @@
         </plugins>
     </build>
 </project>
+=======
+    <artifactId>LAB6</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+</project>
+>>>>>>> 3265e388ffdfdaadfa56863973a4adccc010d225
