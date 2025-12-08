@@ -676,7 +676,6 @@ public class PointDAO {
     }
 
     // Вспомогательные методы
-
     private Map<String, Object> mapResultSetToMap(ResultSet rs) throws SQLException {
         Map<String, Object> point = new HashMap<>();
         point.put("id", rs.getLong("id"));
@@ -684,7 +683,6 @@ public class PointDAO {
         point.put("user_id", rs.getLong("user_id"));
         point.put("x_value", rs.getDouble("x_value"));
         point.put("y_value", rs.getDouble("y_value"));
-        point.put("created_at", rs.getTimestamp("created_at"));
         return point;
     }
 
