@@ -1,6 +1,8 @@
 package com.example.LAB5.servlet;
 
 import com.example.LAB5.manual.DTO.UserDTO;
+import com.example.LAB5.util.AuthUtils;
+import com.example.LAB5.util.PasswordUtils;
 import com.google.gson.Gson;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -9,7 +11,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -20,22 +24,73 @@ public class UserServlet extends HttpServlet {
     private final Gson gson = new Gson();
     private Long currentId = 1L;
 
+    // Для хранения соли и хешированных паролей
+    private final Map<Long, String[]> userCredentials = new HashMap<>();
+
     // Для доступа из других сервлетов
     public List<UserDTO> getUsers() {
         return users;
     }
 
+    /**
+     * Найти пользователя по username и password (для аутентификации)
+     */
+    public Map<String, Object> findUserByUsernameAndPassword(String username, String password) {
+        logger.info("Authenticating user: " + username);
+
+        for (UserDTO user : users) {
+            if (user.getLogin().equals(username)) {
+                String[] credentials = userCredentials.get(user.getId());
+                if (credentials != null) {
+                    String storedHash = credentials[0];
+                    String salt = credentials[1];
+
+                    if (PasswordUtils.verifyPassword(password, salt, storedHash)) {
+                        Map<String, Object> userInfo = new HashMap<>();
+                        userInfo.put("id", user.getId());
+                        userInfo.put("username", user.getLogin());
+                        userInfo.put("role", user.getRole());
+                        logger.info("User authenticated: " + username + ", role: " + user.getRole());
+                        return userInfo;
+                    }
+                }
+            }
+        }
+
+        logger.warning("Authentication failed for user: " + username);
+        return null;
+    }
+
+    /**
+     * Найти пользователя по username
+     */
+    public Map<String, Object> findUserByUsername(String username) {
+        for (UserDTO user : users) {
+            if (user.getLogin().equals(username)) {
+                Map<String, Object> userInfo = new HashMap<>();
+                userInfo.put("id", user.getId());
+                userInfo.put("username", user.getLogin());
+                userInfo.put("role", user.getRole());
+                return userInfo;
+            }
+        }
+        return null;
+    }
+
     @Override
     public void init() throws ServletException {
         super.init();
-        // Регистрируем себя в контексте для доступа из других сервлетов
         getServletContext().setAttribute("userServlet", this);
 
-        // Добавляем тестового пользователя
-        UserDTO admin = new UserDTO("admin", "ADMIN", "admin123");
+        // Создаем администратора с хешированным паролем
+        String[] adminCredentials = PasswordUtils.createHashedPassword("admin123");
+
+        UserDTO admin = new UserDTO("admin", AuthUtils.ROLE_ADMIN, adminCredentials[0]);
         admin.setId(currentId++);
         users.add(admin);
-        logger.info("UserServlet initialized with test admin user");
+        userCredentials.put(admin.getId(), adminCredentials);
+
+        logger.info("UserServlet initialized with admin user (hashed password)");
     }
 
     @Override
@@ -45,22 +100,36 @@ public class UserServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        String pathInfo = request.getPathInfo();
-        logger.info("GET /api/v1/users" + (pathInfo != null ? pathInfo : ""));
+        logger.info("GET /api/v1/users" + (request.getPathInfo() != null ? request.getPathInfo() : ""));
+
+        // 1. Аутентификация
+        Map<String, Object> authenticatedUser = AuthUtils.authenticateUser(request, this);
+        if (authenticatedUser == null) {
+            AuthUtils.sendAuthError(response, "Authentication required");
+            return;
+        }
+
+        // 2. Проверка роли
+        String role = (String) authenticatedUser.get("role");
+        if (!AuthUtils.hasPermission(role, "GET")) {
+            AuthUtils.sendAuthError(response, "Insufficient permissions");
+            return;
+        }
 
         try {
+            String pathInfo = request.getPathInfo();
             if (pathInfo == null || pathInfo.equals("/")) {
                 // GET /api/v1/users - все пользователи
-                logger.info("Returning all users, count: " + users.size());
-
-                // Создаем безопасные копии без паролей
+                // ADMIN видит всех, USER/VIEWER видят только публичную информацию
                 List<UserDTO> safeUsers = users.stream()
-                        .map(this::createSafeUserDTO)
+                        .map(user -> createSafeUserDTO(user, authenticatedUser))
                         .collect(Collectors.toList());
 
                 response.getWriter().write(gson.toJson(safeUsers));
+                logger.info("Returning " + safeUsers.size() + " users to " + authenticatedUser.get("username"));
+
             } else {
-                // GET /api/v1/users/{id} - конкретный пользователь
+                // GET /api/v1/users/{id}
                 Long id = extractIdFromPath(pathInfo);
                 if (id == null) {
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -68,12 +137,17 @@ public class UserServlet extends HttpServlet {
                     return;
                 }
 
-                logger.info("Looking for user with id: " + id);
                 UserDTO user = findUserById(id);
-
                 if (user != null) {
-                    response.getWriter().write(gson.toJson(createSafeUserDTO(user)));
-                    logger.info("User found: " + user.getLogin());
+                    // Проверка доступа: USER может видеть только себя, ADMIN всех
+                    if (AuthUtils.hasResourceAccess(authenticatedUser, user.getId(), "GET")) {
+                        response.getWriter().write(gson.toJson(createSafeUserDTO(user, authenticatedUser)));
+                        logger.info("User " + authenticatedUser.get("username") + " accessed user ID: " + id);
+                    } else {
+                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                        logger.warning("Access denied for user " + authenticatedUser.get("username") +
+                                " to user ID: " + id);
+                    }
                 } else {
                     response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                     logger.warning("User not found with id: " + id);
@@ -92,17 +166,17 @@ public class UserServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
+        logger.info("POST /api/v1/users" + (request.getPathInfo() != null ? request.getPathInfo() : ""));
+
         String pathInfo = request.getPathInfo();
-        logger.info("POST /api/v1/users" + (pathInfo != null ? pathInfo : ""));
+        if (pathInfo != null && !pathInfo.equals("/")) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            logger.warning("POST should not have path parameters");
+            return;
+        }
 
+        // Регистрация нового пользователя - не требует аутентификации
         try {
-            if (pathInfo != null && !pathInfo.equals("/")) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("POST should not have path parameters");
-                return;
-            }
-
-            // Читаем JSON и парсим в UserDTO
             UserDTO newUser = gson.fromJson(request.getReader(), UserDTO.class);
 
             // Проверяем обязательные поля
@@ -120,17 +194,27 @@ public class UserServlet extends HttpServlet {
                 return;
             }
 
-            // Устанавливаем ID и роль по умолчанию, если не указана
+            // Хешируем пароль
+            String[] credentials = PasswordUtils.createHashedPassword(newUser.getPassword());
+
+            // Устанавливаем ID и роль по умолчанию
             newUser.setId(currentId++);
             if (newUser.getRole() == null || newUser.getRole().trim().isEmpty()) {
-                newUser.setRole("USER");
+                newUser.setRole(AuthUtils.ROLE_USER); // По умолчанию USER
+            } else if (!isValidRole(newUser.getRole())) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                logger.warning("Invalid role: " + newUser.getRole());
+                return;
             }
 
+            // Сохраняем пользователя и его хешированный пароль
             users.add(newUser);
+            userCredentials.put(newUser.getId(), credentials);
 
             response.setStatus(HttpServletResponse.SC_CREATED);
-            response.getWriter().write(gson.toJson(createSafeUserDTO(newUser)));
-            logger.info("User created successfully: " + newUser.getLogin() + " (id: " + newUser.getId() + ")");
+            response.getWriter().write(gson.toJson(createSafeUserDTO(newUser, null)));
+            logger.info("User created successfully: " + newUser.getLogin() +
+                    " (id: " + newUser.getId() + ", role: " + newUser.getRole() + ")");
 
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -145,10 +229,24 @@ public class UserServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        String pathInfo = request.getPathInfo();
-        logger.info("PUT /api/v1/users" + (pathInfo != null ? pathInfo : ""));
+        logger.info("PUT /api/v1/users" + (request.getPathInfo() != null ? request.getPathInfo() : ""));
+
+        // 1. Аутентификация
+        Map<String, Object> authenticatedUser = AuthUtils.authenticateUser(request, this);
+        if (authenticatedUser == null) {
+            AuthUtils.sendAuthError(response, "Authentication required");
+            return;
+        }
+
+        // 2. Проверка роли
+        String role = (String) authenticatedUser.get("role");
+        if (!AuthUtils.hasPermission(role, "PUT")) {
+            AuthUtils.sendAuthError(response, "Insufficient permissions");
+            return;
+        }
 
         try {
+            String pathInfo = request.getPathInfo();
             if (pathInfo == null || pathInfo.equals("/")) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 logger.warning("PUT requires user ID in path");
@@ -161,10 +259,7 @@ public class UserServlet extends HttpServlet {
                 return;
             }
 
-            // Читаем обновленные данные
-            UserDTO updatedData = gson.fromJson(request.getReader(), UserDTO.class);
-
-            // Находим существующего пользователя
+            // Проверяем существование пользователя
             UserDTO existingUser = findUserById(id);
             if (existingUser == null) {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -172,7 +267,18 @@ public class UserServlet extends HttpServlet {
                 return;
             }
 
-            // Обновляем поля (сохраняем ID)
+            // Проверка доступа: USER может обновлять только себя, ADMIN всех
+            if (!AuthUtils.hasResourceAccess(authenticatedUser, existingUser.getId(), "PUT")) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                logger.warning("Access denied for user " + authenticatedUser.get("username") +
+                        " to update user ID: " + id);
+                return;
+            }
+
+            // Читаем обновленные данные
+            UserDTO updatedData = gson.fromJson(request.getReader(), UserDTO.class);
+
+            // Обновляем поля
             if (updatedData.getLogin() != null && !updatedData.getLogin().trim().isEmpty()) {
                 // Проверяем уникальность нового username
                 if (!updatedData.getLogin().equals(existingUser.getLogin()) &&
@@ -185,15 +291,25 @@ public class UserServlet extends HttpServlet {
             }
 
             if (updatedData.getPassword() != null && !updatedData.getPassword().trim().isEmpty()) {
-                existingUser.setPassword(updatedData.getPassword());
+                // Обновляем хешированный пароль
+                String[] credentials = PasswordUtils.createHashedPassword(updatedData.getPassword());
+                userCredentials.put(existingUser.getId(), credentials);
+                existingUser.setPassword(credentials[0]); // Сохраняем хеш в DTO
             }
 
+            // Проверка роли: только ADMIN может менять роль
             if (updatedData.getRole() != null && !updatedData.getRole().trim().isEmpty()) {
-                existingUser.setRole(updatedData.getRole());
+                if (AuthUtils.ROLE_ADMIN.equals(role) && isValidRole(updatedData.getRole())) {
+                    existingUser.setRole(updatedData.getRole());
+                    logger.info("Role updated to " + updatedData.getRole() + " by admin");
+                } else {
+                    logger.warning("Role change attempted by non-admin or invalid role");
+                }
             }
 
-            response.getWriter().write(gson.toJson(createSafeUserDTO(existingUser)));
-            logger.info("User updated successfully: " + existingUser.getLogin());
+            response.getWriter().write(gson.toJson(createSafeUserDTO(existingUser, authenticatedUser)));
+            logger.info("User updated successfully: " + existingUser.getLogin() +
+                    " by " + authenticatedUser.get("username"));
 
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -205,10 +321,24 @@ public class UserServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String pathInfo = request.getPathInfo();
-        logger.info("DELETE /api/v1/users" + (pathInfo != null ? pathInfo : ""));
+        logger.info("DELETE /api/v1/users" + (request.getPathInfo() != null ? request.getPathInfo() : ""));
+
+        // 1. Аутентификация
+        Map<String, Object> authenticatedUser = AuthUtils.authenticateUser(request, this);
+        if (authenticatedUser == null) {
+            AuthUtils.sendAuthError(response, "Authentication required");
+            return;
+        }
+
+        // 2. Проверка роли
+        String role = (String) authenticatedUser.get("role");
+        if (!AuthUtils.hasPermission(role, "DELETE")) {
+            AuthUtils.sendAuthError(response, "Insufficient permissions");
+            return;
+        }
 
         try {
+            String pathInfo = request.getPathInfo();
             if (pathInfo == null || pathInfo.equals("/")) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 logger.warning("DELETE requires user ID in path");
@@ -221,11 +351,37 @@ public class UserServlet extends HttpServlet {
                 return;
             }
 
-            boolean removed = users.removeIf(user -> user.getId().equals(id));
+            UserDTO userToDelete = findUserById(id);
+            if (userToDelete == null) {
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                logger.warning("User not found for deletion, id: " + id);
+                return;
+            }
 
+            // Проверка доступа: USER может удалять только себя, ADMIN всех
+            // Но не позволяем удалить последнего ADMIN
+            if (AuthUtils.ROLE_ADMIN.equals(userToDelete.getRole()) &&
+                    countAdmins() <= 1 &&
+                    !userToDelete.getId().equals(authenticatedUser.get("id"))) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                logger.warning("Cannot delete the last admin user");
+                return;
+            }
+
+            if (!AuthUtils.hasResourceAccess(authenticatedUser, userToDelete.getId(), "DELETE")) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                logger.warning("Access denied for user " + authenticatedUser.get("username") +
+                        " to delete user ID: " + id);
+                return;
+            }
+
+            // Удаляем пользователя и его credentials
+            boolean removed = users.removeIf(user -> user.getId().equals(id));
             if (removed) {
+                userCredentials.remove(id);
                 response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-                logger.info("User deleted successfully, id: " + id);
+                logger.info("User deleted successfully, id: " + id +
+                        " by " + authenticatedUser.get("username"));
             } else {
                 response.setStatus(HttpServletResponse.SC_NOT_FOUND);
                 logger.warning("User not found for deletion, id: " + id);
@@ -248,7 +404,12 @@ public class UserServlet extends HttpServlet {
     private Long extractIdFromPath(String pathInfo) {
         try {
             if (pathInfo.startsWith("/")) {
-                return Long.parseLong(pathInfo.substring(1));
+                String idStr = pathInfo.substring(1);
+                // Убираем возможные дополнительные пути
+                if (idStr.contains("/")) {
+                    idStr = idStr.substring(0, idStr.indexOf("/"));
+                }
+                return Long.parseLong(idStr);
             }
             return Long.parseLong(pathInfo);
         } catch (NumberFormatException e) {
@@ -256,8 +417,24 @@ public class UserServlet extends HttpServlet {
         }
     }
 
-    private UserDTO createSafeUserDTO(UserDTO user) {
-        // Возвращаем копию без пароля для безопасности
+    private UserDTO createSafeUserDTO(UserDTO user, Map<String, Object> requester) {
+        // ADMIN видит больше информации
+        if (requester != null && AuthUtils.ROLE_ADMIN.equals(requester.get("role"))) {
+            return new UserDTO(user.getId(), user.getLogin(), user.getRole(), "***");
+        }
+        // Остальные видят только публичную информацию
         return new UserDTO(user.getId(), user.getLogin(), user.getRole(), null);
+    }
+
+    private boolean isValidRole(String role) {
+        return AuthUtils.ROLE_ADMIN.equals(role) ||
+                AuthUtils.ROLE_USER.equals(role) ||
+                AuthUtils.ROLE_VIEWER.equals(role);
+    }
+
+    private int countAdmins() {
+        return (int) users.stream()
+                .filter(u -> AuthUtils.ROLE_ADMIN.equals(u.getRole()))
+                .count();
     }
 }
