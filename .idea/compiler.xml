@@ -9,6 +9,7 @@
         <module name="LAB5 (1)" />
         <module name="LAB4.74" />
         <module name="LAB6" />
+        <module name="Lab4" />
         <module name="LAB5" />
         <module name="lablab2" />
       </profile>
@@ -16,7 +17,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="LAB5" options="-parameters" />
+      <module name="LAB5" options="-parameters -parameters" />
       <module name="lablab2" options="" />
     </option>
   </component>

@@ -368,6 +368,7 @@ public class ManualPerformanceComparisonService {
             return null;
         }
     }
+
     public void exportResultsToGitHub() {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
 
@@ -456,61 +457,38 @@ public class ManualPerformanceComparisonService {
         public void setSearchFunctionsTime(double searchFunctionsTime) { this.searchFunctionsTime = searchFunctionsTime; }
 
         public String toMarkdownTable() {
-            return """
-                    # Результаты тестирования производительности JDBC
-                    
-                    **Дата тестирования:** %s
-                    
-                    **Размер данных:** 10,000+ записей
-                    
-                    ## Время выполнения операций (мс)
-                    
-                    | Операция | Время (мс) |
-                    |----------|------------|
-                    | Создание пользователя | %.3f |
-                    | Чтение пользователя | %.3f |
-                    | Создание функции | %.3f |
-                    | Чтение функции | %.3f |
-                    | Создание точки | %.3f |
-                    | Чтение точек функции | %.3f |
-                    | Массовое создание (100 точек) | %.3f |
-                    | Получение всех пользователей | %.3f |
-                    | Получение всех функций | %.3f |
-                    | Поиск пользователей | %.3f |
-                    | Поиск функций | %.3f |
-                    """.formatted(
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                    userCreateTime, userReadTime,
-                    functionCreateTime, functionReadTime,
-                    pointCreateTime, pointsReadTime,
-                    batchCreateTime,
-                    getAllUsersTime, getAllFunctionsTime,
-                    searchUsersTime, searchFunctionsTime
-            );
+            return "# Результаты тестирования производительности JDBC\n\n" +
+                    "**Дата тестирования:** " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "\n\n" +
+                    "**Размер данных:** 10,000+ записей\n\n" +
+                    "## Время выполнения операций (мс)\n\n" +
+                    "| Операция | Время (мс) |\n" +
+                    "|----------|------------|\n" +
+                    "| Создание пользователя | " + String.format("%.3f", userCreateTime) + " |\n" +
+                    "| Чтение пользователя | " + String.format("%.3f", userReadTime) + " |\n" +
+                    "| Создание функции | " + String.format("%.3f", functionCreateTime) + " |\n" +
+                    "| Чтение функции | " + String.format("%.3f", functionReadTime) + " |\n" +
+                    "| Создание точки | " + String.format("%.3f", pointCreateTime) + " |\n" +
+                    "| Чтение точек функции | " + String.format("%.3f", pointsReadTime) + " |\n" +
+                    "| Массовое создание (100 точек) | " + String.format("%.3f", batchCreateTime) + " |\n" +
+                    "| Получение всех пользователей | " + String.format("%.3f", getAllUsersTime) + " |\n" +
+                    "| Получение всех функций | " + String.format("%.3f", getAllFunctionsTime) + " |\n" +
+                    "| Поиск пользователей | " + String.format("%.3f", searchUsersTime) + " |\n" +
+                    "| Поиск функций | " + String.format("%.3f", searchFunctionsTime) + " |\n";
         }
 
         public String toCSV() {
-            return """
-                    Operation,Time(ms)
-                    User Create,%.3f
-                    User Read,%.3f
-                    Function Create,%.3f
-                    Function Read,%.3f
-                    Point Create,%.3f
-                    Points Read,%.3f
-                    Batch Create (100 points),%.3f
-                    Get All Users,%.3f
-                    Get All Functions,%.3f
-                    Search Users,%.3f
-                    Search Functions,%.3f
-                    """.formatted(
-                    userCreateTime, userReadTime,
-                    functionCreateTime, functionReadTime,
-                    pointCreateTime, pointsReadTime,
-                    batchCreateTime,
-                    getAllUsersTime, getAllFunctionsTime,
-                    searchUsersTime, searchFunctionsTime
-            );
+            return "Operation,Time(ms)\n" +
+                    "User Create," + String.format("%.3f", userCreateTime) + "\n" +
+                    "User Read," + String.format("%.3f", userReadTime) + "\n" +
+                    "Function Create," + String.format("%.3f", functionCreateTime) + "\n" +
+                    "Function Read," + String.format("%.3f", functionReadTime) + "\n" +
+                    "Point Create," + String.format("%.3f", pointCreateTime) + "\n" +
+                    "Points Read," + String.format("%.3f", pointsReadTime) + "\n" +
+                    "Batch Create (100 points)," + String.format("%.3f", batchCreateTime) + "\n" +
+                    "Get All Users," + String.format("%.3f", getAllUsersTime) + "\n" +
+                    "Get All Functions," + String.format("%.3f", getAllFunctionsTime) + "\n" +
+                    "Search Users," + String.format("%.3f", searchUsersTime) + "\n" +
+                    "Search Functions," + String.format("%.3f", searchFunctionsTime) + "\n";
         }
     }
 }

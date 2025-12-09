@@ -25,17 +25,22 @@ import java.util.concurrent.TimeUnit;
 public class PerformanceComparisonService {
     private static final Logger logger = LoggerFactory.getLogger(PerformanceComparisonService.class);
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final FunctionService functionService;
+    private final PointService pointService;
+    private final ManualJdbcService manualJdbcService;
 
     @Autowired
-    private FunctionService functionService;
-
-    @Autowired
-    private PointService pointService;
-
-    @Autowired
-    private ManualJdbcService manualJdbcService;
+    public PerformanceComparisonService(
+            UserService userService,
+            FunctionService functionService,
+            PointService pointService,
+            ManualJdbcService manualJdbcService) {
+        this.userService = userService;
+        this.functionService = functionService;
+        this.pointService = pointService;
+        this.manualJdbcService = manualJdbcService;
+    }
 
     public static class ComparisonResults {
         private final String operation;
@@ -610,61 +615,56 @@ public class PerformanceComparisonService {
         String filename = "framework-comparison_" + timestamp + ".html";
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-            writer.write("""
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <title>Сравнение производительности фреймворков</title>
-                        <style>
-                            table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-                            th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-                            th { background-color: #f2f2f2; }
-                            .faster-spring { background-color: #d4edda; }
-                            .faster-manual { background-color: #f8d7da; }
-                        </style>
-                    </head>
-                    <body>
-                        <h1>Сравнение производительности Spring Data JPA vs Manual JDBC</h1>
-                        <p><strong>Дата тестирования:</strong> %s</p>
-                        
-                        <h2>Результаты сравнения (время в миллисекундах)</h2>
-                        <table>
-                            <tr>
-                                <th>Операция</th>
-                                <th>Spring Data JPA</th>
-                                <th>Manual JDBC</th>
-                                <th>Разница</th>
-                                <th>Быстрее</th>
-                            </tr>
-                    """.formatted(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+            // Используем конкатенацию строк вместо text blocks
+            writer.write("<!DOCTYPE html>\n");
+            writer.write("<html>\n");
+            writer.write("<head>\n");
+            writer.write("    <title>Сравнение производительности фреймворков</title>\n");
+            writer.write("    <style>\n");
+            writer.write("        table { border-collapse: collapse; width: 100%; margin: 20px 0; }\n");
+            writer.write("        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }\n");
+            writer.write("        th { background-color: #f2f2f2; }\n");
+            writer.write("        .faster-spring { background-color: #d4edda; }\n");
+            writer.write("        .faster-manual { background-color: #f8d7da; }\n");
+            writer.write("    </style>\n");
+            writer.write("</head>\n");
+            writer.write("<body>\n");
+            writer.write("    <h1>Сравнение производительности Spring Data JPA vs Manual JDBC</h1>\n");
+            writer.write("    <p><strong>Дата тестирования:</strong> " +
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "</p>\n");
+            writer.write("    \n");
+            writer.write("    <h2>Результаты сравнения (время в миллисекундах)</h2>\n");
+            writer.write("    <table>\n");
+            writer.write("        <tr>\n");
+            writer.write("            <th>Операция</th>\n");
+            writer.write("            <th>Spring Data JPA</th>\n");
+            writer.write("            <th>Manual JDBC</th>\n");
+            writer.write("            <th>Разница</th>\n");
+            writer.write("            <th>Быстрее</th>\n");
+            writer.write("        </tr>\n");
 
             for (ComparisonResults result : results) {
                 String rowClass = result.getFasterFramework().equals("Spring Data JPA") ? "faster-spring" : "faster-manual";
-                writer.write(String.format("""
-                            <tr class="%s">
-                                <td>%s</td>
-                                <td>%.3f</td>
-                                <td>%.3f</td>
-                                <td>%.3f</td>
-                                <td>%s</td>
-                            </tr>
-                        """, rowClass, result.getOperation(), result.getSpringDataTime(),
-                        result.getManualJdbcTime(), result.getDifference(), result.getFasterFramework()));
+                writer.write("        <tr class=\"" + rowClass + "\">\n");
+                writer.write("            <td>" + result.getOperation() + "</td>\n");
+                writer.write("            <td>" + String.format("%.3f", result.getSpringDataTime()) + "</td>\n");
+                writer.write("            <td>" + String.format("%.3f", result.getManualJdbcTime()) + "</td>\n");
+                writer.write("            <td>" + String.format("%.3f", result.getDifference()) + "</td>\n");
+                writer.write("            <td>" + result.getFasterFramework() + "</td>\n");
+                writer.write("        </tr>\n");
             }
 
-            writer.write("""
-                        </table>
-                        
-                        <h2>Выводы</h2>
-                        <ul>
-                            <li><strong>Spring Data JPA</strong> показывает лучшую производительность для сложных запросов и транзакций</li>
-                            <li><strong>Manual JDBC</strong> может быть быстрее для простых CRUD операций</li>
-                            <li>Spring Data предоставляет лучшую безопасность типов и поддержку транзакций</li>
-                            <li>Manual JDBC требует больше boilerplate кода но дает полный контроль над запросами</li>
-                        </ul>
-                    </body>
-                    </html>
-                    """);
+            writer.write("    </table>\n");
+            writer.write("    \n");
+            writer.write("    <h2>Выводы</h2>\n");
+            writer.write("    <ul>\n");
+            writer.write("        <li><strong>Spring Data JPA</strong> показывает лучшую производительность для сложных запросов и транзакций</li>\n");
+            writer.write("        <li><strong>Manual JDBC</strong> может быть быстрее для простых CRUD операций</li>\n");
+            writer.write("        <li>Spring Data предоставляет лучшую безопасность типов и поддержку транзакций</li>\n");
+            writer.write("        <li>Manual JDBC требует больше boilerplate кода но дает полный контроль над запросами</li>\n");
+            writer.write("    </ul>\n");
+            writer.write("</body>\n");
+            writer.write("</html>\n");
         }
     }
 }

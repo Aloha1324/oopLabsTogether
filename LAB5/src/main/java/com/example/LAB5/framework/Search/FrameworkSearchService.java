@@ -109,6 +109,7 @@ public class FrameworkSearchService {
             default:
                 logger.warn("Unknown algorithm: {}, using depth-first", actualAlgorithm);
                 results = depthFirstSearch.search(root, criteria);
+                break;
         }
 
         // Применяем логику одиночного/множественного поиска
@@ -136,12 +137,16 @@ public class FrameworkSearchService {
     }
 
     private Comparator<User> getUsersComparator(String field) {
-        return switch (field.toLowerCase()) {
-            case "username", "login" -> Comparator.comparing(User::getUsername);
-            case "passwordhash", "role" -> Comparator.comparing(User::getPasswordHash);
-            case "id" -> Comparator.comparing(User::getId);
-            default -> (u1, u2) -> 0; // нейтральный компаратор для неизвестного поля
-        };
+        String fieldLower = field.toLowerCase();
+        if ("username".equals(fieldLower) || "login".equals(fieldLower)) {
+            return Comparator.comparing(User::getUsername);
+        } else if ("passwordhash".equals(fieldLower) || "role".equals(fieldLower)) {
+            return Comparator.comparing(User::getPasswordHash);
+        } else if ("id".equals(fieldLower)) {
+            return Comparator.comparing(User::getId);
+        } else {
+            return (u1, u2) -> 0; // нейтральный компаратор для неизвестного поля
+        }
     }
 
     public List<Function> sortFunctions(List<Function> functions, String field, String order) {
@@ -159,13 +164,18 @@ public class FrameworkSearchService {
     }
 
     private Comparator<Function> getFunctionsComparator(String field) {
-        return switch (field.toLowerCase()) {
-            case "name" -> Comparator.comparing(Function::getName);
-            case "expression" -> Comparator.comparing(Function::getExpression);
-            case "userid" -> Comparator.comparing(f -> getUserId(f));
-            case "id" -> Comparator.comparing(Function::getId);
-            default -> (f1, f2) -> 0; // нейтральный компаратор для неизвестного поля
-        };
+        String fieldLower = field.toLowerCase();
+        if ("name".equals(fieldLower)) {
+            return Comparator.comparing(Function::getName);
+        } else if ("expression".equals(fieldLower)) {
+            return Comparator.comparing(Function::getExpression);
+        } else if ("userid".equals(fieldLower)) {
+            return Comparator.comparing(f -> getUserId(f));
+        } else if ("id".equals(fieldLower)) {
+            return Comparator.comparing(Function::getId);
+        } else {
+            return (f1, f2) -> 0; // нейтральный компаратор для неизвестного поля
+        }
     }
 
     public List<Point> sortPoints(List<Point> points, String field, String order) {
@@ -183,14 +193,20 @@ public class FrameworkSearchService {
     }
 
     private Comparator<Point> getPointsComparator(String field) {
-        return switch (field.toLowerCase()) {
-            case "x", "xvalue" -> Comparator.comparing(Point::getXValue);
-            case "y", "yvalue" -> Comparator.comparing(Point::getYValue);
-            case "functionid" -> Comparator.comparing(p -> getFunctionId(p));
-            case "userid" -> Comparator.comparing(p -> getUserId(p));
-            case "id" -> Comparator.comparing(Point::getId);
-            default -> (p1, p2) -> 0; // нейтральный компаратор для неизвестного поля
-        };
+        String fieldLower = field.toLowerCase();
+        if ("x".equals(fieldLower) || "xvalue".equals(fieldLower)) {
+            return Comparator.comparing(Point::getXValue);
+        } else if ("y".equals(fieldLower) || "yvalue".equals(fieldLower)) {
+            return Comparator.comparing(Point::getYValue);
+        } else if ("functionid".equals(fieldLower)) {
+            return Comparator.comparing(p -> getFunctionId(p));
+        } else if ("userid".equals(fieldLower)) {
+            return Comparator.comparing(p -> getUserId(p));
+        } else if ("id".equals(fieldLower)) {
+            return Comparator.comparing(Point::getId);
+        } else {
+            return (p1, p2) -> 0; // нейтральный компаратор для неизвестного поля
+        }
     }
 
     // Вспомогательные методы для безопасного получения ID
