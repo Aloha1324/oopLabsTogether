@@ -17,7 +17,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="LAB5" options="-parameters" />
+      <module name="LAB5" options="-parameters -parameters" />
       <module name="lablab2" options="" />
     </option>
   </component>
