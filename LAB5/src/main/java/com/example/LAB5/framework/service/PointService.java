@@ -179,16 +179,25 @@ public class PointService {
     }
 
     private double calculateFunction(String functionType, double x) {
-        return switch (functionType.toLowerCase()) {
-            case "linear" -> x;
-            case "quadratic" -> x * x;
-            case "cubic" -> x * x * x;
-            case "sin" -> Math.sin(x);
-            case "cos" -> Math.cos(x);
-            case "exp" -> Math.exp(x);
-            case "log" -> Math.log(Math.abs(x) + 1e-10); // избегаем log(0)
-            default -> x;
-        };
+        String type = functionType.toLowerCase();
+
+        if ("linear".equals(type)) {
+            return x;
+        } else if ("quadratic".equals(type)) {
+            return x * x;
+        } else if ("cubic".equals(type)) {
+            return x * x * x;
+        } else if ("sin".equals(type)) {
+            return Math.sin(x);
+        } else if ("cos".equals(type)) {
+            return Math.cos(x);
+        } else if ("exp".equals(type)) {
+            return Math.exp(x);
+        } else if ("log".equals(type)) {
+            return Math.log(Math.abs(x) + 1e-10); // избегаем log(0)
+        } else {
+            return x; // значение по умолчанию
+        }
     }
 
     public Optional<Point> getPointById(Long id) {
@@ -495,6 +504,7 @@ public class PointService {
 
         return stats;
     }
+
     public int getTotalPointsCount() {
         long startTime = System.nanoTime();
         logger.debug("Получение общего количества точек");

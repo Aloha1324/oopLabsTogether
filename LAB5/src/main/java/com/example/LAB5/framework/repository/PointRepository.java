@@ -194,6 +194,9 @@ public interface PointRepository extends JpaRepository<Point, Long> {
     @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM Point p WHERE p.function = :function")
     Boolean existsByFunction(@Param("function") Function function);
 
+    @Query("SELECT p FROM Point p WHERE p.xValue > :minX")
+    List<Point> findByXValueGreaterThan(@Param("minX") Double minX);
+
     // Поиск точек с использованием LIKE для имени функции (частичное совпадение)
     @Query("SELECT p FROM Point p WHERE p.function.name LIKE %:functionNamePart%")
     List<Point> findByFunctionNameContaining(@Param("functionNamePart") String functionNamePart);

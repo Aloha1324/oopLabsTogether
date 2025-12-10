@@ -16,10 +16,11 @@ public class User {
     @Column(name = "username", nullable = false, unique = true, length = 255)
     private String username;
 
+    // было passwordHash, переименовано в password для удобной интеграции со Spring Security
     @Column(name = "password", nullable = false, length = 255)
-    private String passwordHash;
+    private String password;
 
-    @Column(name = "role", length = 50)
+    @Column(name = "role", length = 50, nullable = false)
     private String role = "USER";
 
     @Column(name = "created_at")
@@ -28,18 +29,17 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Function> functions = new ArrayList<>();
 
-    // Конструкторы
     public User() {}
 
-    public User(String username, String passwordHash) {
+    public User(String username, String password) {
         this.username = username;
-        this.passwordHash = passwordHash;
+        this.password = password;
         this.createdAt = LocalDateTime.now();
     }
 
-    public User(String username, String passwordHash, String role) {
+    public User(String username, String password, String role) {
         this.username = username;
-        this.passwordHash = passwordHash;
+        this.password = password;
         this.role = role;
         this.createdAt = LocalDateTime.now();
     }
@@ -51,15 +51,14 @@ public class User {
         }
     }
 
-    // Геттеры и сеттеры
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
 
-    public String getPasswordHash() { return passwordHash; }
-    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
@@ -70,7 +69,6 @@ public class User {
     public List<Function> getFunctions() { return functions; }
     public void setFunctions(List<Function> functions) { this.functions = functions; }
 
-    // Добавленные методы
     public String getLogin() {
         return this.username;
     }
