@@ -199,7 +199,7 @@ public class UserService {
             }
 
             user.setUsername(username);
-            user.setPasswordHash(passwordHash);
+            user.setPassword(passwordHash);
 
             User updatedUser = userRepository.save(user);
 
@@ -266,7 +266,7 @@ public class UserService {
         logger.debug("Проверка учетных данных для пользователя: {}", username);
 
         Optional<User> user = userRepository.findByUsername(username);
-        boolean isValid = user.isPresent() && user.get().getPasswordHash().equals(passwordHash);
+        boolean isValid = user.isPresent() && user.get().getPassword().equals(passwordHash);
 
         long endTime = System.nanoTime();
         long durationMs = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);

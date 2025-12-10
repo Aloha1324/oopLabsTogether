@@ -141,7 +141,7 @@ public class FrameworkSearchService {
         if ("username".equals(fieldLower) || "login".equals(fieldLower)) {
             return Comparator.comparing(User::getUsername);
         } else if ("passwordhash".equals(fieldLower) || "role".equals(fieldLower)) {
-            return Comparator.comparing(User::getPasswordHash);
+            return Comparator.comparing(User::getPassword);
         } else if ("id".equals(fieldLower)) {
             return Comparator.comparing(User::getId);
         } else {
