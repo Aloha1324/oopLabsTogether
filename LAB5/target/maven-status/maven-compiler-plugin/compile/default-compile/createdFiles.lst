@@ -10,6 +10,7 @@ com\example\LAB5\servlet\PointServlet$PointGenerationRequest.class
 com\example\LAB5\framework\repository\FunctionRepository.class
 com\example\LAB5\manual\service\PointService.class
 com\example\LAB5\manual\service\FunctionService$FunctionStatistics.class
+com\example\LAB5\framework\controller\UserController.class
 com\example\LAB5\framework\Search\BreadthFirstSearch.class
 com\example\LAB5\servlet\PointServlet.class
 com\example\LAB5\framework\Search\FrameworkSearchService$SearchAlgorithm.class
@@ -35,6 +36,7 @@ com\example\LAB5\framework\repository\PointRepository.class
 com\example\LAB5\framework\service\FrameworkPerformanceComparisonService.class
 com\example\LAB5\manual\DAO\UserDAO.class
 com\example\LAB5\manual\service\PerformanceBenchmarkService$BenchmarkResults.class
+com\example\LAB5\framework\config\SecurityConfig.class
 com\example\LAB5\framework\service\FunctionService$StreamingProcessingResult.class
 com\example\LAB5\servlet\UserServlet.class
 com\example\LAB5\manual\service\AuthService$Credentials.class
@@ -49,8 +51,10 @@ com\example\LAB5\LAB5Application.class
 com\example\LAB5\manual\service\DTOTransformationService.class
 com\example\LAB5\framework\service\PointService$PerformanceMetrics.class
 com\example\LAB5\manual\DAO\FunctionDAO.class
+com\example\LAB5\framework\controller\FunctionController.class
 com\example\LAB5\comparsion\service\PerformanceComparisonService.class
 com\example\LAB5\manual\service\PointService$PointStatistics.class
 com\example\LAB5\manual\DTO\UserDTO.class
 com\example\LAB5\manual\service\AuthService.class
+com\example\LAB5\framework\controller\PointController.class
 com\example\LAB5\manual\DAO\PointDAO.class
