@@ -1,426 +1,509 @@
+
 package com.example.LAB5.servlet;
 
-import com.example.LAB5.manual.DTO.*;
+import com.example.LAB5.manual.DTO.FunctionDTO;
 import com.example.LAB5.manual.DTO.PointDTO;
-import com.example.LAB5.util.AuthUtils;
-import com.google.gson.Gson;
+import com.example.LAB5.manual.DTO.UserDTO;
+import com.example.LAB5.manual.service.FunctionService;
+import com.example.LAB5.manual.service.PointService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
-@WebServlet("/api/v1/points/*")
-public class PointServlet extends HttpServlet {
-    private static final Logger logger = Logger.getLogger(PointServlet.class.getName());
-    private final List<PointDTO> points = new ArrayList<>();
-    private final Gson gson = new Gson();
-    private Long currentId = 1L;
+@WebServlet("/points/*")
+public class PointServlet extends BaseAuthServlet {
 
-    public List<PointDTO> getPoints() {
-        return points;
-    }
+    private static final Logger log = Logger.getLogger(PointServlet.class.getName());
+
+    private PointService pointService;
+    private FunctionService functionService;
+    private ObjectMapper mapper;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        getServletContext().setAttribute("pointServlet", this);
-
-        PointDTO testPoint = new PointDTO(1L, 1.0, 1.0);
-        testPoint.setId(currentId++);
-        points.add(testPoint);
-        logger.info("PointServlet initialized with test point");
+        this.pointService = new PointService();
+        this.functionService = new FunctionService();
+        this.mapper = new ObjectMapper();
+        log.info("PointControllerServlet initialized (Basic auth enabled)");
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json;charset=UTF-8");
+        String path = req.getPathInfo();
 
-        String pathInfo = request.getPathInfo();
-        logger.info("GET /api/v1/points" + (pathInfo != null ? pathInfo : ""));
+        log.info("GET " + req.getRequestURI() + " path=" + path);
 
-        // 1. Аутентификация
-        UserServlet userServlet = (UserServlet) getServletContext().getAttribute("userServlet");
-        Map<String, Object> authenticatedUser = AuthUtils.authenticateUser(request, userServlet);
-        if (authenticatedUser == null) {
-            AuthUtils.sendAuthError(response, "Authentication required");
-            return;
-        }
-
-        // 2. Проверка роли
-        String role = (String) authenticatedUser.get("role");
-        if (!AuthUtils.hasPermission(role, "GET")) {
-            AuthUtils.sendAuthError(response, "Insufficient permissions");
+        Optional<UserDTO> currentUser = authenticate(req);
+        if (currentUser.isEmpty()) {
+            sendUnauthorized(resp, "Authentication required");
             return;
         }
 
         try {
-            if (pathInfo == null || pathInfo.equals("/")) {
-                // GET /api/v1/points - все точки
-                // Фильтруем по правам доступа
-                List<PointDTO> filteredPoints = filterPointsByRole(points, authenticatedUser);
-                response.getWriter().write(gson.toJson(filteredPoints));
-                logger.info("Returning " + filteredPoints.size() + " points to " +
-                        authenticatedUser.get("username"));
+            if (path == null || "/".equals(path)) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Use /points/function/{functionId} to get points by function"));
+                return;
+            }
 
-            } else if (pathInfo.matches("/\\d+")) {
-                // GET /api/v1/points/{id}
-                Long id = extractIdFromPath(pathInfo);
-                PointDTO point = findPointById(id);
+            if (path.startsWith("/function/")) {
+                Long functionId = Long.parseLong(path.substring("/function/".length()));
 
-                if (point != null) {
-                    if (hasAccessToPoint(authenticatedUser, point.getFunctionId())) {
-                        response.getWriter().write(gson.toJson(point));
-                        logger.info("Point accessed by " + authenticatedUser.get("username"));
-                    } else {
-                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                        logger.warning("Access denied to point " + id);
-                    }
+                Optional<FunctionDTO> fnOpt = functionService.getFunctionById(functionId);
+                if (fnOpt.isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(), new ErrorResponse("Function not found"));
+                    return;
+                }
+
+                Optional<UserDTO> owner = userService.getUserById(fnOpt.get().getUserId());
+                if (owner.isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(), new ErrorResponse("Function owner not found"));
+                    return;
+                }
+
+                if (!checkPermission(currentUser.get(), "ADMIN", owner.get().getLogin())) {
+                    sendForbidden(resp, "Access denied to function points");
+                    return;
+                }
+
+                List<PointDTO> points = pointService.getPointsByFunctionId(functionId);
+                log.info("User " + currentUser.get().getLogin()
+                        + " retrieved " + points.size() + " points for function " + functionId);
+                mapper.writeValue(resp.getWriter(), points);
+                return;
+            }
+
+            if (path.startsWith("/max/")) {
+                Long functionId = Long.parseLong(path.substring("/max/".length()));
+
+                Optional<FunctionDTO> fnOpt = functionService.getFunctionById(functionId);
+                if (fnOpt.isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(), new ErrorResponse("Function not found"));
+                    return;
+                }
+
+                Optional<UserDTO> owner = userService.getUserById(fnOpt.get().getUserId());
+                if (owner.isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(), new ErrorResponse("Function owner not found"));
+                    return;
+                }
+
+                if (!checkPermission(currentUser.get(), "ADMIN", owner.get().getLogin())) {
+                    sendForbidden(resp, "Access denied to function points");
+                    return;
+                }
+
+                PointDTO maxPoint = pointService.findMaxYPoint(functionId);
+                if (maxPoint != null) {
+                    mapper.writeValue(resp.getWriter(), maxPoint);
                 } else {
-                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    logger.warning("Point not found with id: " + id);
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(),
+                            new ErrorResponse("No points found for function: " + functionId));
+                }
+                return;
+            }
+
+            if (path.startsWith("/min/")) {
+                Long functionId = Long.parseLong(path.substring("/min/".length()));
+
+                Optional<FunctionDTO> fnOpt = functionService.getFunctionById(functionId);
+                if (fnOpt.isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(), new ErrorResponse("Function not found"));
+                    return;
                 }
 
-            } else if (pathInfo.matches("/functions/\\d+/points")) {
-                // GET /api/v1/functions/{functionId}/points
-                Pattern pattern = Pattern.compile("/functions/(\\d+)/points");
-                java.util.regex.Matcher matcher = pattern.matcher(pathInfo);
-
-                if (matcher.find()) {
-                    Long functionId = Long.parseLong(matcher.group(1));
-
-                    // Получаем функцию для проверки владельца
-                    FunctionServlet functionServlet = (FunctionServlet) getServletContext()
-                            .getAttribute("functionServlet");
-                    List<FunctionDTO> functions = functionServlet.getFunctions();
-
-                    FunctionDTO function = functions.stream()
-                            .filter(f -> f.getId().equals(functionId))
-                            .findFirst()
-                            .orElse(null);
-
-                    if (function != null) {
-                        // Проверка доступа к функции
-                        if (hasAccessToPoint(authenticatedUser, functionId)) {
-                            List<PointDTO> functionPoints = points.stream()
-                                    .filter(p -> p.getFunctionId().equals(functionId))
-                                    .collect(java.util.stream.Collectors.toList());
-                            response.getWriter().write(gson.toJson(functionPoints));
-                            logger.info("Returning points for function " + functionId);
-                        } else {
-                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                            logger.warning("Access denied to function's points");
-                        }
-                    } else {
-                        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                        logger.warning("Function not found: " + functionId);
-                    }
+                Optional<UserDTO> owner = userService.getUserById(fnOpt.get().getUserId());
+                if (owner.isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(), new ErrorResponse("Function owner not found"));
+                    return;
                 }
+
+                if (!checkPermission(currentUser.get(), "ADMIN", owner.get().getLogin())) {
+                    sendForbidden(resp, "Access denied to function points");
+                    return;
+                }
+
+                PointDTO minPoint = pointService.findMinYPoint(functionId);
+                if (minPoint != null) {
+                    mapper.writeValue(resp.getWriter(), minPoint);
+                } else {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(),
+                            new ErrorResponse("No points found for function: " + functionId));
+                }
+                return;
+            }
+
+            if (path.startsWith("/stats/")) {
+                Long functionId = Long.parseLong(path.substring("/stats/".length()));
+
+                Optional<FunctionDTO> fnOpt = functionService.getFunctionById(functionId);
+                if (fnOpt.isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(), new ErrorResponse("Function not found"));
+                    return;
+                }
+
+                Optional<UserDTO> owner = userService.getUserById(fnOpt.get().getUserId());
+                if (owner.isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(), new ErrorResponse("Function owner not found"));
+                    return;
+                }
+
+                if (!checkPermission(currentUser.get(), "ADMIN", owner.get().getLogin())) {
+                    sendForbidden(resp, "Access denied to function statistics");
+                    return;
+                }
+
+                PointService.PointStatistics stats = pointService.getPointStatistics(functionId);
+                if (stats != null) {
+                    mapper.writeValue(resp.getWriter(), stats);
+                } else {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(),
+                            new ErrorResponse("No points found for function: " + functionId));
+                }
+                return;
+            }
+
+            // GET /points/{id}
+            Long id = Long.parseLong(path.substring(1));
+            Optional<PointDTO> pointOpt = pointService.getPointById(id);
+
+            if (pointOpt.isEmpty()) {
+                log.warning("Point not found, id=" + id);
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Point not found with ID: " + id));
+                return;
+            }
+
+            Optional<FunctionDTO> fnOpt = functionService.getFunctionById(pointOpt.get().getFunctionId());
+            if (fnOpt.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(), new ErrorResponse("Function not found"));
+                return;
+            }
+
+            Optional<UserDTO> owner = userService.getUserById(fnOpt.get().getUserId());
+            if (owner.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(), new ErrorResponse("Function owner not found"));
+                return;
+            }
+
+            if (!checkPermission(currentUser.get(), "ADMIN", owner.get().getLogin())) {
+                sendForbidden(resp, "Access denied to point");
+                return;
+            }
+
+            log.info("User " + currentUser.get().getLogin() + " accessed point id=" + id);
+            mapper.writeValue(resp.getWriter(), pointOpt.get());
+
+        } catch (NumberFormatException ex) {
+            log.warning("Invalid ID format in path: " + path);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(), new ErrorResponse("Invalid ID format"));
+        } catch (Exception ex) {
+            log.severe("Error processing GET /points: " + ex.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Internal server error: " + ex.getMessage()));
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        resp.setContentType("application/json;charset=UTF-8");
+        String path = req.getPathInfo();
+
+        Optional<UserDTO> currentUser = authenticate(req);
+        if (currentUser.isEmpty()) {
+            sendUnauthorized(resp, "Authentication required");
+            return;
+        }
+
+        try {
+            if (path != null && path.startsWith("/generate/")) {
+                Long functionId = Long.parseLong(path.substring("/generate/".length()));
+
+                Optional<FunctionDTO> fnOpt = functionService.getFunctionById(functionId);
+                if (fnOpt.isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(), new ErrorResponse("Function not found"));
+                    return;
+                }
+
+                Optional<UserDTO> owner = userService.getUserById(fnOpt.get().getUserId());
+                if (owner.isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(), new ErrorResponse("Function owner not found"));
+                    return;
+                }
+
+                if (!checkPermission(currentUser.get(), "ADMIN", owner.get().getLogin())) {
+                    sendForbidden(resp, "Access denied to generate points for this function");
+                    return;
+                }
+
+                PointGenerationRequest reqBody =
+                        mapper.readValue(req.getInputStream(), PointGenerationRequest.class);
+
+                int count = pointService.generateFunctionPoints(
+                        functionId,
+                        reqBody.functionType,
+                        reqBody.start,
+                        reqBody.end,
+                        reqBody.step
+                );
+
+                log.info("User " + currentUser.get().getLogin()
+                        + " generated " + count + " points for function " + functionId);
+                mapper.writeValue(resp.getWriter(),
+                        new SuccessResponse("Generated " + count + " points", count));
+                return;
+            }
+
+            PointDTO dto = mapper.readValue(req.getInputStream(), PointDTO.class);
+            log.info("User " + currentUser.get().getLogin()
+                    + " creating point for function " + dto.getFunctionId());
+
+            if (dto.getFunctionId() == null) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Function ID is required"));
+                return;
+            }
+
+            if (dto.getXValue() == null || dto.getYValue() == null) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("X and Y values are required"));
+                return;
+            }
+
+            Optional<FunctionDTO> fnOpt = functionService.getFunctionById(dto.getFunctionId());
+            if (fnOpt.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(), new ErrorResponse("Function not found"));
+                return;
+            }
+
+            Optional<UserDTO> owner = userService.getUserById(fnOpt.get().getUserId());
+            if (owner.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(), new ErrorResponse("Function owner not found"));
+                return;
+            }
+
+            if (!checkPermission(currentUser.get(), "ADMIN", owner.get().getLogin())) {
+                sendForbidden(resp, "Access denied to create points for this function");
+                return;
+            }
+
+            Long pointId = pointService.createPoint(
+                    dto.getFunctionId(),
+                    dto.getXValue(),
+                    dto.getYValue()
+            );
+
+            resp.setStatus(HttpServletResponse.SC_CREATED);
+            mapper.writeValue(resp.getWriter(),
+                    new SuccessResponse("Point created successfully", pointId));
+
+        } catch (Exception ex) {
+            log.severe("Error creating point: " + ex.getMessage());
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Invalid point data: " + ex.getMessage()));
+        }
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        resp.setContentType("application/json;charset=UTF-8");
+        String path = req.getPathInfo();
+
+        log.info("PUT " + req.getRequestURI() + " path=" + path);
+
+        Optional<UserDTO> currentUser = authenticate(req);
+        if (currentUser.isEmpty()) {
+            sendUnauthorized(resp, "Authentication required");
+            return;
+        }
+
+        if (path == null || "/".equals(path)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(), new ErrorResponse("Point ID is required"));
+            return;
+        }
+
+        try {
+            Long id = Long.parseLong(path.substring(1));
+            PointDTO updates = mapper.readValue(req.getInputStream(), PointDTO.class);
+
+            Optional<PointDTO> existing = pointService.getPointById(id);
+            if (existing.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Point not found with ID: " + id));
+                return;
+            }
+
+            Optional<FunctionDTO> fnOpt =
+                    functionService.getFunctionById(existing.get().getFunctionId());
+            if (fnOpt.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(), new ErrorResponse("Function not found"));
+                return;
+            }
+
+            Optional<UserDTO> owner =
+                    userService.getUserById(fnOpt.get().getUserId());
+            if (owner.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(), new ErrorResponse("Function owner not found"));
+                return;
+            }
+
+            if (!checkPermission(currentUser.get(), "ADMIN", owner.get().getLogin())) {
+                sendForbidden(resp, "Access denied to update point");
+                return;
+            }
+
+            boolean ok = pointService.updatePoint(
+                    id,
+                    updates.getFunctionId(),
+                    updates.getXValue(),
+                    updates.getYValue()
+            );
+
+            if (ok) {
+                mapper.writeValue(resp.getWriter(),
+                        new SuccessResponse("Point updated successfully", id));
             } else {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("Invalid path: " + pathInfo);
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Point not found with ID: " + id));
             }
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            logger.severe("Error in GET /points: " + e.getMessage());
+
+        } catch (NumberFormatException ex) {
+            log.warning("Invalid point ID format: " + path);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Invalid point ID format"));
+        } catch (Exception ex) {
+            log.severe("Error updating point: " + ex.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Internal server error: " + ex.getMessage()));
         }
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json;charset=UTF-8");
+        String path = req.getPathInfo();
 
-        logger.info("POST /api/v1/points");
+        log.info("DELETE " + req.getRequestURI() + " path=" + path);
 
-        // 1. Аутентификация
-        UserServlet userServlet = (UserServlet) getServletContext().getAttribute("userServlet");
-        Map<String, Object> authenticatedUser = AuthUtils.authenticateUser(request, userServlet);
-        if (authenticatedUser == null) {
-            AuthUtils.sendAuthError(response, "Authentication required");
+        Optional<UserDTO> currentUser = authenticate(req);
+        if (currentUser.isEmpty()) {
+            sendUnauthorized(resp, "Authentication required");
             return;
         }
 
-        // 2. Проверка роли - VIEWER не может создавать
-        String role = (String) authenticatedUser.get("role");
-        if (!AuthUtils.hasPermission(role, "POST") || AuthUtils.ROLE_VIEWER.equals(role)) {
-            AuthUtils.sendAuthError(response, "Insufficient permissions");
+        if (path == null || "/".equals(path)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(), new ErrorResponse("Point ID is required"));
             return;
         }
 
         try {
-            // Читаем JSON
-            PointDTO newPoint = gson.fromJson(request.getReader(), PointDTO.class);
+            Long id = Long.parseLong(path.substring(1));
 
-            // Проверяем обязательные поля
-            if (newPoint.getFunctionId() == null ||
-                    newPoint.getXValue() == null ||
-                    newPoint.getYValue() == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("Missing required fields");
+            Optional<PointDTO> existing = pointService.getPointById(id);
+            if (existing.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Point not found with ID: " + id));
                 return;
             }
 
-            // Проверяем существование функции
-            FunctionServlet functionServlet = (FunctionServlet) getServletContext().getAttribute("functionServlet");
-            FunctionDTO function = functionServlet.getFunctions().stream()
-                    .filter(f -> f.getId().equals(newPoint.getFunctionId()))
-                    .findFirst()
-                    .orElse(null);
-
-            if (function == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("Function not found: " + newPoint.getFunctionId());
+            Optional<FunctionDTO> fnOpt =
+                    functionService.getFunctionById(existing.get().getFunctionId());
+            if (fnOpt.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(), new ErrorResponse("Function not found"));
                 return;
             }
 
-            // Проверка доступа: USER может создавать точки только для своих функций
-            if (!hasAccessToPoint(authenticatedUser, newPoint.getFunctionId())) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                logger.warning("Access denied to create point for function");
+            Optional<UserDTO> owner =
+                    userService.getUserById(fnOpt.get().getUserId());
+            if (owner.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(), new ErrorResponse("Function owner not found"));
                 return;
             }
 
-            // Устанавливаем ID
-            newPoint.setId(currentId++);
-            points.add(newPoint);
-
-            response.setStatus(HttpServletResponse.SC_CREATED);
-            response.getWriter().write(gson.toJson(newPoint));
-            logger.info("Point created for function " + newPoint.getFunctionId() +
-                    " by " + authenticatedUser.get("username"));
-
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            logger.severe("Error creating point: " + e.getMessage());
-        }
-    }
-
-    @Override
-    protected void doPut(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        String pathInfo = request.getPathInfo();
-        logger.info("PUT /api/v1/points" + (pathInfo != null ? pathInfo : ""));
-
-        // 1. Аутентификация
-        UserServlet userServlet = (UserServlet) getServletContext().getAttribute("userServlet");
-        Map<String, Object> authenticatedUser = AuthUtils.authenticateUser(request, userServlet);
-        if (authenticatedUser == null) {
-            AuthUtils.sendAuthError(response, "Authentication required");
-            return;
-        }
-
-        // 2. Проверка роли - VIEWER не может обновлять
-        String role = (String) authenticatedUser.get("role");
-        if (!AuthUtils.hasPermission(role, "PUT") || AuthUtils.ROLE_VIEWER.equals(role)) {
-            AuthUtils.sendAuthError(response, "Insufficient permissions");
-            return;
-        }
-
-        try {
-            if (pathInfo == null || pathInfo.equals("/")) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("PUT requires point ID");
+            if (!checkPermission(currentUser.get(), "ADMIN", owner.get().getLogin())) {
+                sendForbidden(resp, "Access denied to delete point");
                 return;
             }
 
-            Long id = extractIdFromPath(pathInfo);
-            if (id == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                return;
-            }
-
-            // Находим точку
-            PointDTO existingPoint = findPointById(id);
-            if (existingPoint == null) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                logger.warning("Point not found: " + id);
-                return;
-            }
-
-            // Проверка доступа
-            if (!hasAccessToPoint(authenticatedUser, existingPoint.getFunctionId())) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                logger.warning("Access denied to update point");
-                return;
-            }
-
-            // Читаем обновления
-            PointDTO updatedData = gson.fromJson(request.getReader(), PointDTO.class);
-
-            // Обновляем поля
-            if (updatedData.getXValue() != null) {
-                existingPoint.setXValue(updatedData.getXValue());
-            }
-            if (updatedData.getYValue() != null) {
-                existingPoint.setYValue(updatedData.getYValue());
-            }
-
-            // Не позволяем менять functionId
-            if (updatedData.getFunctionId() != null &&
-                    !updatedData.getFunctionId().equals(existingPoint.getFunctionId())) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("Cannot change functionId for point");
-                return;
-            }
-
-            response.getWriter().write(gson.toJson(existingPoint));
-            logger.info("Point updated by " + authenticatedUser.get("username"));
-
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            logger.severe("Error updating point: " + e.getMessage());
-        }
-    }
-
-    @Override
-    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        String pathInfo = request.getPathInfo();
-        logger.info("DELETE /api/v1/points" + (pathInfo != null ? pathInfo : ""));
-
-        // 1. Аутентификация
-        UserServlet userServlet = (UserServlet) getServletContext().getAttribute("userServlet");
-        Map<String, Object> authenticatedUser = AuthUtils.authenticateUser(request, userServlet);
-        if (authenticatedUser == null) {
-            AuthUtils.sendAuthError(response, "Authentication required");
-            return;
-        }
-
-        // 2. Проверка роли - VIEWER не может удалять
-        String role = (String) authenticatedUser.get("role");
-        if (!AuthUtils.hasPermission(role, "DELETE") || AuthUtils.ROLE_VIEWER.equals(role)) {
-            AuthUtils.sendAuthError(response, "Insufficient permissions");
-            return;
-        }
-
-        try {
-            if (pathInfo == null || pathInfo.equals("/")) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("DELETE requires point ID");
-                return;
-            }
-
-            Long id = extractIdFromPath(pathInfo);
-            if (id == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                return;
-            }
-
-            PointDTO point = findPointById(id);
-            if (point == null) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                logger.warning("Point not found: " + id);
-                return;
-            }
-
-            // Проверка доступа
-            if (!hasAccessToPoint(authenticatedUser, point.getFunctionId())) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                logger.warning("Access denied to delete point");
-                return;
-            }
-
-            boolean removed = points.removeIf(p -> p.getId().equals(id));
-            if (removed) {
-                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-                logger.info("Point deleted by " + authenticatedUser.get("username"));
+            boolean deleted = pointService.deletePoint(id);
+            if (deleted) {
+                mapper.writeValue(resp.getWriter(),
+                        new SuccessResponse("Point deleted successfully", id));
             } else {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Point not found with ID: " + id));
             }
 
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            logger.severe("Error deleting point: " + e.getMessage());
+        } catch (NumberFormatException ex) {
+            log.warning("Invalid point ID format: " + path);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Invalid point ID format"));
+        } catch (Exception ex) {
+            log.severe("Error deleting point: " + ex.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Internal server error: " + ex.getMessage()));
         }
     }
 
-    // Вспомогательные методы
-    private PointDTO findPointById(Long id) {
-        return points.stream()
-                .filter(p -> p.getId().equals(id))
-                .findFirst()
-                .orElse(null);
-    }
-
-    private Long extractIdFromPath(String pathInfo) {
-        try {
-            if (pathInfo.startsWith("/")) {
-                String idStr = pathInfo.substring(1);
-                if (idStr.contains("/")) {
-                    idStr = idStr.substring(0, idStr.indexOf("/"));
-                }
-                return Long.parseLong(idStr);
-            }
-            return Long.parseLong(pathInfo);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private boolean hasAccessToPoint(Map<String, Object> user, Long functionId) {
-        // Получаем информацию о функции
-        FunctionServlet functionServlet = (FunctionServlet) getServletContext().getAttribute("functionServlet");
-        if (functionServlet == null) return false;
-
-        FunctionDTO function = functionServlet.getFunctions().stream()
-                .filter(f -> f.getId().equals(functionId))
-                .findFirst()
-                .orElse(null);
-
-        if (function == null) return false;
-
-        // Проверяем доступ к функции
-        return hasAccessToFunction(user, function.getUserId());
-    }
-
-    private boolean hasAccessToFunction(Map<String, Object> user, Long functionUserId) {
-        String role = (String) user.get("role");
-        Long userId = (Long) user.get("id");
-
-        if (AuthUtils.ROLE_ADMIN.equals(role)) {
-            return true;
-        }
-
-        // USER может работать только со своими функциями
-        return userId.equals(functionUserId);
-    }
-
-    private List<PointDTO> filterPointsByRole(List<PointDTO> allPoints,
-                                              Map<String, Object> user) {
-        String role = (String) user.get("role");
-        Long userId = (Long) user.get("id");
-
-        if (AuthUtils.ROLE_ADMIN.equals(role)) {
-            return allPoints;
-        }
-
-        // USER и VIEWER видят только точки своих функций
-        // Получаем ID функций пользователя
-        FunctionServlet functionServlet = (FunctionServlet) getServletContext().getAttribute("functionServlet");
-        List<Long> userFunctionIds = functionServlet.getFunctions().stream()
-                .filter(f -> f.getUserId().equals(userId))
-                .map(FunctionDTO::getId)
-                .collect(java.util.stream.Collectors.toList());
-
-        return allPoints.stream()
-                .filter(p -> userFunctionIds.contains(p.getFunctionId()))
-                .collect(java.util.stream.Collectors.toList());
+    private static class PointGenerationRequest {
+        public String functionType;
+        public double start;
+        public double end;
+        public double step;
     }
 }

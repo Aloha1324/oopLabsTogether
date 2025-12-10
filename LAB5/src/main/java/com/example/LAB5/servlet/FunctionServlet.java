@@ -1,398 +1,380 @@
 package com.example.LAB5.servlet;
 
+
 import com.example.LAB5.manual.DTO.FunctionDTO;
-import com.example.LAB5.util.AuthUtils;
-import com.google.gson.Gson;
+import com.example.LAB5.manual.DTO.UserDTO;
+import com.example.LAB5.manual.service.FunctionService;
+import com.example.LAB5.manual.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
-@WebServlet("/api/v1/functions/*")
-public class FunctionServlet extends HttpServlet {
-    private static final Logger logger = Logger.getLogger(FunctionServlet.class.getName());
-    private final List<FunctionDTO> functions = new ArrayList<>();
-    private final Gson gson = new Gson();
-    private Long currentId = 1L;
+@WebServlet("/functions/*")
+public class FunctionServlet extends BaseAuthServlet {
 
-    public List<FunctionDTO> getFunctions() {
-        return functions;
-    }
+    private static final Logger log = Logger.getLogger(FunctionServlet.class.getName());
+
+    private FunctionService functionService;
+    private ObjectMapper mapper;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        getServletContext().setAttribute("functionServlet", this);
-
-        FunctionDTO testFunc = new FunctionDTO(1L, "Test Function", "x^2");
-        testFunc.setId(currentId++);
-        functions.add(testFunc);
-        logger.info("FunctionServlet initialized with test function");
+        this.functionService = new FunctionService();
+        this.mapper = new ObjectMapper();
+        log.info("FunctionControllerServlet initialized (Basic auth enabled)");
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json;charset=UTF-8");
+        String path = req.getPathInfo();
 
-        String pathInfo = request.getPathInfo();
-        logger.info("GET /api/v1/functions" + (pathInfo != null ? pathInfo : ""));
+        log.info("GET " + req.getRequestURI() + " path=" + path);
 
-        // 1. Аутентификация
-        UserServlet userServlet = (UserServlet) getServletContext().getAttribute("userServlet");
-        Map<String, Object> authenticatedUser = AuthUtils.authenticateUser(request, userServlet);
-        if (authenticatedUser == null) {
-            AuthUtils.sendAuthError(response, "Authentication required");
-            return;
-        }
-
-        // 2. Проверка роли
-        String role = (String) authenticatedUser.get("role");
-        if (!AuthUtils.hasPermission(role, "GET")) {
-            AuthUtils.sendAuthError(response, "Insufficient permissions");
+        Optional<UserDTO> currentUser = authenticate(req);
+        if (currentUser.isEmpty()) {
+            sendUnauthorized(resp, "Authentication required");
             return;
         }
 
         try {
-            if (pathInfo == null || pathInfo.equals("/")) {
-                // GET /api/v1/functions - все функции
-                // USER видит только свои, ADMIN все
-                List<FunctionDTO> filteredFunctions = filterFunctionsByRole(functions, authenticatedUser);
-                response.getWriter().write(gson.toJson(filteredFunctions));
-                logger.info("Returning " + filteredFunctions.size() + " functions to " +
-                        authenticatedUser.get("username"));
+            if (path == null || "/".equals(path)) {
+                // GET /functions
+                if (!checkPermission(currentUser.get(), "ADMIN", null)) {
+                    sendForbidden(resp, "Admin access required");
+                    return;
+                }
 
-            } else if (pathInfo.matches("/\\d+")) {
-                // GET /api/v1/functions/{id}
-                Long id = extractIdFromPath(pathInfo);
-                FunctionDTO function = findFunctionById(id);
+                List<FunctionDTO> all = functionService.getAllFunctions();
+                log.info("Admin " + currentUser.get().getLogin()
+                        + " requested all functions, count=" + all.size());
+                mapper.writeValue(resp.getWriter(), all);
 
-                if (function != null) {
-                    if (hasAccessToFunction(authenticatedUser, function.getUserId())) {
-                        response.getWriter().write(gson.toJson(function));
-                        logger.info("Function accessed by " + authenticatedUser.get("username"));
-                    } else {
-                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                        logger.warning("Access denied to function " + id);
-                    }
+            } else if (path.startsWith("/user/")) {
+                // GET /functions/user/{userId}
+                Long userId = Long.parseLong(path.substring("/user/".length()));
+                Optional<UserDTO> owner = userService.getUserById(userId);
+
+                if (owner.isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(), new ErrorResponse("User not found"));
+                    return;
+                }
+
+                if (!checkPermission(currentUser.get(), "ADMIN", owner.get().getLogin())) {
+                    sendForbidden(resp, "Access denied to user functions");
+                    return;
+                }
+
+                List<FunctionDTO> list = functionService.getFunctionsByUserId(userId);
+                log.info("User " + currentUser.get().getLogin()
+                        + " retrieved " + list.size() + " functions for user " + userId);
+                mapper.writeValue(resp.getWriter(), list);
+
+            } else if (path.startsWith("/name/")) {
+                // GET /functions/name/{name}
+                if (!checkPermission(currentUser.get(), "ADMIN", null)) {
+                    sendForbidden(resp, "Admin access required");
+                    return;
+                }
+
+                String name = path.substring("/name/".length());
+                List<FunctionDTO> list = functionService.getFunctionsByName(name);
+                log.info("Admin " + currentUser.get().getLogin()
+                        + " found " + list.size() + " functions by name=" + name);
+                mapper.writeValue(resp.getWriter(), list);
+
+            } else if (path.startsWith("/stats/")) {
+                // GET /functions/stats/{id}
+                Long functionId = Long.parseLong(path.substring("/stats/".length()));
+
+                Optional<FunctionDTO> fnOpt = functionService.getFunctionById(functionId);
+                if (fnOpt.isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(), new ErrorResponse("Function not found"));
+                    return;
+                }
+
+                Optional<UserDTO> owner = userService.getUserById(fnOpt.get().getUserId());
+                if (owner.isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(), new ErrorResponse("Function owner not found"));
+                    return;
+                }
+
+                if (!checkPermission(currentUser.get(), "ADMIN", owner.get().getLogin())) {
+                    sendForbidden(resp, "Access denied to function statistics");
+                    return;
+                }
+
+                FunctionService.FunctionStatistics stats =
+                        functionService.getFunctionStatistics(functionId);
+                if (stats != null) {
+                    mapper.writeValue(resp.getWriter(), stats);
                 } else {
-                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    logger.warning("Function not found with id: " + id);
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(),
+                            new ErrorResponse("Function not found with ID: " + functionId));
                 }
 
-            } else if (pathInfo.matches("/users/\\d+/functions")) {
-                // GET /api/v1/users/{userId}/functions
-                Pattern pattern = Pattern.compile("/users/(\\d+)/functions");
-                java.util.regex.Matcher matcher = pattern.matcher(pathInfo);
-
-                if (matcher.find()) {
-                    Long userId = Long.parseLong(matcher.group(1));
-
-                    // Проверка доступа: USER может видеть только свои функции
-                    if (hasAccessToResource(authenticatedUser, userId, "GET")) {
-                        List<FunctionDTO> userFunctions = functions.stream()
-                                .filter(f -> f.getUserId().equals(userId))
-                                .collect(java.util.stream.Collectors.toList());
-                        response.getWriter().write(gson.toJson(userFunctions));
-                        logger.info("Returning functions for user " + userId);
-                    } else {
-                        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                        logger.warning("Access denied to user's functions");
-                    }
-                }
             } else {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("Invalid path: " + pathInfo);
-            }
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            logger.severe("Error in GET /functions: " + e.getMessage());
-        }
-    }
+                // GET /functions/{id}
+                Long id = Long.parseLong(path.substring(1));
+                Optional<FunctionDTO> fnOpt = functionService.getFunctionById(id);
 
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        logger.info("POST /api/v1/functions");
-
-        // 1. Аутентификация
-        UserServlet userServlet = (UserServlet) getServletContext().getAttribute("userServlet");
-        Map<String, Object> authenticatedUser = AuthUtils.authenticateUser(request, userServlet);
-        if (authenticatedUser == null) {
-            AuthUtils.sendAuthError(response, "Authentication required");
-            return;
-        }
-
-        // 2. Проверка роли - VIEWER не может создавать
-        String role = (String) authenticatedUser.get("role");
-        if (!AuthUtils.hasPermission(role, "POST") || AuthUtils.ROLE_VIEWER.equals(role)) {
-            AuthUtils.sendAuthError(response, "Insufficient permissions");
-            return;
-        }
-
-        try {
-            // Читаем JSON
-            FunctionDTO newFunction = gson.fromJson(request.getReader(), FunctionDTO.class);
-
-            // Проверяем обязательные поля
-            if (newFunction.getName() == null || newFunction.getName().trim().isEmpty() ||
-                    newFunction.getSignature() == null || newFunction.getSignature().trim().isEmpty() ||
-                    newFunction.getUserId() == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("Missing required fields");
-                return;
-            }
-
-            // Проверка: USER может создавать функции только для себя
-            Long authenticatedUserId = (Long) authenticatedUser.get("id");
-            if (!AuthUtils.ROLE_ADMIN.equals(role) &&
-                    !authenticatedUserId.equals(newFunction.getUserId())) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                logger.warning("User can only create functions for themselves");
-                return;
-            }
-
-            // Проверяем существование пользователя
-            boolean userExists = userServlet.getUsers().stream()
-                    .anyMatch(u -> u.getId().equals(newFunction.getUserId()));
-            if (!userExists) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("User not found: " + newFunction.getUserId());
-                return;
-            }
-
-            // Устанавливаем ID
-            newFunction.setId(currentId++);
-            functions.add(newFunction);
-
-            response.setStatus(HttpServletResponse.SC_CREATED);
-            response.getWriter().write(gson.toJson(newFunction));
-            logger.info("Function created: " + newFunction.getName() +
-                    " by " + authenticatedUser.get("username"));
-
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            logger.severe("Error creating function: " + e.getMessage());
-        }
-    }
-
-    @Override
-    protected void doPut(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        String pathInfo = request.getPathInfo();
-        logger.info("PUT /api/v1/functions" + (pathInfo != null ? pathInfo : ""));
-
-        // 1. Аутентификация
-        UserServlet userServlet = (UserServlet) getServletContext().getAttribute("userServlet");
-        Map<String, Object> authenticatedUser = AuthUtils.authenticateUser(request, userServlet);
-        if (authenticatedUser == null) {
-            AuthUtils.sendAuthError(response, "Authentication required");
-            return;
-        }
-
-        // 2. Проверка роли - VIEWER не может обновлять
-        String role = (String) authenticatedUser.get("role");
-        if (!AuthUtils.hasPermission(role, "PUT") || AuthUtils.ROLE_VIEWER.equals(role)) {
-            AuthUtils.sendAuthError(response, "Insufficient permissions");
-            return;
-        }
-
-        try {
-            if (pathInfo == null || pathInfo.equals("/")) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("PUT requires function ID");
-                return;
-            }
-
-            Long id = extractIdFromPath(pathInfo);
-            if (id == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                return;
-            }
-
-            // Находим функцию
-            FunctionDTO existingFunction = findFunctionById(id);
-            if (existingFunction == null) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                logger.warning("Function not found: " + id);
-                return;
-            }
-
-            // Проверка доступа
-            if (!hasAccessToFunction(authenticatedUser, existingFunction.getUserId())) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                logger.warning("Access denied to update function");
-                return;
-            }
-
-            // Читаем обновления
-            FunctionDTO updatedData = gson.fromJson(request.getReader(), FunctionDTO.class);
-
-            // Обновляем поля
-            if (updatedData.getName() != null) {
-                existingFunction.setName(updatedData.getName());
-            }
-            if (updatedData.getSignature() != null) {
-                existingFunction.setSignature(updatedData.getSignature());
-            }
-
-            // Проверка userId: только ADMIN может менять владельца
-            if (updatedData.getUserId() != null &&
-                    !updatedData.getUserId().equals(existingFunction.getUserId())) {
-                if (AuthUtils.ROLE_ADMIN.equals(role)) {
-                    existingFunction.setUserId(updatedData.getUserId());
-                } else {
-                    logger.warning("Non-admin attempted to change function owner");
+                if (fnOpt.isEmpty()) {
+                    log.warning("Function not found, id=" + id);
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(),
+                            new ErrorResponse("Function not found with ID: " + id));
+                    return;
                 }
-            }
 
-            response.getWriter().write(gson.toJson(existingFunction));
-            logger.info("Function updated by " + authenticatedUser.get("username"));
-
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            logger.severe("Error updating function: " + e.getMessage());
-        }
-    }
-
-    @Override
-    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        String pathInfo = request.getPathInfo();
-        logger.info("DELETE /api/v1/functions" + (pathInfo != null ? pathInfo : ""));
-
-        // 1. Аутентификация
-        UserServlet userServlet = (UserServlet) getServletContext().getAttribute("userServlet");
-        Map<String, Object> authenticatedUser = AuthUtils.authenticateUser(request, userServlet);
-        if (authenticatedUser == null) {
-            AuthUtils.sendAuthError(response, "Authentication required");
-            return;
-        }
-
-        // 2. Проверка роли - VIEWER не может удалять
-        String role = (String) authenticatedUser.get("role");
-        if (!AuthUtils.hasPermission(role, "DELETE") || AuthUtils.ROLE_VIEWER.equals(role)) {
-            AuthUtils.sendAuthError(response, "Insufficient permissions");
-            return;
-        }
-
-        try {
-            if (pathInfo == null || pathInfo.equals("/")) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("DELETE requires function ID");
-                return;
-            }
-
-            Long id = extractIdFromPath(pathInfo);
-            if (id == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                return;
-            }
-
-            FunctionDTO function = findFunctionById(id);
-            if (function == null) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                logger.warning("Function not found: " + id);
-                return;
-            }
-
-            // Проверка доступа
-            if (!hasAccessToFunction(authenticatedUser, function.getUserId())) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                logger.warning("Access denied to delete function");
-                return;
-            }
-
-            // Удаляем точки функции
-            PointServlet pointServlet = (PointServlet) getServletContext().getAttribute("pointServlet");
-            if (pointServlet != null) {
-                pointServlet.getPoints().removeIf(point -> point.getFunctionId().equals(id));
-            }
-
-            // Удаляем функцию
-            boolean removed = functions.removeIf(func -> func.getId().equals(id));
-            if (removed) {
-                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-                logger.info("Function deleted by " + authenticatedUser.get("username"));
-            } else {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            }
-
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            logger.severe("Error deleting function: " + e.getMessage());
-        }
-    }
-
-    // Вспомогательные методы
-    private FunctionDTO findFunctionById(Long id) {
-        return functions.stream()
-                .filter(f -> f.getId().equals(id))
-                .findFirst()
-                .orElse(null);
-    }
-
-    private Long extractIdFromPath(String pathInfo) {
-        try {
-            if (pathInfo.startsWith("/")) {
-                String idStr = pathInfo.substring(1);
-                if (idStr.contains("/")) {
-                    idStr = idStr.substring(0, idStr.indexOf("/"));
+                Optional<UserDTO> owner = userService.getUserById(fnOpt.get().getUserId());
+                if (owner.isEmpty()) {
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(), new ErrorResponse("Function owner not found"));
+                    return;
                 }
-                return Long.parseLong(idStr);
+
+                if (!checkPermission(currentUser.get(), "ADMIN", owner.get().getLogin())) {
+                    sendForbidden(resp, "Access denied to function");
+                    return;
+                }
+
+                log.info("User " + currentUser.get().getLogin()
+                        + " accessed function " + fnOpt.get().getName()
+                        + " (id=" + id + ")");
+                mapper.writeValue(resp.getWriter(), fnOpt.get());
             }
-            return Long.parseLong(pathInfo);
         } catch (NumberFormatException e) {
-            return null;
+            log.warning("Invalid ID format in path: " + path);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(), new ErrorResponse("Invalid ID format"));
+        } catch (Exception e) {
+            log.severe("Error handling GET /functions: " + e.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            mapper.writeValue(resp.getWriter(), new ErrorResponse("Internal server error"));
         }
     }
 
-    private boolean hasAccessToFunction(Map<String, Object> user, Long functionUserId) {
-        String role = (String) user.get("role");
-        Long userId = (Long) user.get("id");
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
 
-        if (AuthUtils.ROLE_ADMIN.equals(role)) {
-            return true;
+        resp.setContentType("application/json;charset=UTF-8");
+
+        Optional<UserDTO> currentUser = authenticate(req);
+        if (currentUser.isEmpty()) {
+            sendUnauthorized(resp, "Authentication required");
+            return;
         }
 
-        // USER может работать только со своими функциями
-        return userId.equals(functionUserId);
+        try {
+            FunctionDTO dto = mapper.readValue(req.getInputStream(), FunctionDTO.class);
+            log.info("User " + currentUser.get().getLogin()
+                    + " requested new function creation: " + dto.getName());
+
+            if (dto.getUserId() == null) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                mapper.writeValue(resp.getWriter(), new ErrorResponse("User ID is required"));
+                return;
+            }
+
+            if (dto.getName() == null || dto.getName().trim().isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                mapper.writeValue(resp.getWriter(), new ErrorResponse("Function name is required"));
+                return;
+            }
+
+            Optional<UserDTO> targetUser = userService.getUserById(dto.getUserId());
+            if (targetUser.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(), new ErrorResponse("User not found"));
+                return;
+            }
+
+            if (!checkPermission(currentUser.get(), "ADMIN", targetUser.get().getLogin())) {
+                sendForbidden(resp, "Access denied to create function for this user");
+                return;
+            }
+
+            Long newId = functionService.createFunction(
+                    dto.getUserId(),
+                    dto.getName(),
+                    dto.getSignature()
+            );
+
+            log.info("Function created, id=" + newId + " by " + currentUser.get().getLogin());
+            resp.setStatus(HttpServletResponse.SC_CREATED);
+            mapper.writeValue(resp.getWriter(),
+                    new SuccessResponse("Function created successfully", newId));
+
+        } catch (Exception e) {
+            log.severe("Error creating function: " + e.getMessage());
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Invalid function data: " + e.getMessage()));
+        }
     }
 
-    private boolean hasAccessToResource(Map<String, Object> user, Long resourceUserId, String method) {
-        return AuthUtils.hasResourceAccess(user, resourceUserId, method);
-    }
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
 
-    private List<FunctionDTO> filterFunctionsByRole(List<FunctionDTO> allFunctions,
-                                                    Map<String, Object> user) {
-        String role = (String) user.get("role");
-        Long userId = (Long) user.get("id");
+        resp.setContentType("application/json;charset=UTF-8");
+        String path = req.getPathInfo();
 
-        if (AuthUtils.ROLE_ADMIN.equals(role)) {
-            return allFunctions;
+        log.info("PUT " + req.getRequestURI() + " path=" + path);
+
+        Optional<UserDTO> currentUser = authenticate(req);
+        if (currentUser.isEmpty()) {
+            sendUnauthorized(resp, "Authentication required");
+            return;
         }
 
-        // USER и VIEWER видят только свои функции
-        return allFunctions.stream()
-                .filter(f -> f.getUserId().equals(userId))
-                .collect(java.util.stream.Collectors.toList());
+        if (path == null || "/".equals(path)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(), new ErrorResponse("Function ID is required"));
+            return;
+        }
+
+        try {
+            Long id = Long.parseLong(path.substring(1));
+            FunctionDTO updates = mapper.readValue(req.getInputStream(), FunctionDTO.class);
+
+            Optional<FunctionDTO> existing = functionService.getFunctionById(id);
+            if (existing.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Function not found with ID: " + id));
+                return;
+            }
+
+            Optional<UserDTO> owner = userService.getUserById(existing.get().getUserId());
+            if (owner.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Function owner not found"));
+                return;
+            }
+
+            if (!checkPermission(currentUser.get(), "ADMIN", owner.get().getLogin())) {
+                sendForbidden(resp, "Access denied to update function");
+                return;
+            }
+
+            log.info("User " + currentUser.get().getLogin()
+                    + " updating function id=" + id);
+
+            boolean updated = functionService.updateFunction(
+                    id,
+                    updates.getUserId(),
+                    updates.getName(),
+                    updates.getSignature()
+            );
+
+            if (updated) {
+                mapper.writeValue(resp.getWriter(),
+                        new SuccessResponse("Function updated successfully", id));
+            } else {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Function not found with ID: " + id));
+            }
+
+        } catch (NumberFormatException e) {
+            log.warning("Invalid function ID format: " + path);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Invalid function ID format"));
+        } catch (Exception e) {
+            log.severe("Error updating function: " + e.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Internal server error"));
+        }
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        resp.setContentType("application/json;charset=UTF-8");
+        String path = req.getPathInfo();
+
+        log.info("DELETE " + req.getRequestURI() + " path=" + path);
+
+        Optional<UserDTO> currentUser = authenticate(req);
+        if (currentUser.isEmpty()) {
+            sendUnauthorized(resp, "Authentication required");
+            return;
+        }
+
+        if (path == null || "/".equals(path)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Function ID is required"));
+            return;
+        }
+
+        try {
+            Long id = Long.parseLong(path.substring(1));
+
+            Optional<FunctionDTO> existing = functionService.getFunctionById(id);
+            if (existing.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Function not found with ID: " + id));
+                return;
+            }
+
+            Optional<UserDTO> owner = userService.getUserById(existing.get().getUserId());
+            if (owner.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Function owner not found"));
+                return;
+            }
+
+            if (!checkPermission(currentUser.get(), "ADMIN", owner.get().getLogin())) {
+                sendForbidden(resp, "Access denied to delete function");
+                return;
+            }
+
+            log.info("User " + currentUser.get().getLogin()
+                    + " deleting function id=" + id);
+
+            boolean deleted = functionService.deleteFunction(id);
+            if (deleted) {
+                mapper.writeValue(resp.getWriter(),
+                        new SuccessResponse("Function deleted successfully", id));
+            } else {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Function not found with ID: " + id));
+            }
+
+        } catch (NumberFormatException e) {
+            log.warning("Invalid function ID format: " + path);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Invalid function ID format"));
+        } catch (Exception e) {
+            log.severe("Error deleting function: " + e.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Internal server error"));
+        }
     }
 }
