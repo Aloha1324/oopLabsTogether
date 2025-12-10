@@ -6,7 +6,6 @@ import com.example.LAB5.framework.entity.Point;
 import com.example.LAB5.framework.service.UserService;
 import com.example.LAB5.framework.service.FunctionService;
 import com.example.LAB5.framework.service.PointService;
-import com.example.LAB5.manual.service.ManualJdbcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

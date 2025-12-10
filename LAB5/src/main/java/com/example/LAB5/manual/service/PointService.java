@@ -2,317 +2,272 @@ package com.example.LAB5.manual.service;
 
 import com.example.LAB5.manual.DAO.FunctionDAO;
 import com.example.LAB5.manual.DAO.PointDAO;
+import com.example.LAB5.manual.DTO.PointDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 public class PointService {
-    private static final Logger logger = LoggerFactory.getLogger(PointService.class);
-    private final PointDAO pointDAO;
-    private final FunctionDAO functionDAO;
+
+    private static final Logger log = LoggerFactory.getLogger(PointService.class);
+
+    private final PointDAO pointDao;
+    private final FunctionDAO functionDao;
 
     public PointService() {
-        this.pointDAO = new PointDAO();
-        this.functionDAO = new FunctionDAO();
+        this(new PointDAO(), new FunctionDAO());
     }
 
-    public PointService(PointDAO pointDAO, FunctionDAO functionDAO) {
-        this.pointDAO = pointDAO;
-        this.functionDAO = functionDAO;
+    public PointService(PointDAO pointDao, FunctionDAO functionDao) {
+        this.pointDao = pointDao;
+        this.functionDao = functionDao;
     }
 
     public Long createPoint(Long functionId, Double xValue, Double yValue) {
-        logger.info("Создание точки: function={}, x={}, y={}", functionId, xValue, yValue);
+        log.info("Создание точки: functionId={}, x={}, y={}", functionId, xValue, yValue);
 
-        if (functionDAO.findById(functionId) == null) {
-            logger.error("Функция с ID {} не существует", functionId);
+        if (functionDao.findById(functionId).isEmpty()) {
+            log.error("Функция {} не существует, точка не создаётся", functionId);
             throw new IllegalArgumentException("Function with ID " + functionId + " does not exist");
         }
 
-        Long pointId = pointDAO.createPoint(functionId, xValue, yValue);
-        logger.debug("Создана точка с ID: {}", pointId);
-        return pointId;
+        PointDTO dto = new PointDTO(functionId, xValue, yValue);
+        Long id = pointDao.createPoint(dto);
+        log.debug("Создана точка id={}", id);
+        return id;
     }
 
     public int createPointsBatch(Long functionId, List<Double> xValues, List<Double> yValues) {
-        logger.info("Пакетное создание точек для функции {}: {} точек", functionId, xValues.size());
+        log.info("Пакетное создание точек для функции {} ({} штук)",
+                functionId, xValues.size());
 
         if (xValues.size() != yValues.size()) {
-            logger.error("Количество X и Y значений не совпадает: {} vs {}", xValues.size(), yValues.size());
+            log.error("Размеры списков X и Y не совпадают: {} и {}",
+                    xValues.size(), yValues.size());
             throw new IllegalArgumentException("X and Y values count must be equal");
         }
 
-        if (functionDAO.findById(functionId) == null) {
-            logger.error("Функция с ID {} не существует", functionId);
+        if (functionDao.findById(functionId).isEmpty()) {
+            log.error("Функция {} не найдена", functionId);
             throw new IllegalArgumentException("Function with ID " + functionId + " does not exist");
         }
 
-        // Создаем список точек для batch вставки
-        List<Object[]> points = new ArrayList<>();
+        List<PointDTO> batch = new ArrayList<>();
         for (int i = 0; i < xValues.size(); i++) {
-            points.add(new Object[]{functionId, xValues.get(i), yValues.get(i)});
+            batch.add(new PointDTO(functionId, xValues.get(i), yValues.get(i)));
         }
 
-        int createdCount = pointDAO.createPointsBatch(points);
-        logger.info("Создано {} точек для функции {}", createdCount, functionId);
-        return createdCount;
+        int created = pointDao.createPoints(batch);
+        log.info("Для функции {} создано {} точек", functionId, created);
+        return created;
     }
 
-    public int generateFunctionPoints(Long functionId, String functionType, double start, double end, double step) {
-        logger.info("Генерация точек для функции {}: type={}, range=[{}, {}], step={}",
+    public int generateFunctionPoints(Long functionId,
+                                      String functionType,
+                                      double start,
+                                      double end,
+                                      double step) {
+        log.info("Генерация точек: funcId={}, type={}, range=[{}, {}], step={}",
                 functionId, functionType, start, end, step);
 
-        List<Object[]> points = new ArrayList<>();
-        int pointCount = 0;
-
+        List<PointDTO> generated = new ArrayList<>();
         for (double x = start; x <= end; x += step) {
             double y = calculateFunction(functionType, x);
-            points.add(new Object[]{functionId, x, y});
-            pointCount++;
+            generated.add(new PointDTO(functionId, x, y));
         }
 
-        if (!points.isEmpty()) {
-            pointDAO.createPointsBatch(points);
-            logger.info("Сгенерировано {} точек для функции {}", pointCount, functionId);
+        if (!generated.isEmpty()) {
+            pointDao.createPoints(generated);
+            log.info("Сгенерировано {} точек для функции {}", generated.size(), functionId);
         }
 
-        return pointCount;
+        return generated.size();
     }
 
-    private double calculateFunction(String functionType, double x) {
-        String type = functionType.toLowerCase();
-
-        if ("linear".equals(type)) {
-            return x;
-        } else if ("quadratic".equals(type)) {
-            return x * x;
-        } else if ("cubic".equals(type)) {
-            return x * x * x;
-        } else if ("sin".equals(type)) {
-            return Math.sin(x);
-        } else if ("cos".equals(type)) {
-            return Math.cos(x);
-        } else if ("exp".equals(type)) {
-            return Math.exp(x);
-        } else if ("log".equals(type)) {
-            return Math.log(Math.abs(x) + 1e-10); // избегаем log(0)
-        } else {
-            return x; // значение по умолчанию
+    private double calculateFunction(String type, double x) {
+        String key = type == null ? "" : type.toLowerCase();
+        switch (key) {
+            case "linear":
+                return x;
+            case "quadratic":
+                return x * x;
+            case "cubic":
+                return x * x * x;
+            case "sin":
+                return Math.sin(x);
+            case "cos":
+                return Math.cos(x);
+            case "exp":
+                return Math.exp(x);
+            case "log":
+                return Math.log(x);
+            default:
+                return x;
         }
     }
 
-    public Map<String, Object> getPointById(Long id) {
-        logger.debug("Поиск точки по ID: {}", id);
-        return pointDAO.findById(id);
+    public Optional<PointDTO> getPointById(Long id) {
+        log.debug("Поиск точки по id {}", id);
+        return pointDao.findById(id);
     }
 
-    public List<Map<String, Object>> getPointsByFunctionId(Long functionId) {
-        logger.debug("Поиск точек функции с ID: {}", functionId);
-        return pointDAO.findByFunctionId(functionId);
+    public List<PointDTO> getPointsByFunctionId(Long functionId) {
+        log.debug("Поиск точек функции {}", functionId);
+        return pointDao.findByFunctionId(functionId);
     }
 
-    public List<Map<String, Object>> getPointsByXRange(Long functionId, Double minX, Double maxX) {
-        logger.debug("Поиск точек функции {} в диапазоне x=[{}, {}]", functionId, minX, maxX);
-        return pointDAO.findByFunctionIdAndXRange(functionId, minX, maxX);
+    public List<PointDTO> getPointsByXRange(Long functionId, Double minX, Double maxX) {
+        log.debug("Поиск точек: funcId={}, x∈[{}, {}]", functionId, minX, maxX);
+        return pointDao.findByXRange(functionId, minX, maxX);
     }
 
-    public List<Map<String, Object>> getPointsByYRange(Long functionId, Double minY, Double maxY) {
-        logger.debug("Поиск точек функции {} в диапазоне y=[{}, {}]", functionId, minY, maxY);
-        // Используем существующий метод и фильтруем результаты
-        List<Map<String, Object>> allPoints = pointDAO.findByFunctionId(functionId);
-        List<Map<String, Object>> filteredPoints = new ArrayList<>();
-
-        for (Map<String, Object> point : allPoints) {
-            Double yValue = (Double) point.get("y_value");
-            if (yValue >= minY && yValue <= maxY) {
-                filteredPoints.add(point);
-            }
-        }
-        return filteredPoints;
+    public List<PointDTO> getPointsByYRange(Long functionId, Double minY, Double maxY) {
+        log.debug("Поиск точек: funcId={}, y∈[{}, {}]", functionId, minY, maxY);
+        return pointDao.findByYRange(functionId, minY, maxY);
     }
 
-    public List<Map<String, Object>> getAllPoints() {
-        logger.debug("Получение всех точек");
-        return pointDAO.findAll();
+    public List<PointDTO> getAllPoints() {
+        log.debug("Чтение всех точек");
+        return pointDao.findAll();
     }
 
-    public Map<String, Object> findMaxYPoint(Long functionId) {
-        logger.debug("Поиск точки с максимальным Y для функции {}", functionId);
-        List<Map<String, Object>> points = pointDAO.findByFunctionId(functionId);
-
-        Map<String, Object> maxPoint = null;
-        double maxY = Double.MIN_VALUE;
-
-        for (Map<String, Object> point : points) {
-            Double yValue = (Double) point.get("y_value");
-            if (yValue > maxY) {
-                maxY = yValue;
-                maxPoint = point;
-            }
-        }
-
-        return maxPoint;
+    public PointDTO findMaxYPoint(Long functionId) {
+        log.debug("Поиск точки с максимальным Y, funcId={}", functionId);
+        return pointDao.findByFunctionId(functionId).stream()
+                .max(Comparator.comparingDouble(PointDTO::getYValue))
+                .orElse(null);
     }
 
-    public Map<String, Object> findMinYPoint(Long functionId) {
-        logger.debug("Поиск точки с минимальным Y для функции {}", functionId);
-        List<Map<String, Object>> points = pointDAO.findByFunctionId(functionId);
+    public PointDTO findMinYPoint(Long functionId) {
+        log.debug("Поиск точки с минимальным Y, funcId={}", functionId);
+        return pointDao.findByFunctionId(functionId).stream()
+                .min(Comparator.comparingDouble(PointDTO::getYValue))
+                .orElse(null);
+    }
 
-        Map<String, Object> minPoint = null;
-        double minY = Double.MAX_VALUE;
+    public List<PointDTO> findRoots(Long functionId, double tolerance) {
+        log.debug("Поиск корней функции {}, допуск={}", functionId, tolerance);
 
-        for (Map<String, Object> point : points) {
-            Double yValue = (Double) point.get("y_value");
-            if (yValue < minY) {
-                minY = yValue;
-                minPoint = point;
+        List<PointDTO> result = new ArrayList<>();
+        for (PointDTO p : pointDao.findByFunctionId(functionId)) {
+            if (Math.abs(p.getYValue()) <= tolerance) {
+                result.add(p);
             }
         }
 
-        return minPoint;
+        log.debug("Найдено {} корней для функции {}", result.size(), functionId);
+        return result;
     }
 
-    public List<Map<String, Object>> findRoots(Long functionId, double tolerance) {
-        logger.debug("Поиск корней функции {} с точностью {}", functionId, tolerance);
-        List<Map<String, Object>> points = pointDAO.findByFunctionId(functionId);
-        List<Map<String, Object>> roots = new ArrayList<>();
+    public boolean updatePoint(Long pointId,
+                               Long functionId,
+                               Double xValue,
+                               Double yValue) {
+        log.info("Обновление точки id={}", pointId);
 
-        for (Map<String, Object> point : points) {
-            Double yValue = (Double) point.get("y_value");
-            if (Math.abs(yValue) <= tolerance) {
-                roots.add(point);
-            }
+        Optional<PointDTO> current = pointDao.findById(pointId);
+        if (current.isEmpty()) {
+            log.warn("Точка id={} не найдена для обновления", pointId);
+            return false;
         }
 
-        logger.debug("Найдено {} корней функции {}", roots.size(), functionId);
-        return roots;
-    }
-
-    public boolean updatePoint(Long pointId, Long functionId, Double xValue, Double yValue) {
-        logger.info("Обновление точки с ID: {}", pointId);
-
-        Map<String, Object> existingPoint = pointDAO.findById(pointId);
-        if (existingPoint != null) {
-            // Проверка существования функции
-            if (functionDAO.findById(functionId) == null) {
-                logger.error("Функция с ID {} не существует", functionId);
-                return false;
-            }
-
-            boolean updated = pointDAO.updatePoint(pointId, xValue, yValue);
-            if (updated) {
-                logger.info("Точка с ID {} успешно обновлена", pointId);
-            }
-            return updated;
+        if (functionDao.findById(functionId).isEmpty()) {
+            log.error("Не найдена функция {} для обновления точки {}", functionId, pointId);
+            return false;
         }
 
-        logger.warn("Точка с ID {} не найдена для обновления", pointId);
-        return false;
+        PointDTO dto = current.get();
+        dto.setFunctionId(functionId);
+        dto.setXValue(xValue);
+        dto.setYValue(yValue);
+
+        boolean updated = pointDao.updatePoint(dto);
+        if (updated) {
+            log.info("Точка id={} успешно обновлена", pointId);
+        }
+        return updated;
     }
 
     public int recalculatePoints(Long functionId, String functionType) {
-        logger.info("Пересчет точек для функции {} с типом {}", functionId, functionType);
+        log.info("Пересчёт точек функции {}, тип={}", functionId, functionType);
 
-        List<Map<String, Object>> points = pointDAO.findByFunctionId(functionId);
-        int updatedCount = 0;
+        List<PointDTO> points = pointDao.findByFunctionId(functionId);
+        int changed = 0;
 
-        for (Map<String, Object> point : points) {
-            Double xValue = (Double) point.get("x_value");
-            double newY = calculateFunction(functionType, xValue);
-
-            // Всегда обновляем точку, даже если значение Y не изменилось
-            // Это гарантирует, что все точки будут соответствовать новой функции
-            Long pointId = (Long) point.get("id");
-            if (pointDAO.updatePoint(pointId, xValue, newY)) {
-                updatedCount++;
+        for (PointDTO p : points) {
+            double newY = calculateFunction(functionType, p.getXValue());
+            if (!p.getYValue().equals(newY)) {
+                p.setYValue(newY);
+                if (pointDao.updatePoint(p)) {
+                    changed++;
+                }
             }
         }
 
-        logger.info("Пересчитано {} точек функции {}", updatedCount, functionId);
-        return updatedCount;
+        log.info("Для функции {} пересчитано {} точек", functionId, changed);
+        return changed;
     }
 
     public boolean deletePoint(Long pointId) {
-        logger.info("Удаление точки с ID: {}", pointId);
-        boolean deleted = pointDAO.deletePoint(pointId);
+        log.info("Удаление точки id={}", pointId);
+        boolean removed = pointDao.deletePoint(pointId);
 
-        if (deleted) {
-            logger.info("Точка с ID {} удалена", pointId);
+        if (removed) {
+            log.info("Точка id={} удалена", pointId);
         } else {
-            logger.warn("Точка с ID {} не найдена для удаления", pointId);
+            log.warn("Точка id={} не найдена для удаления", pointId);
         }
-
-        return deleted;
+        return removed;
     }
 
     public int deletePointsByFunctionId(Long functionId) {
-        logger.info("Удаление всех точек функции с ID: {}", functionId);
-
-        // Получаем количество точек до удаления
-        List<Map<String, Object>> pointsBefore = pointDAO.findByFunctionId(functionId);
-        int countBefore = pointsBefore.size();
-
-        if (countBefore == 0) {
-            logger.info("Нет точек для удаления у функции {}", functionId);
-            return 0;
-        }
-
-        // Выполняем удаление - метод возвращает int (количество удаленных строк)
-        int deletedCount = pointDAO.deletePointsByFunctionId(functionId);
-
-        if (deletedCount > 0) {
-            logger.info("Удалено {} точек функции {}", deletedCount, functionId);
-            return deletedCount;
-        } else {
-            logger.warn("Не удалось удалить точки функции {}", functionId);
-            return 0;
-        }
+        log.info("Удаление всех точек функции id={}", functionId);
+        int count = pointDao.deleteByFunctionId(functionId);
+        log.info("Удалено {} точек функции {}", count, functionId);
+        return count;
     }
 
     public int deletePointsByXRange(Long functionId, Double minX, Double maxX) {
-        logger.info("Удаление точек функции {} в диапазоне x=[{}, {}]", functionId, minX, maxX);
+        log.info("Удаление точек funcId={}, x∈[{}, {}]", functionId, minX, maxX);
 
-        List<Map<String, Object>> pointsToDelete = pointDAO.findByFunctionIdAndXRange(functionId, minX, maxX);
-        int deletedCount = 0;
+        List<PointDTO> toRemove = pointDao.findByXRange(functionId, minX, maxX);
+        int deleted = 0;
 
-        for (Map<String, Object> point : pointsToDelete) {
-            Long pointId = (Long) point.get("id");
-            if (pointDAO.deletePoint(pointId)) {
-                deletedCount++;
+        for (PointDTO p : toRemove) {
+            if (pointDao.deletePoint(p.getId())) {
+                deleted++;
             }
         }
 
-        logger.info("Удалено {} точек в указанном диапазоне", deletedCount);
-        return deletedCount;
+        log.info("Удалено {} точек в диапазоне", deleted);
+        return deleted;
     }
 
     public boolean isXValueUnique(Long functionId, Double xValue) {
-        logger.debug("Проверка уникальности X={} для функции {}", xValue, functionId);
-        List<Map<String, Object>> points = pointDAO.findByFunctionId(functionId);
-        return points.stream().noneMatch(p -> {
-            Double pointX = (Double) p.get("x_value");
-            return pointX.equals(xValue);
-        });
+        log.debug("Проверка уникальности x={} для функции {}", xValue, functionId);
+        return pointDao.findByFunctionId(functionId).stream()
+                .noneMatch(p -> p.getXValue().equals(xValue));
     }
 
     public PointStatistics getPointStatistics(Long functionId) {
-        logger.debug("Получение статистики точек для функции {}", functionId);
+        log.debug("Получение статистики по точкам функции {}", functionId);
 
-        List<Map<String, Object>> points = pointDAO.findByFunctionId(functionId);
+        List<PointDTO> points = pointDao.findByFunctionId(functionId);
         if (points.isEmpty()) {
-            logger.warn("Нет точек для функции {}", functionId);
+            log.warn("Для функции {} нет точек", functionId);
             return null;
         }
 
-        double minX = points.stream().mapToDouble(p -> (Double) p.get("x_value")).min().orElse(0);
-        double maxX = points.stream().mapToDouble(p -> (Double) p.get("x_value")).max().orElse(0);
-        double minY = points.stream().mapToDouble(p -> (Double) p.get("y_value")).min().orElse(0);
-        double maxY = points.stream().mapToDouble(p -> (Double) p.get("y_value")).max().orElse(0);
-        double avgX = points.stream().mapToDouble(p -> (Double) p.get("x_value")).average().orElse(0);
-        double avgY = points.stream().mapToDouble(p -> (Double) p.get("y_value")).average().orElse(0);
+        double minX = points.stream().mapToDouble(PointDTO::getXValue).min().orElse(0);
+        double maxX = points.stream().mapToDouble(PointDTO::getXValue).max().orElse(0);
+        double minY = points.stream().mapToDouble(PointDTO::getYValue).min().orElse(0);
+        double maxY = points.stream().mapToDouble(PointDTO::getYValue).max().orElse(0);
+        double avgX = points.stream().mapToDouble(PointDTO::getXValue).average().orElse(0);
+        double avgY = points.stream().mapToDouble(PointDTO::getYValue).average().orElse(0);
 
         PointStatistics stats = new PointStatistics(
                 functionId,
@@ -325,13 +280,14 @@ public class PointService {
                 avgY
         );
 
-        logger.info("Статистика точек функции {}: {} точек, x_avg={}, y_avg={}",
+        log.info("Статистика по точкам функции {}: count={}, avgX={}, avgY={}",
                 functionId, points.size(), avgX, avgY);
 
         return stats;
     }
 
     public static class PointStatistics {
+
         private final Long functionId;
         private final int pointCount;
         private final double minX;
@@ -341,9 +297,14 @@ public class PointService {
         private final double averageX;
         private final double averageY;
 
-        public PointStatistics(Long functionId, int pointCount,
-                               double minX, double maxX, double minY, double maxY,
-                               double averageX, double averageY) {
+        public PointStatistics(Long functionId,
+                               int pointCount,
+                               double minX,
+                               double maxX,
+                               double minY,
+                               double maxY,
+                               double averageX,
+                               double averageY) {
             this.functionId = functionId;
             this.pointCount = pointCount;
             this.minX = minX;
@@ -354,19 +315,42 @@ public class PointService {
             this.averageY = averageY;
         }
 
-        public Long getFunctionId() { return functionId; }
-        public int getPointCount() { return pointCount; }
-        public double getMinX() { return minX; }
-        public double getMaxX() { return maxX; }
-        public double getMinY() { return minY; }
-        public double getMaxY() { return maxY; }
-        public double getAverageX() { return averageX; }
-        public double getAverageY() { return averageY; }
+        public Long getFunctionId() {
+            return functionId;
+        }
+
+        public int getPointCount() {
+            return pointCount;
+        }
+
+        public double getMinX() {
+            return minX;
+        }
+
+        public double getMaxX() {
+            return maxX;
+        }
+
+        public double getMinY() {
+            return minY;
+        }
+
+        public double getMaxY() {
+            return maxY;
+        }
+
+        public double getAverageX() {
+            return averageX;
+        }
+
+        public double getAverageY() {
+            return averageY;
+        }
 
         @Override
         public String toString() {
             return String.format(
-                    "PointStatistics{function=%d, points=%d, x=[%.2f, %.2f], y=[%.2f, %.2f], avgX=%.2f, avgY=%.2f}",
+                    "PointStatistics{functionId=%d, points=%d, x=[%.2f, %.2f], y=[%.2f, %.2f], avgX=%.2f, avgY=%.2f}",
                     functionId, pointCount, minX, maxX, minY, maxY, averageX, averageY
             );
         }
