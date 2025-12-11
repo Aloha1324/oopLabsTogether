@@ -5,6 +5,7 @@ com\example\LAB5\framework\service\FunctionService$FunctionProcessor.class
 com\example\LAB5\framework\repository\UserRepository.class
 com\example\LAB5\framework\repository\FunctionRepository.class
 com\example\LAB5\framework\repository\PointRepository.class
+com\example\LAB5\framework\controller\HomeController.class
 com\example\LAB5\framework\service\FrameworkPerformanceComparisonService.class
 com\example\LAB5\framework\service\FunctionService$StreamingProcessingResult.class
 com\example\LAB5\framework\entity\User.class
