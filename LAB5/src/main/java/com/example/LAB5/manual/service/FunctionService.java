@@ -3,265 +3,197 @@ package com.example.LAB5.manual.service;
 import com.example.LAB5.manual.DAO.FunctionDAO;
 import com.example.LAB5.manual.DAO.PointDAO;
 import com.example.LAB5.manual.DAO.UserDAO;
+import com.example.LAB5.manual.DTO.FunctionDTO;
+import com.example.LAB5.manual.DTO.PointDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Optional;
 
 public class FunctionService {
-    private static final Logger logger = LoggerFactory.getLogger(FunctionService.class);
-    private final FunctionDAO functionDAO;
-    private final UserDAO userDAO;
-    private final PointDAO pointDAO;
+
+    private static final Logger log = LoggerFactory.getLogger(FunctionService.class);
+
+    private final FunctionDAO functionDao;
+    private final UserDAO userDao;
+    private final PointDAO pointDao;
 
     public FunctionService() {
-        this.functionDAO = new FunctionDAO();
-        this.userDAO = new UserDAO();
-        this.pointDAO = new PointDAO();
+        this(new FunctionDAO(), new UserDAO(), new PointDAO());
     }
 
-    public FunctionService(FunctionDAO functionDAO, UserDAO userDAO, PointDAO pointDAO) {
-        this.functionDAO = functionDAO;
-        this.userDAO = userDAO;
-        this.pointDAO = pointDAO;
+    public FunctionService(FunctionDAO functionDao, UserDAO userDao, PointDAO pointDao) {
+        this.functionDao = functionDao;
+        this.userDao = userDao;
+        this.pointDao = pointDao;
     }
 
-    public Long createFunction(String name, Long userId, String expression) {
-        logger.info("Создание функции: name={}, user={}, expression={}", name, userId, expression);
+    public Long createFunction(Long userId, String name, String signature) {
+        log.info("Запрос на создание функции: userId={}, name={}", userId, name);
 
-        if (userDAO.findById(userId) == null) {
-            logger.error("Пользователь с ID {} не существует", userId);
+        if (userDao.findById(userId).isEmpty()) {
+            log.error("Пользователь с id {} не найден, функция не создаётся", userId);
             throw new IllegalArgumentException("User with ID " + userId + " does not exist");
         }
 
-        Long functionId = functionDAO.createFunction(name, userId, expression);
-        logger.info("Создана функция с ID: {}", functionId);
-        return functionId;
+        FunctionDTO dto = new FunctionDTO(userId, name, signature);
+        Long id = functionDao.createFunction(dto);
+        log.info("Функция создана, id={}", id);
+        return id;
     }
 
-    public Map<String, Object> getFunctionById(Long id) {
-        logger.debug("Поиск функции по ID: {}", id);
-        return functionDAO.findById(id);
+    public Optional<FunctionDTO> getFunctionById(Long id) {
+        log.debug("Чтение функции по id {}", id);
+        return functionDao.findById(id);
     }
 
-    public List<Map<String, Object>> getFunctionsByUserId(Long userId) {
-        logger.debug("Поиск функций пользователя с ID: {}", userId);
-        return functionDAO.findByUserId(userId);
+    public List<FunctionDTO> getFunctionsByUserId(Long userId) {
+        log.debug("Чтение функций пользователя {}", userId);
+        return functionDao.findByUserId(userId);
     }
 
-    public List<Map<String, Object>> getFunctionsByName(String name) {
-        logger.debug("Поиск функций по имени: {}", name);
-        return functionDAO.findByName(name);
+    public List<FunctionDTO> getFunctionsByName(String name) {
+        log.debug("Поиск функций по имени '{}'", name);
+        return functionDao.findByName(name);
     }
 
-    public List<Map<String, Object>> getAllFunctions() {
-        logger.debug("Получение всех функций");
-        return functionDAO.findAll();
+    public List<FunctionDTO> getAllFunctions() {
+        log.debug("Чтение всех функций");
+        return functionDao.findAll();
     }
 
-    public List<Map<String, Object>> getAllFunctionsLimited(int limit) {
-        logger.debug("Получение ограниченного списка функций: limit={}", limit);
-        return functionDAO.getAllFunctionsLimited(limit);
-    }
+    public List<FunctionDTO> getFunctionsWithPointCount() {
+        log.debug("Чтение функций и вывод количества точек");
+        List<FunctionDTO> functions = functionDao.findAll();
 
-    // ОПТИМИЗИРОВАННЫЙ МЕТОД: пакетная загрузка точек вместо N+1 запросов
-    public List<Map<String, Object>> getFunctionsWithPointCount() {
-        logger.debug("Получение функций со статистикой по точкам");
-
-        // Шаг 1: Получаем все функции (1 запрос)
-        List<Map<String, Object>> functions = functionDAO.findAll();
-
-        // Быстрая проверка - если функций нет, возвращаем пустой список
-        if (functions.isEmpty()) {
-            logger.debug("Функции не найдены");
-            return functions;
+        for (FunctionDTO f : functions) {
+            List<PointDTO> points = pointDao.findByFunctionId(f.getId());
+            log.debug("Функция '{}' (id={}) содержит {} точек",
+                    f.getName(), f.getId(), points.size());
         }
 
-        // Шаг 2: Извлекаем все ID функций
-        List<Long> functionIds = new ArrayList<>();
-        for (Map<String, Object> function : functions) {
-            Long functionId = (Long) function.get("id");
-            functionIds.add(functionId);
-        }
-
-        logger.debug("Найдено {} функций, загружаем точки...", functionIds.size());
-
-        // Шаг 3: ОДИН запрос для всех точек вместо N отдельных запросов
-        List<Map<String, Object>> allPoints = pointDAO.findByFunctionIds(functionIds);
-        logger.debug("Загружено {} точек для всех функций", allPoints.size());
-
-        // Шаг 4: Группируем точки по function_id для быстрого поиска
-        Map<Long, List<Map<String, Object>>> pointsByFunctionId = new HashMap<>();
-        for (Map<String, Object> point : allPoints) {
-            Long functionId = (Long) point.get("function_id");
-            pointsByFunctionId
-                    .computeIfAbsent(functionId, k -> new ArrayList<>())
-                    .add(point);
-        }
-
-        // Шаг 5: Обогащаем функции информацией о точках
-        for (Map<String, Object> function : functions) {
-            Long functionId = (Long) function.get("id");
-            String functionName = (String) function.get("name");
-
-            List<Map<String, Object>> points = pointsByFunctionId.get(functionId);
-            int pointCount = (points != null) ? points.size() : 0;
-
-            logger.debug("Функция '{}' (ID: {}) имеет {} точек",
-                    functionName, functionId, pointCount);
-
-            // Добавляем количество точек в результат
-            function.put("point_count", pointCount);
-        }
-
-        logger.info("Успешно обработано {} функций со статистикой точек", functions.size());
         return functions;
     }
 
-    public boolean updateFunction(Long functionId, String name, Long userId, String expression) {
-        logger.info("Обновление функции с ID: {}", functionId);
+    public boolean updateFunction(Long functionId, Long userId, String name, String signature) {
+        log.info("Обновление функции id={}", functionId);
 
-        Map<String, Object> existingFunction = functionDAO.findById(functionId);
-        if (existingFunction != null) {
-            if (userDAO.findById(userId) == null) {
-                logger.error("Пользователь с ID {} не существует", userId);
-                return false;
-            }
-
-            boolean updated = functionDAO.updateFunction(functionId, name, userId, expression);
-            if (updated) {
-                logger.info("Функция с ID {} успешно обновлена", functionId);
-            }
-            return updated;
+        Optional<FunctionDTO> current = functionDao.findById(functionId);
+        if (current.isEmpty()) {
+            log.warn("Функция с id {} не найдена для обновления", functionId);
+            return false;
         }
 
-        logger.warn("Функция с ID {} не найдена для обновления", functionId);
-        return false;
+        if (userDao.findById(userId).isEmpty()) {
+            log.error("Невозможно обновить функцию: пользователь {} не существует", userId);
+            return false;
+        }
+
+        FunctionDTO dto = current.get();
+        dto.setUserId(userId);
+        dto.setName(name);
+        dto.setSignature(signature);
+
+        boolean updated = functionDao.updateFunction(dto);
+        if (updated) {
+            log.info("Функция id={} успешно обновлена", functionId);
+        }
+        return updated;
     }
 
-    public boolean updateFunctionExpression(Long functionId, String newExpression) {
-        logger.info("Обновление выражения функции с ID: {}", functionId);
+    public boolean updateFunctionSignature(Long functionId, String newSignature) {
+        log.info("Обновление сигнатуры функции id={}", functionId);
 
-        Map<String, Object> existingFunction = functionDAO.findById(functionId);
-        if (existingFunction != null) {
-            boolean updated = functionDAO.updateFunctionExpression(functionId, newExpression);
-            if (updated) {
-                logger.info("Выражение функции с ID {} обновлено", functionId);
-            }
-            return updated;
+        Optional<FunctionDTO> current = functionDao.findById(functionId);
+        if (current.isEmpty()) {
+            log.warn("Функция id={} не найдена для изменения сигнатуры", functionId);
+            return false;
         }
 
-        logger.warn("Функция с ID {} не найдена", functionId);
-        return false;
+        FunctionDTO dto = current.get();
+        dto.setSignature(newSignature);
+
+        boolean updated = functionDao.updateFunction(dto);
+        if (updated) {
+            log.info("Сигнатура функции id={} обновлена", functionId);
+        }
+        return updated;
     }
 
     public boolean deleteFunction(Long functionId) {
-        logger.info("Удаление функции с ID: {}", functionId);
+        log.info("Удаление функции id={}", functionId);
 
-        // Метод deletePointsByFunctionId возвращает int (количество удаленных строк)
-        int pointsDeleted = pointDAO.deletePointsByFunctionId(functionId);
-        logger.info("Точки функции с ID {} удалены: {} точек", functionId, pointsDeleted);
+        int removedPoints = pointDao.deleteByFunctionId(functionId);
+        log.info("Удалено {} точек функции id={}", removedPoints, functionId);
 
-        boolean deleted = functionDAO.deleteFunction(functionId);
-        if (deleted) {
-            logger.info("Функция с ID {} и все её точки удалены", functionId);
+        boolean removedFunction = functionDao.deleteFunction(functionId);
+        if (removedFunction) {
+            log.info("Функция id={} успешно удалена вместе с точками", functionId);
         } else {
-            logger.warn("Функция с ID {} не найдена для удаления", functionId);
+            log.warn("Функция id={} не найдена при удалении", functionId);
         }
-
-        return deleted;
+        return removedFunction;
     }
 
     public int deleteFunctionsByUserId(Long userId) {
-        logger.info("Удаление всех функций пользователя с ID: {}", userId);
+        log.info("Удаление всех функций пользователя id={}", userId);
 
-        List<Map<String, Object>> userFunctions = functionDAO.findByUserId(userId);
-        int totalDeleted = 0;
+        List<FunctionDTO> list = functionDao.findByUserId(userId);
+        int deleted = 0;
 
-        for (Map<String, Object> function : userFunctions) {
-            Long functionId = (Long) function.get("id");
-            if (deleteFunction(functionId)) {
-                totalDeleted++;
+        for (FunctionDTO f : list) {
+            if (deleteFunction(f.getId())) {
+                deleted++;
             }
         }
 
-        logger.info("Удалено {} функций пользователя с ID: {}", totalDeleted, userId);
-        return totalDeleted;
+        log.info("Для пользователя id={} удалено функций: {}", userId, deleted);
+        return deleted;
     }
 
     public boolean validateFunctionName(Long userId, String functionName) {
-        logger.debug("Проверка уникальности имени функции для пользователя: {}", userId);
-
-        List<Map<String, Object>> userFunctions = functionDAO.findByUserId(userId);
-        return userFunctions.stream()
-                .noneMatch(func -> {
-                    String name = (String) func.get("name");
-                    return name != null && name.equalsIgnoreCase(functionName);
-                });
+        log.debug("Проверка имени функции '{}' для пользователя {}", functionName, userId);
+        return functionDao.findByUserId(userId).stream()
+                .noneMatch(f -> f.getName().equalsIgnoreCase(functionName));
     }
 
     public FunctionStatistics getFunctionStatistics(Long functionId) {
-        logger.debug("Получение статистики для функции с ID: {}", functionId);
+        log.debug("Формирование статистики по функции id={}", functionId);
 
-        Map<String, Object> function = functionDAO.findById(functionId);
-        if (function != null) {
-            List<Map<String, Object>> points = pointDAO.findByFunctionId(functionId);
-
-            double minX = points.stream().mapToDouble(p -> (Double) p.get("x_value")).min().orElse(0);
-            double maxX = points.stream().mapToDouble(p -> (Double) p.get("x_value")).max().orElse(0);
-            double minY = points.stream().mapToDouble(p -> (Double) p.get("y_value")).min().orElse(0);
-            double maxY = points.stream().mapToDouble(p -> (Double) p.get("y_value")).max().orElse(0);
-            double avgY = points.stream().mapToDouble(p -> (Double) p.get("y_value")).average().orElse(0);
-
-            FunctionStatistics stats = new FunctionStatistics(
-                    functionId,
-                    (String) function.get("name"),
-                    points.size(),
-                    minX,
-                    maxX,
-                    minY,
-                    maxY,
-                    avgY
-            );
-
-            logger.info("Статистика функции {}: {} точек, x=[{}, {}], y=[{}, {}]",
-                    function.get("name"), points.size(), minX, maxX, minY, maxY);
-
-            return stats;
+        Optional<FunctionDTO> functionOpt = functionDao.findById(functionId);
+        if (functionOpt.isEmpty()) {
+            log.warn("Функция id={} не найдена для статистики", functionId);
+            return null;
         }
 
-        logger.warn("Функция с ID {} не найдена для статистики", functionId);
-        return null;
-    }
+        List<PointDTO> points = pointDao.findByFunctionId(functionId);
+        double minX = points.stream().mapToDouble(PointDTO::getXValue).min().orElse(0);
+        double maxX = points.stream().mapToDouble(PointDTO::getXValue).max().orElse(0);
+        double minY = points.stream().mapToDouble(PointDTO::getYValue).min().orElse(0);
+        double maxY = points.stream().mapToDouble(PointDTO::getYValue).max().orElse(0);
+        double avgY = points.stream().mapToDouble(PointDTO::getYValue).average().orElse(0);
 
-    // Дополнительные методы
-    public List<Map<String, Object>> getFunctionsWithUsername() {
-        logger.debug("Получение функций с именами пользователей");
-        return functionDAO.getFunctionsWithUsername();
-    }
+        FunctionDTO func = functionOpt.get();
+        FunctionStatistics stats = new FunctionStatistics(
+                functionId,
+                func.getName(),
+                points.size(),
+                minX,
+                maxX,
+                minY,
+                maxY,
+                avgY
+        );
 
-    public List<Map<String, Object>> searchFunctionsByExpression(String expressionPattern) {
-        logger.debug("Поиск функций по выражению: {}", expressionPattern);
-        return functionDAO.findByExpression(expressionPattern);
-    }
+        log.info("Статистика функции '{}': {} точек, x=[{}, {}], y=[{}, {}], avgY={}",
+                func.getName(), points.size(), minX, maxX, minY, maxY, avgY);
 
-    public int getFunctionCountByUser(Long userId) {
-        logger.debug("Получение количества функций пользователя с ID: {}", userId);
-        List<Map<String, Object>> counts = functionDAO.getFunctionCountByUser();
-        return counts.stream()
-                .filter(count -> userId.equals(count.get("user_id")))
-                .mapToInt(count -> (Integer) count.get("function_count"))
-                .findFirst()
-                .orElse(0);
-    }
-
-    public int getTotalFunctionsCount() {
-        logger.debug("Получение общего количества функций");
-        return functionDAO.getTotalFunctionsCount();
+        return stats;
     }
 
     public static class FunctionStatistics {
+
         private final Long functionId;
         private final String functionName;
         private final int pointCount;
@@ -271,8 +203,14 @@ public class FunctionService {
         private final double maxY;
         private final double averageY;
 
-        public FunctionStatistics(Long functionId, String functionName, int pointCount,
-                                  double minX, double maxX, double minY, double maxY, double averageY) {
+        public FunctionStatistics(Long functionId,
+                                  String functionName,
+                                  int pointCount,
+                                  double minX,
+                                  double maxX,
+                                  double minY,
+                                  double maxY,
+                                  double averageY) {
             this.functionId = functionId;
             this.functionName = functionName;
             this.pointCount = pointCount;
@@ -283,19 +221,42 @@ public class FunctionService {
             this.averageY = averageY;
         }
 
-        public Long getFunctionId() { return functionId; }
-        public String getFunctionName() { return functionName; }
-        public int getPointCount() { return pointCount; }
-        public double getMinX() { return minX; }
-        public double getMaxX() { return maxX; }
-        public double getMinY() { return minY; }
-        public double getMaxY() { return maxY; }
-        public double getAverageY() { return averageY; }
+        public Long getFunctionId() {
+            return functionId;
+        }
+
+        public String getFunctionName() {
+            return functionName;
+        }
+
+        public int getPointCount() {
+            return pointCount;
+        }
+
+        public double getMinX() {
+            return minX;
+        }
+
+        public double getMaxX() {
+            return maxX;
+        }
+
+        public double getMinY() {
+            return minY;
+        }
+
+        public double getMaxY() {
+            return maxY;
+        }
+
+        public double getAverageY() {
+            return averageY;
+        }
 
         @Override
         public String toString() {
             return String.format(
-                    "FunctionStatistics{function='%s', points=%d, x=[%.2f, %.2f], y=[%.2f, %.2f], avgY=%.2f}",
+                    "FunctionStatistics{name='%s', points=%d, x=[%.2f, %.2f], y=[%.2f, %.2f], avgY=%.2f}",
                     functionName, pointCount, minX, maxX, minY, maxY, averageY
             );
         }

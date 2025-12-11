@@ -3,7 +3,6 @@ package com.example.LAB5.framework.service;
 import com.example.LAB5.framework.entity.Function;
 import com.example.LAB5.framework.entity.User;
 import com.example.LAB5.framework.entity.Point;
-import com.example.LAB5.manual.service.ManualJdbcService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Order;

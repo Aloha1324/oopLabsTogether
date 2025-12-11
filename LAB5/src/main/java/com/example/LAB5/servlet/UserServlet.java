@@ -1,263 +1,297 @@
 package com.example.LAB5.servlet;
 
 import com.example.LAB5.manual.DTO.UserDTO;
-import com.google.gson.Gson;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
-@WebServlet("/api/v1/users/*")
-public class UserServlet extends HttpServlet {
-    private static final Logger logger = Logger.getLogger(UserServlet.class.getName());
-    private final List<UserDTO> users = new ArrayList<>();
-    private final Gson gson = new Gson();
-    private Long currentId = 1L;
+@WebServlet("/users/*")
+public class UserServlet extends BaseAuthServlet {
 
-    // Для доступа из других сервлетов
-    public List<UserDTO> getUsers() {
-        return users;
-    }
+    private static final Logger log = Logger.getLogger(UserServlet.class.getName());
+
+    private ObjectMapper mapper;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        // Регистрируем себя в контексте для доступа из других сервлетов
-        getServletContext().setAttribute("userServlet", this);
-
-        // Добавляем тестового пользователя
-        UserDTO admin = new UserDTO("admin", "ADMIN", "admin123");
-        admin.setId(currentId++);
-        users.add(admin);
-        logger.info("UserServlet initialized with test admin user");
+        this.mapper = new ObjectMapper();
+        log.info("UserControllerServlet initialized (Basic auth enabled)");
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json;charset=UTF-8");
+        String path = req.getPathInfo();
 
-        String pathInfo = request.getPathInfo();
-        logger.info("GET /api/v1/users" + (pathInfo != null ? pathInfo : ""));
+        log.info("GET " + req.getRequestURI() + " path=" + path);
+
+        Optional<UserDTO> currentUser = authenticate(req);
+        if (currentUser.isEmpty()) {
+            sendUnauthorized(resp, "Authentication required");
+            return;
+        }
 
         try {
-            if (pathInfo == null || pathInfo.equals("/")) {
-                // GET /api/v1/users - все пользователи
-                logger.info("Returning all users, count: " + users.size());
-
-                // Создаем безопасные копии без паролей
-                List<UserDTO> safeUsers = users.stream()
-                        .map(this::createSafeUserDTO)
-                        .collect(Collectors.toList());
-
-                response.getWriter().write(gson.toJson(safeUsers));
-            } else {
-                // GET /api/v1/users/{id} - конкретный пользователь
-                Long id = extractIdFromPath(pathInfo);
-                if (id == null) {
-                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                    logger.warning("Invalid ID format: " + pathInfo);
+            if (path == null || "/".equals(path)) {
+                if (!checkPermission(currentUser.get(), "ADMIN", null)) {
+                    sendForbidden(resp, "Admin access required");
                     return;
                 }
 
-                logger.info("Looking for user with id: " + id);
-                UserDTO user = findUserById(id);
+                List<UserDTO> users = userService.getAllUsers();
+                log.info("Admin " + currentUser.get().getLogin()
+                        + " requested all users, count=" + users.size());
+                mapper.writeValue(resp.getWriter(), users);
+                return;
+            }
 
-                if (user != null) {
-                    response.getWriter().write(gson.toJson(createSafeUserDTO(user)));
-                    logger.info("User found: " + user.getLogin());
+            if (path.startsWith("/login/")) {
+                String login = path.substring("/login/".length());
+
+                if (!checkPermission(currentUser.get(), "ADMIN", login)) {
+                    sendForbidden(resp, "Access denied to user data");
+                    return;
+                }
+
+                Optional<UserDTO> user = userService.getUserByLogin(login);
+                if (user.isPresent()) {
+                    mapper.writeValue(resp.getWriter(), user.get());
                 } else {
-                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                    logger.warning("User not found with id: " + id);
+                    resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    mapper.writeValue(resp.getWriter(),
+                            new ErrorResponse("User not found with login: " + login));
                 }
-            }
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            logger.severe("Error in GET /users: " + e.getMessage());
-        }
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        String pathInfo = request.getPathInfo();
-        logger.info("POST /api/v1/users" + (pathInfo != null ? pathInfo : ""));
-
-        try {
-            if (pathInfo != null && !pathInfo.equals("/")) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("POST should not have path parameters");
                 return;
             }
 
-            // Читаем JSON и парсим в UserDTO
-            UserDTO newUser = gson.fromJson(request.getReader(), UserDTO.class);
-
-            // Проверяем обязательные поля
-            if (newUser.getLogin() == null || newUser.getLogin().trim().isEmpty() ||
-                    newUser.getPassword() == null || newUser.getPassword().trim().isEmpty()) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("Missing required fields (username or password)");
-                return;
-            }
-
-            // Проверяем уникальность username
-            if (users.stream().anyMatch(u -> u.getLogin().equals(newUser.getLogin()))) {
-                response.setStatus(HttpServletResponse.SC_CONFLICT);
-                logger.warning("User with username already exists: " + newUser.getLogin());
-                return;
-            }
-
-            // Устанавливаем ID и роль по умолчанию, если не указана
-            newUser.setId(currentId++);
-            if (newUser.getRole() == null || newUser.getRole().trim().isEmpty()) {
-                newUser.setRole("USER");
-            }
-
-            users.add(newUser);
-
-            response.setStatus(HttpServletResponse.SC_CREATED);
-            response.getWriter().write(gson.toJson(createSafeUserDTO(newUser)));
-            logger.info("User created successfully: " + newUser.getLogin() + " (id: " + newUser.getId() + ")");
-
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            logger.severe("Error creating user: " + e.getMessage());
-        }
-    }
-
-    @Override
-    protected void doPut(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        String pathInfo = request.getPathInfo();
-        logger.info("PUT /api/v1/users" + (pathInfo != null ? pathInfo : ""));
-
-        try {
-            if (pathInfo == null || pathInfo.equals("/")) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("PUT requires user ID in path");
-                return;
-            }
-
-            Long id = extractIdFromPath(pathInfo);
-            if (id == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                return;
-            }
-
-            // Читаем обновленные данные
-            UserDTO updatedData = gson.fromJson(request.getReader(), UserDTO.class);
-
-            // Находим существующего пользователя
-            UserDTO existingUser = findUserById(id);
-            if (existingUser == null) {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                logger.warning("User not found for update, id: " + id);
-                return;
-            }
-
-            // Обновляем поля (сохраняем ID)
-            if (updatedData.getLogin() != null && !updatedData.getLogin().trim().isEmpty()) {
-                // Проверяем уникальность нового username
-                if (!updatedData.getLogin().equals(existingUser.getLogin()) &&
-                        users.stream().anyMatch(u -> u.getLogin().equals(updatedData.getLogin()))) {
-                    response.setStatus(HttpServletResponse.SC_CONFLICT);
-                    logger.warning("Username already taken: " + updatedData.getLogin());
+            if (path.startsWith("/role/")) {
+                if (!checkPermission(currentUser.get(), "ADMIN", null)) {
+                    sendForbidden(resp, "Admin access required");
                     return;
                 }
-                existingUser.setLogin(updatedData.getLogin());
+
+                String role = path.substring("/role/".length());
+                List<UserDTO> users = userService.getUsersByRole(role);
+                log.info("Admin " + currentUser.get().getLogin()
+                        + " found " + users.size() + " users with role=" + role);
+                mapper.writeValue(resp.getWriter(), users);
+                return;
             }
 
-            if (updatedData.getPassword() != null && !updatedData.getPassword().trim().isEmpty()) {
-                existingUser.setPassword(updatedData.getPassword());
+            Long id = Long.parseLong(path.substring(1));
+            Optional<UserDTO> user = userService.getUserById(id);
+
+            if (user.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("User not found with ID: " + id));
+                return;
             }
 
-            if (updatedData.getRole() != null && !updatedData.getRole().trim().isEmpty()) {
-                existingUser.setRole(updatedData.getRole());
+            if (!checkPermission(currentUser.get(), "ADMIN", user.get().getLogin())) {
+                sendForbidden(resp, "Access denied to user data");
+                return;
             }
 
-            response.getWriter().write(gson.toJson(createSafeUserDTO(existingUser)));
-            logger.info("User updated successfully: " + existingUser.getLogin());
+            mapper.writeValue(resp.getWriter(), user.get());
 
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            logger.severe("Error updating user: " + e.getMessage());
+        } catch (NumberFormatException ex) {
+            log.warning("Invalid ID format in path: " + path);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Invalid ID format"));
+        } catch (Exception ex) {
+            log.severe("Error processing GET /users: " + ex.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Internal server error"));
         }
     }
 
     @Override
-    protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
-        String pathInfo = request.getPathInfo();
-        logger.info("DELETE /api/v1/users" + (pathInfo != null ? pathInfo : ""));
+        resp.setContentType("application/json;charset=UTF-8");
 
         try {
-            if (pathInfo == null || pathInfo.equals("/")) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                logger.warning("DELETE requires user ID in path");
+            UserDTO dto = mapper.readValue(req.getInputStream(), UserDTO.class);
+            log.info("Registration request for login=" + dto.getLogin());
+
+            if (dto.getLogin() == null || dto.getLogin().trim().isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Login is required"));
                 return;
             }
 
-            Long id = extractIdFromPath(pathInfo);
-            if (id == null) {
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            if (dto.getPassword() == null || dto.getPassword().trim().isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Password is required"));
                 return;
             }
 
-            boolean removed = users.removeIf(user -> user.getId().equals(id));
+            if (dto.getRole() == null || dto.getRole().trim().isEmpty()) {
+                dto.setRole("USER");
+            }
 
-            if (removed) {
-                response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-                logger.info("User deleted successfully, id: " + id);
+            if (!authService.isValidRole(dto.getRole())) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("Invalid role. Allowed roles: USER, ADMIN"));
+                return;
+            }
+
+            Long id = userService.createUser(dto.getLogin(), dto.getRole(), dto.getPassword());
+            resp.setStatus(HttpServletResponse.SC_CREATED);
+            mapper.writeValue(resp.getWriter(),
+                    new SuccessResponse("User created successfully", id));
+
+        } catch (Exception ex) {
+            log.severe("Error creating user: " + ex.getMessage());
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Invalid user data: " + ex.getMessage()));
+        }
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        resp.setContentType("application/json;charset=UTF-8");
+        String path = req.getPathInfo();
+
+        log.info("PUT " + req.getRequestURI() + " path=" + path);
+
+        Optional<UserDTO> currentUser = authenticate(req);
+        if (currentUser.isEmpty()) {
+            sendUnauthorized(resp, "Authentication required");
+            return;
+        }
+
+        if (path == null || "/".equals(path)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("User ID is required"));
+            return;
+        }
+
+        try {
+            Long id = Long.parseLong(path.substring(1));
+            UserDTO updates = mapper.readValue(req.getInputStream(), UserDTO.class);
+
+            Optional<UserDTO> target = userService.getUserById(id);
+            if (target.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("User not found with ID: " + id));
+                return;
+            }
+
+            if (!checkPermission(currentUser.get(), "ADMIN", target.get().getLogin())) {
+                sendForbidden(resp, "Access denied to update user data");
+                return;
+            }
+
+            boolean ok = userService.updateUser(
+                    id,
+                    updates.getLogin(),
+                    updates.getRole(),
+                    updates.getPassword()
+            );
+
+            if (ok) {
+                mapper.writeValue(resp.getWriter(),
+                        new SuccessResponse("User updated successfully", id));
             } else {
-                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                logger.warning("User not found for deletion, id: " + id);
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("User not found with ID: " + id));
             }
 
-        } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            logger.severe("Error deleting user: " + e.getMessage());
+        } catch (NumberFormatException ex) {
+            log.warning("Invalid user ID format: " + path);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Invalid user ID format"));
+        } catch (Exception ex) {
+            log.severe("Error updating user: " + ex.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Internal server error"));
         }
     }
 
-    // Вспомогательные методы
-    private UserDTO findUserById(Long id) {
-        return users.stream()
-                .filter(u -> u.getId().equals(id))
-                .findFirst()
-                .orElse(null);
-    }
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
 
-    private Long extractIdFromPath(String pathInfo) {
+        resp.setContentType("application/json;charset=UTF-8");
+        String path = req.getPathInfo();
+
+        log.info("DELETE " + req.getRequestURI() + " path=" + path);
+
+        Optional<UserDTO> currentUser = authenticate(req);
+        if (currentUser.isEmpty()) {
+            sendUnauthorized(resp, "Authentication required");
+            return;
+        }
+
+        if (path == null || "/".equals(path)) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("User ID is required"));
+            return;
+        }
+
         try {
-            if (pathInfo.startsWith("/")) {
-                return Long.parseLong(pathInfo.substring(1));
-            }
-            return Long.parseLong(pathInfo);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
+            Long id = Long.parseLong(path.substring(1));
 
-    private UserDTO createSafeUserDTO(UserDTO user) {
-        // Возвращаем копию без пароля для безопасности
-        return new UserDTO(user.getId(), user.getLogin(), user.getRole(), null);
+            Optional<UserDTO> target = userService.getUserById(id);
+            if (target.isEmpty()) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("User not found with ID: " + id));
+                return;
+            }
+
+            if (!checkPermission(currentUser.get(), "ADMIN", null)) {
+                sendForbidden(resp, "Admin access required to delete users");
+                return;
+            }
+
+            boolean deleted = userService.deleteUser(id);
+            if (deleted) {
+                mapper.writeValue(resp.getWriter(),
+                        new SuccessResponse("User deleted successfully", id));
+            } else {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                mapper.writeValue(resp.getWriter(),
+                        new ErrorResponse("User not found with ID: " + id));
+            }
+
+        } catch (NumberFormatException ex) {
+            log.warning("Invalid user ID format: " + path);
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Invalid user ID format"));
+        } catch (Exception ex) {
+            log.severe("Error deleting user: " + ex.getMessage());
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            mapper.writeValue(resp.getWriter(),
+                    new ErrorResponse("Internal server error"));
+        }
     }
 }
