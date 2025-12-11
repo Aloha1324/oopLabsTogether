@@ -2,10 +2,7 @@ C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual
 C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\config\DatabaseConfig.java
 C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\servlet\FunctionServlet.java
 C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\DTO\UserDTO.java
-C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\Search\BreadthFirstSearch.java
 C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\servlet\PointServlet.java
-C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\Search\ManualSearchService.java
-C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\Search\HierarchySearch.java
 C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\DTO\FunctionDTO.java
 C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\service\PerformanceBenchmarkService.java
 C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\service\PointService.java
@@ -14,9 +11,8 @@ C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual
 C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\servlet\UserServlet.java
 C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\service\UserService.java
 C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\servlet\BaseAuthServlet.java
-C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\Search\DepthFirstSearch.java
 C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\service\FunctionService.java
-C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\service\ManualPerformanceComparisonService.java
+C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\service\AuthService.java
 C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\DAO\PointDAO.java
 C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\servlet\MainPageServlet.java
 C:\Users\user\Desktop\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\LAB5Application.java
