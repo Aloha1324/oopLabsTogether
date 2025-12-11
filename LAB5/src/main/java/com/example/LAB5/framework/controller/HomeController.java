@@ -30,7 +30,7 @@ public class HomeController {
                 </style>
             </head>
             <body>
-                <h1>LAB5 Manual API — Tomcat запущен</h1>
+                <h1>LAB5 Framework API — Tomcat запущен</h1>
                  <div class="status-message">
                                      Проект работает на Tomcat! Реализовано через framework
                  </div>
