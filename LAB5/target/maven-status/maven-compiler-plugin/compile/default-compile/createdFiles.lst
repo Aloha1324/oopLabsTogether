@@ -1,1 +1,4 @@
+com\example\LAB5\framework\controller\UserController.class
 com\example\LAB5\LAB5Application.class
+com\example\LAB5\framework\controller\FunctionController.class
+com\example\LAB5\framework\controller\PointController.class

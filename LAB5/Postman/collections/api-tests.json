@@ -1,0 +1,688 @@
+{
+  "info": {
+    "_postman_id": "lab5-universal-collection",
+    "name": "LAB5 Universal API Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Универсальная коллекция для Manual (Servlets) и Framework (Spring Boot) веток"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Автоматически выбираем base_url в зависимости от api_type",
+          "const apiType = pm.environment.get('api_type');",
+          "",
+          "if (apiType === 'manual') {",
+          "    pm.environment.set('base_url', pm.environment.get('base_url_manual'));",
+          "    console.log('🛠️ Режим: Manual (Servlets)');",
+          "    console.log('🌐 Base URL: ' + pm.environment.get('base_url_manual'));",
+          "} else if (apiType === 'framework') {",
+          "    pm.environment.set('base_url', pm.environment.get('base_url_framework'));",
+          "    console.log('⚡ Режим: Framework (Spring Boot)');",
+          "    console.log('🌐 Base URL: ' + pm.environment.get('base_url_framework'));",
+          "} else {",
+          "    console.error('❌ Неизвестный api_type. Используйте \"manual\" или \"framework\"');",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Базовые проверки для всех запросов",
+          "console.log('📊 Запрос: ' + pm.info.requestName);",
+          "console.log('🎯 Статус: ' + pm.response.code + ' ' + pm.response.status);",
+          "console.log('⏱️  Время: ' + pm.response.responseTime + 'ms');",
+          "",
+          "// Проверка статуса кода",
+          "pm.test('Статус код 2xx, 404 или 405', function() {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403, 404, 405]);",
+          "});",
+          "",
+          "// Проверка Content-Type для успешных ответов",
+          "if (pm.response.code === 200 || pm.response.code === 201) {",
+          "    pm.test('Ответ в формате JSON', function() {",
+          "        const contentType = pm.response.headers.get('Content-Type');",
+          "        pm.expect(contentType).to.include('application/json');",
+          "    });",
+          "    ",
+          "    // Логируем тело ответа в debug режиме",
+          "    const debugMode = pm.environment.get('debug_mode') === 'true';",
+          "    if (debugMode) {",
+          "        try {",
+          "            const responseBody = pm.response.json();",
+          "            console.log('📦 Тело ответа:');",
+          "            console.log(JSON.stringify(responseBody, null, 2));",
+          "        } catch (e) {",
+          "            console.log('📦 Тело ответа (не JSON): ' + pm.response.text());",
+          "        }",
+          "    }",
+          "}",
+          "",
+          "// Логирование ошибок",
+          "if (pm.response.code >= 400) {",
+          "    console.warn('⚠️ Ошибка ' + pm.response.code + ':');",
+          "    try {",
+          "        const errorText = pm.response.text();",
+          "        if (errorText && errorText.length > 0) {",
+          "            if (errorText.includes('{')) {",
+          "                const errorJson = JSON.parse(errorText);",
+          "                console.warn(JSON.stringify(errorJson, null, 2));",
+          "            } else {",
+          "                console.warn(errorText.substring(0, 500) + (errorText.length > 500 ? '...' : ''));",
+          "            }",
+          "        }",
+          "    } catch (e) {",
+          "        console.warn('Не удалось распарсить ошибку');",
+          "    }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [],
+  "item": [
+    {
+      "name": "🔧 Health Check & Setup",
+      "item": [
+        {
+          "name": "🔄 Настройка API типа",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            }
+          }
+        },
+        {
+          "name": "📄 GET Main Page",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/LAB5/",
+              "host": ["http://localhost:8080"],
+              "path": ["LAB5", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Users API",
+      "description": "Управление пользователями",
+      "item": [
+        {
+          "name": "🔹 USERS-1: GET All Users (Admin only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "🔹 USERS-2: GET User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["users", "1"]
+            }
+          }
+        },
+        {
+          "name": "🔹 USERS-3: GET User by Login",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/login/admin",
+              "host": ["{{base_url}}"],
+              "path": ["users", "login", "admin"]
+            }
+          }
+        },
+        {
+          "name": "🔹 USERS-4: GET Users by Role",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/role/ADMIN",
+              "host": ["{{base_url}}"],
+              "path": ["users", "role", "ADMIN"]
+            }
+          }
+        },
+        {
+          "name": "🔹 USERS-5: POST Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"{{test_user_login}}\",\n  \"password\": \"{{test_user_password}}\",\n  \"role\": \"{{test_user_role}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "🔹 USERS-6: PUT Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"updated_{{test_user_login}}\",\n  \"role\": \"ADMIN\",\n  \"password\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["users", "1"]
+            }
+          }
+        },
+        {
+          "name": "🔹 USERS-7: DELETE User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["users", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📈 Functions API",
+      "description": "Управление функциями",
+      "item": [
+        {
+          "name": "🔹 FUNC-1: GET All Functions (Admin only)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/functions",
+              "host": ["{{base_url}}"],
+              "path": ["functions"]
+            }
+          }
+        },
+        {
+          "name": "🔹 FUNC-2: GET Function by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/functions/1",
+              "host": ["{{base_url}}"],
+              "path": ["functions", "1"]
+            }
+          }
+        },
+        {
+          "name": "🔹 FUNC-3: GET Functions by User ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/functions/user/1",
+              "host": ["{{base_url}}"],
+              "path": ["functions", "user", "1"]
+            }
+          }
+        },
+        {
+          "name": "🔹 FUNC-4: GET Functions by Name",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/functions/name/quadratic",
+              "host": ["{{base_url}}"],
+              "path": ["functions", "name", "quadratic"]
+            }
+          }
+        },
+        {
+          "name": "🔹 FUNC-5: GET Function Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/functions/stats/1",
+              "host": ["{{base_url}}"],
+              "path": ["functions", "stats", "1"]
+            }
+          }
+        },
+        {
+          "name": "🔹 FUNC-6: POST Create Function",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": 1,\n  \"name\": \"Quadratic Function\",\n  \"signature\": \"x^2\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/functions",
+              "host": ["{{base_url}}"],
+              "path": ["functions"]
+            }
+          }
+        },
+        {
+          "name": "🔹 FUNC-7: PUT Update Function",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Function\",\n  \"signature\": \"x^3 + 2x\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/functions/1",
+              "host": ["{{base_url}}"],
+              "path": ["functions", "1"]
+            }
+          }
+        },
+        {
+          "name": "🔹 FUNC-8: DELETE Function",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/functions/1",
+              "host": ["{{base_url}}"],
+              "path": ["functions", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📍 Points API",
+      "description": "Управление точками функций",
+      "item": [
+        {
+          "name": "🔹 POINT-1: GET Points by Function ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/points/function/1",
+              "host": ["{{base_url}}"],
+              "path": ["points", "function", "1"]
+            }
+          }
+        },
+        {
+          "name": "🔹 POINT-2: GET Point by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/points/1",
+              "host": ["{{base_url}}"],
+              "path": ["points", "1"]
+            }
+          }
+        },
+        {
+          "name": "🔹 POINT-3: GET Max Y Point",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/points/max/1",
+              "host": ["{{base_url}}"],
+              "path": ["points", "max", "1"]
+            }
+          }
+        },
+        {
+          "name": "🔹 POINT-4: GET Min Y Point",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/points/min/1",
+              "host": ["{{base_url}}"],
+              "path": ["points", "min", "1"]
+            }
+          }
+        },
+        {
+          "name": "🔹 POINT-5: GET Points Statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/points/stats/1",
+              "host": ["{{base_url}}"],
+              "path": ["points", "stats", "1"]
+            }
+          }
+        },
+        {
+          "name": "🔹 POINT-6: POST Create Point",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"functionId\": 1,\n  \"xValue\": 2.5,\n  \"yValue\": 6.25\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/points",
+              "host": ["{{base_url}}"],
+              "path": ["points"]
+            }
+          }
+        },
+        {
+          "name": "🔹 POINT-7: POST Generate Points",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"functionType\": \"QUADRATIC\",\n  \"start\": -10,\n  \"end\": 10,\n  \"step\": 0.5\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/points/generate/1",
+              "host": ["{{base_url}}"],
+              "path": ["points", "generate", "1"]
+            }
+          }
+        },
+        {
+          "name": "🔹 POINT-8: PUT Update Point",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"xValue\": 3.0,\n  \"yValue\": 9.0\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/points/1",
+              "host": ["{{base_url}}"],
+              "path": ["points", "1"]
+            }
+          }
+        },
+        {
+          "name": "🔹 POINT-9: DELETE Point",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Basic {{auth_header}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/points/1",
+              "host": ["{{base_url}}"],
+              "path": ["points", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚙️ Тестовые сценарии",
+      "description": "Готовые сценарии тестирования",
+      "item": [
+        {
+          "name": "📋 Сценарий 1: Basic Auth проверка",
+          "item": [
+            {
+              "name": "1. GET без авторизации (должна быть 401)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{base_url}}/users",
+                  "host": ["{{base_url}}"],
+                  "path": ["users"]
+                }
+              }
+            },
+            {
+              "name": "2. GET с авторизацией (должна быть 200 или 403)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Basic {{auth_header}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/users",
+                  "host": ["{{base_url}}"],
+                  "path": ["users"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "📊 Сценарий 2: Быстрая проверка API",
+          "item": [
+            {
+              "name": "1. Главная страница",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "http://localhost:8080/LAB5/",
+                  "host": ["http://localhost:8080"],
+                  "path": ["LAB5", ""]
+                }
+              }
+            },
+            {
+              "name": "2. Пользователи (с авторизацией)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Basic {{auth_header}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/users",
+                  "host": ["{{base_url}}"],
+                  "path": ["users"]
+                }
+              }
+            },
+            {
+              "name": "3. Функции (с авторизацией)",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Basic {{auth_header}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{base_url}}/functions",
+                  "host": ["{{base_url}}"],
+                  "path": ["functions"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
