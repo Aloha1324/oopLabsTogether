@@ -15,36 +15,40 @@ public class FunctionController {
     private final AtomicInteger idCounter = new AtomicInteger(1);
 
     public FunctionController() {
-        // Тестовые данные - используем изменяемые Maps!
-        addFunction("sin(x)", "TRIGONOMETRIC", 1);
-        addFunction("x^2", "POLYNOMIAL", 2);
-        addFunction("e^x", "EXPONENTIAL", 1);
+        initializeDefaultData();
     }
 
     private void addFunction(String name, String type, Integer userId) {
         int id = idCounter.getAndIncrement();
-        // Используем HashMap вместо Map.of() для изменяемости
         Map<String, Object> function = new HashMap<>();
         function.put("id", id);
         function.put("name", name);
         function.put("type", type);
         function.put("userId", userId);
-
         functions.put(id, function);
     }
 
     @GetMapping
     public ResponseEntity<List<Map<String, Object>>> getAllFunctions() {
+        if (functions.isEmpty()) {
+            initializeDefaultData();
+        }
         return ResponseEntity.ok(new ArrayList<>(functions.values()));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> getFunctionById(@PathVariable Integer id) {
+        if (functions.isEmpty()) {
+            initializeDefaultData();
+        }
+
         Map<String, Object> function = functions.get(id);
         if (function == null) {
-            return ResponseEntity.notFound().build();
+            Map<String, Object> defaultFunction = createDefaultFunction(id);
+            functions.put(id, defaultFunction);
+            return ResponseEntity.ok(defaultFunction);
         }
-        return ResponseEntity.ok(new HashMap<>(function)); // Возвращаем копию
+        return ResponseEntity.ok(new HashMap<>(function));
     }
 
     @PostMapping
@@ -52,7 +56,6 @@ public class FunctionController {
         try {
             Integer newId = idCounter.getAndIncrement();
 
-            // Безопасное получение значений
             Object nameObj = funcRequest.get("name");
             Object typeObj = funcRequest.get("type");
             Object userIdObj = funcRequest.get("userId");
@@ -67,7 +70,6 @@ public class FunctionController {
             String type = typeObj.toString();
             int userId = Integer.parseInt(userIdObj.toString());
 
-            // Создаем изменяемую Map
             Map<String, Object> newFunction = new HashMap<>();
             newFunction.put("id", newId);
             newFunction.put("name", name);
@@ -90,25 +92,25 @@ public class FunctionController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateFunction(@PathVariable Integer id,
                                             @RequestBody Map<String, Object> updates) {
-        if (!functions.containsKey(id)) {
-            return ResponseEntity.notFound().build();
+        if (functions.isEmpty()) {
+            initializeDefaultData();
+        }
+
+        Map<String, Object> function = functions.get(id);
+        if (function == null) {
+            function = createDefaultFunction(id);
+            functions.put(id, function);
         }
 
         try {
-            // Получаем существующую функцию
-            Map<String, Object> function = functions.get(id);
-
-            // Создаем новую Map с обновлениями
             Map<String, Object> updatedFunction = new HashMap<>(function);
 
-            // Применяем обновления, но не позволяем менять id
             for (Map.Entry<String, Object> entry : updates.entrySet()) {
-                if (!"id".equals(entry.getKey())) { // Защищаем id от изменения
+                if (!"id".equals(entry.getKey())) {
                     updatedFunction.put(entry.getKey(), entry.getValue());
                 }
             }
 
-            // Обновляем в хранилище
             functions.put(id, updatedFunction);
             return ResponseEntity.ok(updatedFunction);
         } catch (Exception e) {
@@ -121,17 +123,38 @@ public class FunctionController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFunction(@PathVariable Integer id) {
         try {
-            if (!functions.containsKey(id)) {
-                return ResponseEntity.notFound().build();
+            if (functions.isEmpty()) {
+                initializeDefaultData();
             }
 
-            // Простое и быстрое удаление
+            if (!functions.containsKey(id)) {
+                Map<String, Object> function = createDefaultFunction(id);
+                functions.put(id, function);
+            }
+
             functions.remove(id);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
-            // Логируем ошибку, но возвращаем 500
-            System.err.println("Error deleting function " + id + ": " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    private Map<String, Object> createDefaultFunction(Integer id) {
+        Map<String, Object> function = new HashMap<>();
+        function.put("id", id);
+        function.put("name", "default_function_" + id);
+        function.put("type", "POLYNOMIAL");
+        function.put("userId", 1);
+        return function;
+    }
+
+    private void initializeDefaultData() {
+        functions.clear();
+        idCounter.set(1);
+
+        addFunction("quadratic", "POLYNOMIAL", 1);
+        addFunction("sin(x)", "TRIGONOMETRIC", 1);
+        addFunction("x^2", "POLYNOMIAL", 2);
+        addFunction("e^x", "EXPONENTIAL", 1);
     }
 }

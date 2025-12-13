@@ -1,16 +1,10 @@
 {
-  "id": "lab5-final-environment",
-  "name": "LAB5 Final Environment",
+  "id": "lab5-corrected-environment",
+  "name": "LAB5 Corrected Environment",
   "values": [
     {
       "key": "server_url",
       "value": "http://localhost:8080/lab5-api",
-      "type": "default",
-      "enabled": true
-    },
-    {
-      "key": "api_prefix",
-      "value": "",
       "type": "default",
       "enabled": true
     },
@@ -31,33 +25,7 @@
       "value": "1",
       "type": "default",
       "enabled": true
-    },
-    {
-      "key": "point_id",
-      "value": "1",
-      "type": "default",
-      "enabled": true
-    },
-    {
-      "key": "username",
-      "value": "admin",
-      "type": "default",
-      "enabled": true
-    },
-    {
-      "key": "function_name",
-      "value": "quadratic",
-      "type": "default",
-      "enabled": true
-    },
-    {
-      "key": "role",
-      "value": "ADMIN",
-      "type": "default",
-      "enabled": true
     }
   ],
-  "_postman_variable_scope": "environment",
-  "_postman_exported_at": "2025-12-13T03:00:00.000Z",
-  "_postman_exported_using": "Postman/10.0.0"
+  "_postman_variable_scope": "environment"
 }
