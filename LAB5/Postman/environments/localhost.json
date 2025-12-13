@@ -1,80 +1,64 @@
 {
-  "id": "lab5-universal-env",
-  "name": "LAB5 Universal Environment",
+  "id": "lab5-final-environment",
+  "name": "LAB5 Final Environment",
   "values": [
     {
-      "key": "api_type",
-      "value": "manual",
+      "key": "server_url",
+      "value": "http://localhost:8080/lab5-api",
       "type": "default",
-      "enabled": true,
-      "description": "manual - Servlets, framework - Spring Boot"
+      "enabled": true
     },
     {
-      "key": "base_url_manual",
-      "value": "http://localhost:8080/LAB5",
+      "key": "api_prefix",
+      "value": "",
       "type": "default",
-      "enabled": true,
-      "description": "Для Manual ветки (Servlets)"
+      "enabled": true
     },
     {
-      "key": "base_url_framework",
-      "value": "http://localhost:8080/lab5-api/api/v1",
+      "key": "auth_token",
+      "value": "Basic YWRtaW46YWRtaW4=",
       "type": "default",
-      "enabled": true,
-      "description": "Для Framework ветки (Spring Boot)"
+      "enabled": true
     },
     {
-      "key": "base_url",
-      "value": "{{base_url_manual}}",
+      "key": "user_id",
+      "value": "1",
       "type": "default",
-      "enabled": true,
-      "description": "Автоматически выбирается"
+      "enabled": true
     },
     {
-      "key": "auth_username",
+      "key": "function_id",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "point_id",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "username",
       "value": "admin",
-      "type": "secret",
-      "enabled": true
-    },
-    {
-      "key": "auth_password",
-      "value": "admin123",
-      "type": "secret",
-      "enabled": true
-    },
-    {
-      "key": "auth_header",
-      "value": "YWRtaW46YWRtaW4xMjM=",
-      "type": "default",
-      "enabled": true,
-      "description": "Basic auth: admin:admin123 (base64)"
-    },
-    {
-      "key": "test_user_login",
-      "value": "testuser",
       "type": "default",
       "enabled": true
     },
     {
-      "key": "test_user_password",
-      "value": "test123",
-      "type": "secret",
-      "enabled": true
-    },
-    {
-      "key": "test_user_role",
-      "value": "USER",
+      "key": "function_name",
+      "value": "quadratic",
       "type": "default",
       "enabled": true
     },
     {
-      "key": "debug_mode",
-      "value": "true",
+      "key": "role",
+      "value": "ADMIN",
       "type": "default",
       "enabled": true
     }
   ],
   "_postman_variable_scope": "environment",
-  "_postman_exported_at": "2025-12-12T00:00:00.000Z",
-  "_postman_exported_using": "Postman/11.75.2"
+  "_postman_exported_at": "2025-12-13T03:00:00.000Z",
+  "_postman_exported_using": "Postman/10.0.0"
 }
+
