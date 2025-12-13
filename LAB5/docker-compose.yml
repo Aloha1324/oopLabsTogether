@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/LAB_5
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: A2D5T97YU8
+    depends_on:
+      - postgres
+    #перезапуск при падении
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: LAB_5
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: A2D5T97YU8
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    #перезапуск
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
