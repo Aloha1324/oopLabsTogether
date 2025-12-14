@@ -25,21 +25,6 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "// 🕒 ДОБАВЛЕНО ДЛЯ СБОРА ВРЕМЕНИ - начало",
-                  "// Сохраняем время выполнения текущего запроса",
-                  "let times = JSON.parse(pm.collectionVariables.get('responseTimes') || '[]');",
-                  "times.push({",
-                  "    method: pm.request.method,",
-                  "    name: pm.info.requestName,",
-                  "    url: pm.request.url.toString(),",
-                  "    time: pm.response.responseTime,",
-                  "    code: pm.response.code,",
-                  "    timestamp: new Date().toISOString(),",
-                  "    group: 'Health Check'",
-                  "});",
-                  "pm.collectionVariables.set('responseTimes', JSON.stringify(times));",
-                  "// 🕒 ДОБАВЛЕНО ДЛЯ СБОРА ВРЕМЕНИ - конец",
-                  "",
                   "// ТЕСТ 1: Статус код",
                   "pm.test('1. Статус 200 OK', function() {",
                   "    pm.response.to.have.status(200);",
@@ -132,30 +117,6 @@
       "item": [
         {
           "name": "GET Все пользователи",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// 🕒 ДОБАВЛЕНО ДЛЯ СБОРА ВРЕМЕНИ",
-                  "let times = JSON.parse(pm.collectionVariables.get('responseTimes') || '[]');",
-                  "times.push({",
-                  "    method: pm.request.method,",
-                  "    name: pm.info.requestName,",
-                  "    url: pm.request.url.toString(),",
-                  "    time: pm.response.responseTime,",
-                  "    code: pm.response.code,",
-                  "    timestamp: new Date().toISOString(),",
-                  "    group: 'Users API'",
-                  "});",
-                  "pm.collectionVariables.set('responseTimes', JSON.stringify(times));",
-                  "",
-                  "console.log('👥 Users API: ' + pm.response.code + ' (' + pm.response.responseTime + 'ms)');"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "request": {
             "method": "GET",
             "header": [
@@ -173,30 +134,6 @@
         },
         {
           "name": "GET Пользователь по ID",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// 🕒 ДОБАВЛЕНО ДЛЯ СБОРА ВРЕМЕНИ",
-                  "let times = JSON.parse(pm.collectionVariables.get('responseTimes') || '[]');",
-                  "times.push({",
-                  "    method: pm.request.method,",
-                  "    name: pm.info.requestName,",
-                  "    url: pm.request.url.toString(),",
-                  "    time: pm.response.responseTime,",
-                  "    code: pm.response.code,",
-                  "    timestamp: new Date().toISOString(),",
-                  "    group: 'Users API'",
-                  "});",
-                  "pm.collectionVariables.set('responseTimes', JSON.stringify(times));",
-                  "",
-                  "console.log('👥 User by ID: ' + pm.response.code + ' (' + pm.response.responseTime + 'ms)');"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "request": {
             "method": "GET",
             "header": [
@@ -224,19 +161,6 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "// 🕒 ДОБАВЛЕНО ДЛЯ СБОРА ВРЕМЕНИ",
-                  "let times = JSON.parse(pm.collectionVariables.get('responseTimes') || '[]');",
-                  "times.push({",
-                  "    method: pm.request.method,",
-                  "    name: pm.info.requestName,",
-                  "    url: pm.request.url.toString(),",
-                  "    time: pm.response.responseTime,",
-                  "    code: pm.response.code,",
-                  "    timestamp: new Date().toISOString(),",
-                  "    group: 'Functions API'",
-                  "});",
-                  "pm.collectionVariables.set('responseTimes', JSON.stringify(times));",
-                  "",
                   "pm.test('1. Статус 200 OK', function() {",
                   "    pm.response.to.have.status(200);",
                   "});",
@@ -285,30 +209,6 @@
         },
         {
           "name": "GET Функция по ID",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// 🕒 ДОБАВЛЕНО ДЛЯ СБОРА ВРЕМЕНИ",
-                  "let times = JSON.parse(pm.collectionVariables.get('responseTimes') || '[]');",
-                  "times.push({",
-                  "    method: pm.request.method,",
-                  "    name: pm.info.requestName,",
-                  "    url: pm.request.url.toString(),",
-                  "    time: pm.response.responseTime,",
-                  "    code: pm.response.code,",
-                  "    timestamp: new Date().toISOString(),",
-                  "    group: 'Functions API'",
-                  "});",
-                  "pm.collectionVariables.set('responseTimes', JSON.stringify(times));",
-                  "",
-                  "console.log('📈 Function by ID: ' + pm.response.code + ' (' + pm.response.responseTime + 'ms)');"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "request": {
             "method": "GET",
             "header": [
@@ -326,30 +226,6 @@
         },
         {
           "name": "POST Создать функцию",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// 🕒 ДОБАВЛЕНО ДЛЯ СБОРА ВРЕМЕНИ",
-                  "let times = JSON.parse(pm.collectionVariables.get('responseTimes') || '[]');",
-                  "times.push({",
-                  "    method: pm.request.method,",
-                  "    name: pm.info.requestName,",
-                  "    url: pm.request.url.toString(),",
-                  "    time: pm.response.responseTime,",
-                  "    code: pm.response.code,",
-                  "    timestamp: new Date().toISOString(),",
-                  "    group: 'Functions API'",
-                  "});",
-                  "pm.collectionVariables.set('responseTimes', JSON.stringify(times));",
-                  "",
-                  "console.log('📈 Create Function: ' + pm.response.code + ' (' + pm.response.responseTime + 'ms)');"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "request": {
             "method": "POST",
             "header": [
@@ -380,30 +256,6 @@
       "item": [
         {
           "name": "GET Точки по Function ID",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// 🕒 ДОБАВЛЕНО ДЛЯ СБОРА ВРЕМЕНИ",
-                  "let times = JSON.parse(pm.collectionVariables.get('responseTimes') || '[]');",
-                  "times.push({",
-                  "    method: pm.request.method,",
-                  "    name: pm.info.requestName,",
-                  "    url: pm.request.url.toString(),",
-                  "    time: pm.response.responseTime,",
-                  "    code: pm.response.code,",
-                  "    timestamp: new Date().toISOString(),",
-                  "    group: 'Points API'",
-                  "});",
-                  "pm.collectionVariables.set('responseTimes', JSON.stringify(times));",
-                  "",
-                  "console.log('📍 Points by Function: ' + pm.response.code + ' (' + pm.response.responseTime + 'ms)');"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "request": {
             "method": "GET",
             "header": [
@@ -421,91 +273,6 @@
         },
         {
           "name": "POST Создать точку",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "// 🕒 ДОБАВЛЕНО ДЛЯ СБОРА ВРЕМЕНИ",
-                  "let times = JSON.parse(pm.collectionVariables.get('responseTimes') || '[]');",
-                  "times.push({",
-                  "    method: pm.request.method,",
-                  "    name: pm.info.requestName,",
-                  "    url: pm.request.url.toString(),",
-                  "    time: pm.response.responseTime,",
-                  "    code: pm.response.code,",
-                  "    timestamp: new Date().toISOString(),",
-                  "    group: 'Points API'",
-                  "});",
-                  "pm.collectionVariables.set('responseTimes', JSON.stringify(times));",
-                  "",
-                  "// 🕒 ДОБАВЛЕНО ДЛЯ ВЫВОДА ИТОГОВОЙ ТАБЛИЦЫ",
-                  "// Этот код выполнится последним, после всех запросов",
-                  "console.log('\\n' + '═'.repeat(80));",
-                  "console.log('📊 ИТОГОВАЯ СТАТИСТИКА ВРЕМЕНИ ОБРАБОТКИ ЗАПРОСОВ');",
-                  "console.log('═'.repeat(80));",
-                  "",
-                  "// Получаем все собранные данные",
-                  "let allTimes = JSON.parse(pm.collectionVariables.get('responseTimes') || '[]');",
-                  "",
-                  "// Сортируем по времени (от большего к меньшему)",
-                  "allTimes.sort((a, b) => b.time - a.time);",
-                  "",
-                  "// Шапка таблицы",
-                  "console.log('┌' + '─'.repeat(8) + '┬' + '─'.repeat(12) + '┬' + '─'.repeat(8) + '┬' + '─'.repeat(50) + '┐');",
-                  "console.log('│ ' + padRight('МЕТОД', 6) + ' │ ' + padRight('ВРЕМЯ (мс)', 10) + ' │ ' + padRight('КОД', 6) + ' │ ' + padRight('ЗАПРОС', 48) + ' │');",
-                  "console.log('├' + '─'.repeat(8) + '┼' + '─'.repeat(12) + '┼' + '─'.repeat(8) + '┼' + '─'.repeat(50) + '┤');",
-                  "",
-                  "// Данные таблицы",
-                  "allTimes.forEach(item => {",
-                  "    const timeStr = item.time + ' ms';",
-                  "    const timeColor = item.time > 2000 ? '\\x1b[31m' : (item.time > 1000 ? '\\x1b[33m' : '\\x1b[32m');",
-                  "    const statusColor = item.code >= 400 ? '\\x1b[31m' : (item.code >= 300 ? '\\x1b[33m' : '\\x1b[32m');",
-                  "    ",
-                  "    console.log('│ ' + padRight(item.method, 6) + ' │ ' + timeColor + padRight(timeStr, 10) + '\\x1b[0m │ ' + statusColor + padRight(item.code, 6) + '\\x1b[0m │ ' + padRight(item.name, 48) + ' │');",
-                  "});",
-                  "",
-                  "console.log('└' + '─'.repeat(8) + '┴' + '─'.repeat(12) + '┴' + '─'.repeat(8) + '┴' + '─'.repeat(50) + '┘');",
-                  "",
-                  "// Итоги",
-                  "const totalTime = allTimes.reduce((sum, item) => sum + item.time, 0);",
-                  "const avgTime = totalTime / allTimes.length;",
-                  "const slowest = allTimes[0];",
-                  "const fastest = allTimes[allTimes.length - 1];",
-                  "",
-                  "console.log('\\n📈 СТАТИСТИКА:');",
-                  "console.log('├─ Всего запросов: ' + allTimes.length);",
-                  "console.log('├─ Общее время: ' + totalTime.toFixed(0) + ' ms');",
-                  "console.log('├─ Среднее время: ' + avgTime.toFixed(0) + ' ms');",
-                  "console.log('├─ Самый медленный: ' + slowest.time + ' ms (' + slowest.name + ')');",
-                  "console.log('└─ Самый быстрый: ' + fastest.time + ' ms (' + fastest.name + ')');",
-                  "",
-                  "console.log('\\n🏷️  ПО ГРУППАМ:');",
-                  "const groups = {};",
-                  "allTimes.forEach(item => {",
-                  "    if (!groups[item.group]) groups[item.group] = { count: 0, total: 0 };",
-                  "    groups[item.group].count++;",
-                  "    groups[item.group].total += item.time;",
-                  "});",
-                  "",
-                  "Object.keys(groups).forEach(group => {",
-                  "    const avg = (groups[group].total / groups[group].count).toFixed(0);",
-                  "    console.log(`   ${group}: ${groups[group].count} запросов, среднее ${avg} ms`);",
-                  "});",
-                  "",
-                  "console.log('═'.repeat(80) + '\\n');",
-                  "",
-                  "// Функция для форматирования колонок",
-                  "function padRight(str, length) {",
-                  "    return (str + ' '.repeat(length)).substring(0, length);",
-                  "}",
-                  "",
-                  "console.log('📍 Create Point: ' + pm.response.code + ' (' + pm.response.responseTime + 'ms)');"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
           "request": {
             "method": "POST",
             "header": [
@@ -537,13 +304,6 @@
       "listen": "prerequest",
       "script": {
         "exec": [
-          "// 🕒 ДОБАВЛЕНО ДЛЯ ИНИЦИАЛИЗАЦИИ ХРАНИЛИЩА",
-          "// Очищаем результаты при начале нового прогона коллекции",
-          "if (pm.info.iteration === 0) {",
-          "    pm.collectionVariables.set('responseTimes', JSON.stringify([]));",
-          "    console.log('🔄 Начинаем новый прогон коллекции...');",
-          "}",
-          "",
           "console.log('🚀 ' + pm.info.requestName);"
         ],
         "type": "text/javascript"
@@ -569,12 +329,7 @@
         "type": "text/javascript"
       }
     }
-  ],
-  "variable": [
-    {
-      "key": "responseTimes",
-      "value": "[]",
-      "type": "string"
-    }
   ]
 }
+
+
