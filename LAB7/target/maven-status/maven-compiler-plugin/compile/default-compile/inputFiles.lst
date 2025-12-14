@@ -1,20 +1,64 @@
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\service\FunctionService.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\service\PointService.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\DTO\PointDTO.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\service\PerformanceBenchmarkService.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\DAO\UserDAO.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\service\AuthService.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\servlet\MainPageServlet.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\servlet\UserServlet.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\DAO\PointDAO.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\servlet\BaseAuthServlet.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\config\DatabaseConfig.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\service\UserService.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\logging\SecurityLogger.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\DAO\FunctionDAO.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\LAB5Application.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\DTO\UserDTO.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\servlet\FunctionServlet.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\DTO\FunctionDTO.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\manual\service\DTOTransformationService.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB5\src\main\java\com\example\LAB5\servlet\PointServlet.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\concurrent\ReadWriteTaskExecutor.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\manual\config\DatabaseConfig.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\manual\service\UserService.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\MathFunction.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\operations\LeftSteppingDifferentialOperator.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\TabulatedFunction.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\factory\ArrayTabulatedFunctionFactory.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\io\FunctionsIO.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\manual\DTO\UserDTO.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\manual\service\DTOTransformationService.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\exceptions\ArrayIsNotSortedException.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\manual\service\FunctionService.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\servlet\UserServlet.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\ConstantFunction.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\factory\TabulatedFunctionFactory.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\operations\TabulatedFunctionOperationService.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\manual\logging\SecurityLogger.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\IterationSolver.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\io\LinkedListTabulatedFunctionSerialization.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\SqrFunction.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\exceptions\DifferentLengthOfArraysException.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\manual\DTO\PointDTO.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\servlet\PointServlet.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\io\TabulatedFunctionFileReader.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\exceptions\InterpolationException.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\LinkedListTabulatedFunction.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\concurrent\SynchronizedTabulatedFunction.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\concurrent\WriteTask.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\operations\DifferentialOperator.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\concurrent\ReadTask.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\factory\LinkedListTabulatedFunctionFactory.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\Removable.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\Point.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\manual\service\AuthService.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\AbstractTabulatedFunction.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\concurrent\MultiplyingTask.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\operations\TabulatedDifferentialOperator.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\manual\service\PerformanceBenchmarkService.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\io\TabulatedFunctionFileWriter.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\manual\service\PointService.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\IdentityFunction.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\operations\MiddleSteppingDifferentialOperator.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\servlet\FunctionServlet.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\io\TabulatedFunctionFileOutputStream.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\manual\DTO\FunctionDTO.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\ArrayTabulatedFunctionRemovable.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\servlet\MainPageServlet.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\Insertable.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\io\TabulatedFunctionFileInputStream.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\ZeroFunction.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\exceptions\InconsistentFunctionsException.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\concurrent\MultiplyingTaskExecutor.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\manual\DAO\FunctionDAO.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\CompositeFunction.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\NewtonSolver.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\LAB5Application.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\io\ArrayTabulatedFunctionSerialization.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\ArrayTabulatedFunction.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\manual\DAO\PointDAO.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\manual\DAO\UserDAO.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\operations\SteppingDifferentialOperator.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\servlet\BaseAuthServlet.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\UnitFunction.java
+C:\Users\user\Desktop\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\operations\RightSteppingDifferentialOperator.java
