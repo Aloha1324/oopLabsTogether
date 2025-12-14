@@ -1,0 +1,32 @@
+{
+  "id": "lab5-corrected-environment",
+  "name": "LAB5 Corrected Environment",
+  "values": [
+    {
+      "key": "server_url",
+      "value": "http://localhost:8080/lab5-api",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "auth_token",
+      "value": "Basic YWRtaW46YWRtaW4=",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "user_id",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "function_id",
+      "value": "1",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}
+

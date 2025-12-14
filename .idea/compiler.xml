@@ -6,10 +6,14 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="LAB6" />
+        <module name="lablab2" />
+        <module name="LAB4.74" />
         <module name="LAB5" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="LAB6" target="17" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
