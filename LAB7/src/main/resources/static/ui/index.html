@@ -1,0 +1,38 @@
+<!-- src/main/resources/static/index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход / Регистрация</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; }
+        .form { margin-bottom: 20px; }
+        input { width: 100%; padding: 8px; margin: 5px 0; box-sizing: border-box; }
+        button { padding: 10px 20px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background: #45a049; }
+        .error { color: red; margin: 10px 0; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+<div id="loginForm" class="form">
+    <h2>Вход</h2>
+    <input type="text" id="loginUsername" placeholder="Имя пользователя">
+    <input type="password" id="loginPassword" placeholder="Пароль">
+    <div id="loginError" class="error"></div>
+    <button onclick="login()">Войти</button>
+    <p>Нет аккаунта? <a href="#" onclick="showRegister()">Регистрация</a></p>
+</div>
+
+<div id="registerForm" class="form hidden">
+    <h2>Регистрация</h2>
+    <input type="text" id="regUsername" placeholder="Имя пользователя">
+    <input type="password" id="regPassword" placeholder="Пароль (мин. 6)">
+    <div id="registerError" class="error"></div>
+    <button onclick="register()">Зарегистрироваться</button>
+    <p>Уже есть аккаунт? <a href="#" onclick="showLogin()">Войти</a></p>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

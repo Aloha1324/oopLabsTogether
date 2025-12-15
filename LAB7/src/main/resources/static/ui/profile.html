@@ -1,0 +1,27 @@
+<!-- src/main/resources/static/profile.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Личный кабинет</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; }
+        .info { margin: 20px 0; }
+        button { padding: 10px 20px; background: #f44336; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+<h2>Личный кабинет</h2>
+<div class="info">
+    <p><strong>ID:</strong> <span id="userId"></span></p>
+    <p><strong>Имя:</strong> <span id="username"></span></p>
+    <p><strong>Роль:</strong> <span id="role"></span></p>
+</div>
+<button onclick="logout()">Выйти</button>
+
+<script src="app.js"></script>
+<script>
+    window.onload = loadProfile;
+</script>
+</body>
+</html>
