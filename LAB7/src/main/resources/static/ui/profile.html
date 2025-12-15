@@ -16,71 +16,25 @@
             --input-bg: #333344;
             --input-border: #444455;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-dark);
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
             color: var(--text-primary);
             max-width: 500px;
             margin: 50px auto;
             padding: 0 20px;
         }
-
-        h2 {
-            margin-bottom: 24px;
-            font-weight: 600;
-            color: white;
-            text-align: center;
-        }
-
+        h2 { margin-bottom: 24px; font-weight: 600; color: white; text-align: center; }
         .info {
             background: var(--bg-card);
             padding: 24px;
             border-radius: 12px;
             margin: 20px 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         }
-
-        .info p {
-            margin: 10px 0;
-            font-size: 16px;
-        }
-
-        .info strong {
-            color: white;
-        }
-
-        .functions-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin: 24px 0;
-        }
-
-        .function-btn {
-            padding: 12px;
-            background: var(--bg-card);
-            color: var(--text-primary);
-            border: 2px solid var(--accent-orange);
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .function-btn:hover {
-            background: var(--accent-orange);
-            color: white;
-            transform: translateY(-2px);
-        }
-
+        .info p { margin: 10px 0; font-size: 16px; }
+        .info strong { color: white; }
         button {
             width: 100%;
             padding: 12px;
@@ -91,26 +45,40 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s ease;
+            transition: background 0.2s;
             margin: 8px 0;
         }
-
-        button:hover {
-            background: var(--accent-orange-hover);
+        button:hover { background: var(--accent-orange-hover); }
+        .functions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 24px 0;
         }
-
-        /* ✅ МОДАЛКИ — ТОТ ЖЕ СТИЛЬ! */
+        .function-btn {
+            padding: 12px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 2px solid var(--accent-orange);
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .function-btn:hover {
+            background: var(--accent-orange);
+            color: white;
+            transform: translateY(-2px);
+        }
         .modal {
             display: none;
             position: fixed;
             z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
         }
-
         .modal-content {
             background: var(--bg-dark);
             margin: 5% auto;
@@ -122,68 +90,52 @@
             overflow-y: auto;
             border: 1px solid var(--input-border);
         }
-
-        .modal h3 {
-            color: white;
-            margin-bottom: 20px;
-            font-size: 20px;
+        .close {
+            color: var(--text-secondary);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
         }
-
+        .close:hover { color: var(--accent-orange); }
         .form-group {
             margin-bottom: 16px;
         }
-
         .form-group label {
             display: block;
             margin-bottom: 6px;
             color: var(--text-primary);
             font-weight: 500;
         }
-
-        .form-group input, .form-group select, .form-group textarea {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 10px;
             background: var(--input-bg);
             border: 1px solid var(--input-border);
             border-radius: 6px;
             color: var(--text-primary);
-            font-size: 14px;
         }
-
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none;
-            border-color: var(--accent-orange);
-            box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
-        }
-
         .modal-buttons {
             display: flex;
             gap: 12px;
             margin-top: 24px;
         }
-
         .btn-cancel {
             background: var(--input-bg);
             color: var(--text-secondary);
             border: 1px solid var(--input-border);
             flex: 1;
         }
-
         .btn-cancel:hover {
             background: var(--input-border);
             color: var(--text-primary);
         }
-
         .btn-create {
             background: var(--accent-orange);
             color: white;
             flex: 1;
         }
-
-        .btn-create:hover {
-            background: var(--accent-orange-hover);
-        }
-
+        .btn-create:hover { background: var(--accent-orange-hover); }
         .math-functions {
             max-height: 200px;
             overflow-y: auto;
@@ -192,68 +144,55 @@
             border-radius: 6px;
             margin: 12px 0;
         }
-
         .math-function {
             padding: 8px;
             border-radius: 4px;
             cursor: pointer;
             transition: background 0.2s;
             font-size: 14px;
+            margin-bottom: 4px;
         }
-
         .math-function:hover {
             background: var(--accent-orange);
             color: white;
         }
-
-        .close {
-            color: var(--text-secondary);
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            line-height: 1;
-        }
-
-        .close:hover {
-            color: var(--accent-orange);
-        }
     </style>
 </head>
 <body>
-<h2>Личный кабинет</h2>
+<h2>👤 Личный кабинет</h2>
+
 <div class="info">
-    <p><strong>ID:</strong> <span id="userId"></span></p>
-    <p><strong>Имя:</strong> <span id="username"></span></p>
-    <p><strong>Роль:</strong> <span id="role"></span></p>
+    <p><strong>ID:</strong> <span id="userId">-</span></p>
+    <p><strong>Имя:</strong> <span id="username">-</span></p>
+    <p><strong>Роль:</strong> <span id="role">-</span></p>
 </div>
 
-<!-- НОВАЯ КНОПКА -->
+<!-- ✅ ГЛАВНАЯ КНОПКА (по ТЗ) -->
 <button onclick="showCreateModal()">➕ Создать табулированную функцию</button>
 
-<!--  НОВЫЕ КНОПКИ -->
+<!-- ✅ ДОПОЛНИТЕЛЬНЫЕ КНОПКИ -->
 <div class="functions-grid">
-    <button class="function-btn" onclick="openPointsModal()">📊 Создать по точкам</button>
-    <button class="function-btn" onclick="openMathModal()">📈 Создать по формуле</button>
+    <button class="function-btn" onclick="openPointsModal()">📊 По точкам</button>
+    <button class="function-btn" onclick="openMathModal()">📈 По формуле</button>
 </div>
 
-<button onclick="logout()">Выйти</button>
+<button onclick="logout()">🚪 Выйти</button>
 
-<!-- ПО ТОЧКАМ -->
+<!-- ✅ МОДАЛКА №1 — ПО ТОЧКАМ -->
 <div id="pointsModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closePointsModal()">&times;</span>
         <h3>📊 Табулированная функция по точкам</h3>
         <div class="form-group">
-            <label>Название функции:</label>
-            <input type="text" id="pointsName" placeholder="Например: Квадрат">
+            <label>Название:</label>
+            <input type="text" id="pointsName" placeholder="Квадрат">
         </div>
         <div class="form-group">
-            <label>X значения (через запятую):</label>
+            <label>X (через запятую):</label>
             <input type="text" id="pointsX" placeholder="1, 2, 3, 4">
         </div>
         <div class="form-group">
-            <label>Y значения (через запятую):</label>
+            <label>Y (через запятую):</label>
             <input type="text" id="pointsY" placeholder="1, 4, 9, 16">
         </div>
         <div class="modal-buttons">
@@ -263,20 +202,18 @@
     </div>
 </div>
 
-<!-- О МАТЕМАТИЧЕСКОЙ ФОРМУЛЕ -->
+<!-- ✅ МОДАЛКА №2 — ПО ФОРМУЛЕ -->
 <div id="mathModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeMathModal()">&times;</span>
-        <h3> Табулированная функция по формуле</h3>
+        <h3>📈 Табулированная функция по формуле</h3>
         <div class="form-group">
-            <label>Название функции:</label>
-            <input type="text" id="mathName" placeholder="Например: Синусоида">
+            <label>Название:</label>
+            <input type="text" id="mathName" placeholder="Синусоида">
         </div>
         <div class="form-group">
             <label>Тип функции:</label>
-            <div class="math-functions" id="mathFunctionsList">
-                <!-- Заполняется JS -->
-            </div>
+            <div class="math-functions" id="mathFunctionsList"></div>
         </div>
         <div class="form-group">
             <label>От X:</label>
@@ -287,7 +224,7 @@
             <input type="number" id="mathToX" step="0.1" value="6.28">
         </div>
         <div class="form-group">
-            <label>Количество точек:</label>
+            <label>Точек:</label>
             <input type="number" id="mathPointsCount" value="100" min="2" max="1000">
         </div>
         <div class="modal-buttons">
@@ -298,123 +235,5 @@
 </div>
 
 <script src="app.js"></script>
-<script>
-    window.onload = loadProfile;
-
-    //  ФУНКЦИИ ДЛЯ МОДАЛОК
-    function openPointsModal() {
-        document.getElementById('pointsModal').style.display = 'block';
-    }
-
-    function closePointsModal() {
-        document.getElementById('pointsModal').style.display = 'none';
-    }
-
-    function openMathModal() {
-        document.getElementById('mathModal').style.display = 'block';
-        loadMathFunctions(); // Загружаем список функций
-    }
-
-    function closeMathModal() {
-        document.getElementById('mathModal').style.display = 'none';
-    }
-
-    // Закрытие по клику вне модалки
-    window.onclick = function(event) {
-        if (event.target.classList.contains('modal')) {
-            closePointsModal();
-            closeMathModal();
-        }
-    }
-
-    function loadMathFunctions() {
-        fetch('/api/v1/functions/tabulated/math-functions')
-            .then(response => response.json())
-            .then(functions => {
-                const container = document.getElementById('mathFunctionsList');
-                container.innerHTML = '';
-                functions.forEach(func => {
-                    const div = document.createElement('div');
-                    div.className = 'math-function';
-                    div.textContent = `${func.key}: ${func.description}`;
-                    div.onclick = () => selectMathFunction(func.key);
-                    container.appendChild(div);
-                });
-            });
-    }
-
-    function selectMathFunction(type) {
-        document.getElementById('mathFunctionType').value = type;
-        // Подсветка выбранной
-        document.querySelectorAll('.math-function').forEach(el => el.style.background = '');
-        event.target.style.background = 'var(--accent-orange)';
-        event.target.style.color = 'white';
-    }
-
-    async function createFunctionByPoints() {
-        const name = document.getElementById('pointsName').value;
-        const xStr = document.getElementById('pointsX').value;
-        const yStr = document.getElementById('pointsY').value;
-
-        const xValues = xStr.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
-        const yValues = yStr.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
-
-        if (xValues.length < 2 || yValues.length < 2 || xValues.length !== yValues.length) {
-            alert('Ошибка: минимум 2 точки, X и Y должны совпадать по количеству!');
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/v1/functions/tabulated/by-points', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, xValues, yValues })
-            });
-
-            if (response.ok) {
-                closePointsModal();
-                alert(' Функция создана успешно!');
-                document.getElementById('pointsName').value = '';
-                document.getElementById('pointsX').value = '';
-                document.getElementById('pointsY').value = '';
-            } else {
-                alert(' Ошибка создания функции');
-            }
-        } catch (error) {
-            alert(' Ошибка сети: ' + error.message);
-        }
-    }
-
-    async function createFunctionByMath() {
-        const name = document.getElementById('mathName').value;
-        const mathFunctionType = document.querySelector('.math-function[style*="accent-orange"]')?.textContent.split(':')[0]?.trim() || 'SIN';
-        const fromX = parseFloat(document.getElementById('mathFromX').value);
-        const toX = parseFloat(document.getElementById('mathToX').value);
-        const pointsCount = parseInt(document.getElementById('mathPointsCount').value);
-
-        if (fromX >= toX || pointsCount < 2) {
-            alert('Ошибка: fromX < toX и минимум 2 точки!');
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/v1/functions/tabulated/by-math-function', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, mathFunctionType, fromX, toX, pointsCount })
-            });
-
-            if (response.ok) {
-                closeMathModal();
-                alert(' Функция создана успешно!');
-                document.getElementById('mathName').value = '';
-            } else {
-                alert(' Ошибка создания функции');
-            }
-        } catch (error) {
-            alert(' Ошибка сети: ' + error.message);
-        }
-    }
-</script>
 </body>
 </html>

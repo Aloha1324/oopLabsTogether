@@ -3,133 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Вход / Регистрация</title>
+    <title>Система табулированных функций</title>
     <style>
         :root {
             --bg-dark: #1e1e2e;
             --bg-card: #252536;
             --text-primary: #e0e0e0;
-            --text-secondary: #a0a0b0;
             --accent-orange: #ff6b35;
             --accent-orange-hover: #e05a2a;
-            --error-red: #ff6b6b;
-            --input-bg: #333344;
-            --input-border: #444455;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-dark);
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark), #2a2a3e);
             color: var(--text-primary);
-            max-width: 500px;
-            margin: 50px auto;
-            padding: 0 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-
-        h2 {
-            margin-bottom: 24px;
-            font-weight: 600;
-            color: white;
-            text-align: center;
-        }
-
-        .form {
+        .container {
             background: var(--bg-card);
-            padding: 28px;
-            border-radius: 12px;
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
         }
-
-        input {
+        h1 { color: white; margin-bottom: 30px; font-size: 28px; }
+        .btn {
+            display: block;
             width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            background: var(--input-bg);
-            border: 1px solid var(--input-border);
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 16px;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--accent-orange);
-            box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.3);
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
+            padding: 14px;
+            margin: 12px 0;
             background: var(--accent-orange);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s ease;
-            margin-top: 12px;
-        }
-
-        button:hover {
-            background: var(--accent-orange-hover);
-        }
-
-        .error {
-            color: var(--error-red);
-            margin: 12px 0;
-            font-size: 14px;
-            min-height: 18px;
-            text-align: center;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        p {
-            text-align: center;
-            margin-top: 16px;
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        a {
-            color: var(--accent-orange);
+            transition: all 0.3s ease;
             text-decoration: none;
-            font-weight: 600;
         }
-
-        a:hover {
-            text-decoration: underline;
-        }
+        .btn:hover { background: var(--accent-orange-hover); transform: translateY(-2px); }
     </style>
 </head>
 <body>
-<div id="loginForm" class="form">
-    <h2>Вход</h2>
-    <input type="text" id="loginUsername" placeholder="Имя пользователя">
-    <input type="password" id="loginPassword" placeholder="Пароль">
-    <div id="loginError" class="error"></div>
-    <button onclick="login()">Войти</button>
-    <p>Нет аккаунта? <a href="#" onclick="showRegister()">Регистрация</a></p>
+<div class="container">
+    <h1>📈 Система функций</h1>
+    <a href="/login.html" class="btn">🚀 Войти</a>
+    <a href="/profile.html" class="btn">👤 Личный кабинет</a>
 </div>
-
-<div id="registerForm" class="form hidden">
-    <h2>Регистрация</h2>
-    <input type="text" id="regUsername" placeholder="Имя пользователя">
-    <input type="password" id="regPassword" placeholder="Пароль (мин. 6 символов)">
-    <div id="registerError" class="error"></div>
-    <button onclick="register()">Зарегистрироваться</button>
-    <p>Уже есть аккаунт? <a href="#" onclick="showLogin()">Войти</a></p>
-</div>
-
-<script src="app.js"></script>
 </body>
 </html>
