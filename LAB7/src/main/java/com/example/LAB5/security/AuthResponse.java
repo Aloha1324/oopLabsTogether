@@ -5,20 +5,13 @@ public class AuthResponse {
     private String username;
     private String role;
     private Long userId;
-    private String email;
 
-    // Конструктор для всех полей
-    public AuthResponse(String token, String username, String role, Long userId, String email) {
+    // Конструктор
+    public AuthResponse(String token, String username, String role, Long userId) {
         this.token = token;
         this.username = username;
         this.role = role;
         this.userId = userId;
-        this.email = email;
-    }
-
-    // Конструктор без email (для обратной совместимости)
-    public AuthResponse(String token, String username, String role, Long userId) {
-        this(token, username, role, userId, "");
     }
 
     // Геттеры
@@ -38,11 +31,7 @@ public class AuthResponse {
         return userId;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    // Сеттеры (если нужны)
+    // Сеттеры (опционально)
     public void setToken(String token) {
         this.token = token;
     }
@@ -57,9 +46,5 @@ public class AuthResponse {
 
     public void setUserId(Long userId) {
         this.userId = userId;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 }
