@@ -136,6 +136,20 @@ public class UserService {
         return user;
     }
 
+    public Optional<User> findByUsername(String username) {
+        long startTime = System.nanoTime();
+        logger.debug("Поиск пользователя по имени (findByUsername): {}", username);
+
+        Optional<User> result = userRepository.findByUsername(username);
+
+        long endTime = System.nanoTime();
+        long durationMs = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+
+        performanceMetrics.add(new PerformanceMetrics("FIND_USER_BY_USERNAME", durationMs, result.isPresent() ? 1 : 0, "SPRING_DATA_JPA"));
+
+        return result;
+    }
+
     public Optional<User> getUserByUsername(String username) {
         long startTime = System.nanoTime();
         logger.debug("Поиск пользователя по имени: {}", username);
