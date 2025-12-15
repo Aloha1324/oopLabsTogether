@@ -753,6 +753,117 @@ public class FunctionService {
         }
     }
 
+    // ============================================================================
+
+    /**
+     *СОЗДАНИЕ ТАБУЛИРОВАННОЙ ФУНКЦИИ ПО ТОЧКАМ (xValues, yValues)
+     */
+    public FunctionResponse createTabulatedFunctionFromPoints(String name, List<Double> xValues, List<Double> yValues) {
+        long startTime = System.nanoTime();
+
+        // Валидация (как в оригинале)
+        if (xValues == null || yValues == null || xValues.isEmpty() || yValues.isEmpty()) {
+            throw new IllegalArgumentException("X и Y массивы не могут быть пустыми");
+        }
+        if (xValues.size() != yValues.size()) {
+            throw new IllegalArgumentException("X и Y массивы должны иметь одинаковый размер");
+        }
+        if (xValues.size() < 2) {
+            throw new IllegalArgumentException("Требуется минимум 2 точки");
+        }
+        for (int i = 1; i < xValues.size(); i++) {
+            if (xValues.get(i) <= xValues.get(i - 1)) {
+                throw new IllegalArgumentException("X значения должны строго возрастать");
+            }
+        }
+
+        User currentUser = getCurrentUser();
+        String functionName = (name != null && !name.trim().isEmpty()) ? name : "Табулированная " + System.currentTimeMillis();
+
+        // Создаём функцию (как в оригинале)
+        Function function = new Function();
+        function.setName(functionName);
+        function.setExpression("ТАБУЛИРОВАННАЯ ФУНКЦИЯ: " + xValues.size() + " точек из массивов");
+        function.setUser(currentUser);
+        function.setCreatedAt(LocalDateTime.now());
+        Function savedFunction = functionRepository.save(function);
+
+        // Создаём точки (как в оригинале)
+        List<Point> points = new ArrayList<>();
+        for (int i = 0; i < xValues.size(); i++) {
+            Point point = new Point();
+            point.setXValue(xValues.get(i));
+            point.setYValue(yValues.get(i));
+            point.setFunction(savedFunction);
+            point.setUser(currentUser);
+            points.add(point);
+        }
+        pointRepository.saveAll(points);
+        savedFunction.setPoints(points);
+
+        long endTime = System.nanoTime();
+        long durationMs = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+        performanceMetrics.add(new PerformanceMetrics("TABULATED_FROM_POINTS", durationMs, points.size(), "SPRING_DATA_JPA"));
+
+        return convertToResponse(savedFunction);
+    }
+
+    /**
+     * СОЗДАНИЕ ТАБУЛИРОВАННОЙ ФУНКЦИИ ПО МАТЕМАТИЧЕСКОЙ ФОРМУЛЕ
+     */
+    public FunctionResponse createTabulatedFunctionFromMath(String name, String mathFunctionType,
+                                                            double fromX, double toX, int pointsCount) {
+        long startTime = System.nanoTime();
+
+        // Валидация (как в оригинале)
+        if (fromX >= toX) {
+            throw new IllegalArgumentException("fromX должен быть меньше toX");
+        }
+        if (pointsCount < 2) {
+            throw new IllegalArgumentException("pointsCount должен быть минимум 2");
+        }
+
+        User currentUser = getCurrentUser();
+        String functionName = (name != null && !name.trim().isEmpty()) ? name :
+                mathFunctionType + "_[" + fromX + ";" + toX + "]_" + System.currentTimeMillis();
+
+        // Создаём функцию
+        Function function = new Function();
+        function.setName(functionName);
+        function.setExpression(String.format("ТАБУЛИРОВАННАЯ: %s(x) на [%s, %s], %d точек",
+                mathFunctionType, fromX, toX, pointsCount));
+        function.setUser(currentUser);
+        function.setCreatedAt(LocalDateTime.now());
+        Function savedFunction = functionRepository.save(function);
+
+        // Генерируем точки (используем существующую логику!)
+        List<Point> points = new ArrayList<>();
+        double step = (toX - fromX) / (pointsCount - 1);
+
+        for (int i = 0; i < pointsCount; i++) {
+            double x = fromX + i * step;
+            // ✅ ИСПОЛЬЗУЕМ ТВОЮ СУЩЕСТВУЮЩУЮ calculateMathFunction()!
+            double y = calculateMathFunction(mathFunctionType, x, 1.0, 0.0, 0.0);
+
+            Point point = new Point();
+            point.setXValue(x);
+            point.setYValue(y);
+            point.setFunction(savedFunction);
+            point.setUser(currentUser);
+            points.add(point);
+        }
+
+        pointRepository.saveAll(points);
+        savedFunction.setPoints(points);
+
+        long endTime = System.nanoTime();
+        long durationMs = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+        performanceMetrics.add(new PerformanceMetrics("TABULATED_FROM_MATH", durationMs, points.size(), "SPRING_DATA_JPA"));
+
+        return convertToResponse(savedFunction);
+    }
+
+
     private <T> T getFieldValue(Object obj, String fieldName, Class<T> type) {
         try {
             Field field = obj.getClass().getDeclaredField(fieldName);
