@@ -1,13 +1,77 @@
-<!-- src/main/resources/static/profile.html -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Личный кабинет</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; }
-        .info { margin: 20px 0; }
-        button { padding: 10px 20px; background: #f44336; color: white; border: none; cursor: pointer; }
+        :root {
+            --bg-dark: #1e1e2e;
+            --bg-card: #252536;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0b0;
+            --accent-orange: #ff6b35;
+            --accent-orange-hover: #e05a2a;
+            --error-red: #ff6b6b;
+            --input-bg: #333344;
+            --input-border: #444455;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+
+        h2 {
+            margin-bottom: 24px;
+            font-weight: 600;
+            color: white;
+            text-align: center;
+        }
+
+        .info {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+
+        .info p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .info strong {
+            color: white;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent-orange);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        button:hover {
+            background: var(--accent-orange-hover);
+        }
     </style>
 </head>
 <body>
