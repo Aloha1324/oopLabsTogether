@@ -1,9 +1,7 @@
 package com.example.LAB5.DTO.Response;
 
-import lombok.Data;
 import java.time.LocalDateTime;
 
-@Data
 public class ApiResponse<T> {
     private boolean success;
     private String message;
@@ -21,7 +19,16 @@ public class ApiResponse<T> {
         this.timestamp = LocalDateTime.now();
     }
 
-    // Статические методы для удобства
+    public boolean isSuccess() { return success; }
+    public String getMessage() { return message; }
+    public T getData() { return data; }
+    public LocalDateTime getTimestamp() { return timestamp; }
+
+    public void setSuccess(boolean success) { this.success = success; }
+    public void setMessage(String message) { this.message = message; }
+    public void setData(T data) { this.data = data; }
+    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+
     public static <T> ApiResponse<T> success(T data) {
         return new ApiResponse<>(true, "Успешно", data);
     }

@@ -2,21 +2,16 @@ package com.example.LAB5.DTO;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-/**
- * DTO для передачи точки функции
- * Простая структура данных (x, y) с дополнительной информацией
- */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class PointDTO {
-    private int index;          // Индекс точки в функции
-    private double x;           // Значение аргумента
-    private double y;           // Значение функции
-    private Double derivative;  // Производная в точке (опционально)
-    private Double integral;    // Интеграл до точки (опционально)
-    private Long functionId;    // ID родительской функции
-    private boolean selected;   // Для UI - выбрана ли точка
+    private int index;
+    private double x;
+    private double y;
+    private Double derivative;
+    private Double integral;
+    private Long functionId;
+    private boolean selected;
 
-    // Конструкторы
     public PointDTO() {}
 
     public PointDTO(double x, double y) {
@@ -36,29 +31,22 @@ public class PointDTO {
         this.functionId = functionId;
     }
 
-    // Геттеры и сеттеры
     public int getIndex() { return index; }
-    public void setIndex(int index) { this.index = index; }
-
     public double getX() { return x; }
-    public void setX(double x) { this.x = x; }
-
     public double getY() { return y; }
-    public void setY(double y) { this.y = y; }
-
     public Double getDerivative() { return derivative; }
-    public void setDerivative(Double derivative) { this.derivative = derivative; }
-
     public Double getIntegral() { return integral; }
-    public void setIntegral(Double integral) { this.integral = integral; }
-
     public Long getFunctionId() { return functionId; }
-    public void setFunctionId(Long functionId) { this.functionId = functionId; }
-
     public boolean isSelected() { return selected; }
+
+    public void setIndex(int index) { this.index = index; }
+    public void setX(double x) { this.x = x; }
+    public void setY(double y) { this.y = y; }
+    public void setDerivative(Double derivative) { this.derivative = derivative; }
+    public void setIntegral(Double integral) { this.integral = integral; }
+    public void setFunctionId(Long functionId) { this.functionId = functionId; }
     public void setSelected(boolean selected) { this.selected = selected; }
 
-    // Вспомогательные методы
     public double distanceTo(PointDTO other) {
         double dx = this.x - other.x;
         double dy = this.y - other.y;

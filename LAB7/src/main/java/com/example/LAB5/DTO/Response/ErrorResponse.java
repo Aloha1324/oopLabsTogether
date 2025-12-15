@@ -1,9 +1,7 @@
 package com.example.LAB5.DTO.Response;
 
-import lombok.Data;
 import java.time.LocalDateTime;
 
-@Data
 public class ErrorResponse {
     private boolean success = false;
     private String message;
@@ -25,4 +23,16 @@ public class ErrorResponse {
     public ErrorResponse(String message, int status) {
         this(message, null, status);
     }
+
+    public boolean isSuccess() { return success; }
+    public String getMessage() { return message; }
+    public String getError() { return error; }
+    public int getStatus() { return status; }
+    public LocalDateTime getTimestamp() { return timestamp; }
+
+    public void setSuccess(boolean success) { this.success = success; }
+    public void setMessage(String message) { this.message = message; }
+    public void setError(String error) { this.error = error; }
+    public void setStatus(int status) { this.status = status; }
+    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
 }

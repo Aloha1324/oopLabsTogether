@@ -10,10 +10,12 @@ public class LAB5Application extends SpringBootServletInitializer {
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+        // Этот метод вызывается Tomcat при деплое WAR
         return builder.sources(LAB5Application.class);
     }
 
     public static void main(String[] args) {
+        // Этот метод работает только при запуске из JAR
         SpringApplication.run(LAB5Application.class, args);
     }
 }
