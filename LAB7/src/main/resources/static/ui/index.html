@@ -2,59 +2,282 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Система табулированных функций</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Function Analyzer - LAB5 | Вход</title>
     <style>
-        :root {
-            --bg-dark: #1e1e2e;
-            --bg-card: #252536;
-            --text-primary: #e0e0e0;
-            --accent-orange: #ff6b35;
-            --accent-orange-hover: #e05a2a;
-        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, var(--bg-dark), #2a2a3e);
-            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            color: #e2e8f0;
         }
         .container {
-            background: var(--bg-card);
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            text-align: center;
-            max-width: 400px;
+            background: rgba(45, 55, 72, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            max-width: 450px;
             width: 90%;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        h1 { color: white; margin-bottom: 30px; font-size: 28px; }
-        .btn {
+        .math-icon {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 4.5rem;
+    line-height: 1;
+    }
+
+        .math-formula {
+    font-family: 'Cambria Math', 'Times New Roman', serif;
+    font-size: 3.8rem;
+    font-weight: bold;
+    color: #f6ad55;
+    font-style: italic;
+    position: relative;
+    top: -0.1em;
+    }
+
+        .math-paren {
+    font-family: 'Cambria Math', 'Times New Roman', serif;
+    font-size: 3.2rem;
+    color: #f6ad55;
+    font-weight: 300;
+    line-height: 1;
+    }
+
+        .math-var {
+    font-family: 'Cambria Math', 'Times New Roman', serif;
+    font-size: 3.5rem;
+    font-weight: bold;
+    color: #fbbf24;
+    font-style: italic;
+    margin: 0 0.1em;
+    }
+
+        /* Fallback для браузеров без математических шрифтов */
+    @supports not (font-family: 'Cambria Math') {
+        .math-formula, .math-var, .math-paren {
+        font-family: 'Times New Roman', serif;
+        font-style: italic;
+    }
+}
+
+        h1 {
+            text-align: center;
+            color: #f7fafc;
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
             display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #e2e8f0;
+        }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #4a5568;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: #4a5568;
+            color: #e2e8f0;
+            transition: all 0.3s;
+        }
+        input::placeholder {
+            color: #a0aec0;
+        }
+        input:focus {
+            outline: none;
+            border-color: #f6ad55;
+            box-shadow: 0 0 0 3px rgba(246, 173, 85, 0.2);
+            background: #5a6678;
+        }
+        .btn {
             width: 100%;
             padding: 14px;
-            margin: 12px 0;
-            background: var(--accent-orange);
-            color: white;
+            background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+            color: #2d3748;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
+            transition: all 0.3s;
         }
-        .btn:hover { background: var(--accent-orange-hover); transform: translateY(-2px); }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(246, 173, 85, 0.4);
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            background: #718096;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+        .auth-section { display: none; }
+        .auth-section.active { display: block; }
+        .user-info {
+            background: rgba(74, 85, 104, 0.5);
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            border-left: 4px solid #f6ad55;
+        }
+        .token-section {
+            background: rgba(74, 85, 104, 0.7);
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+            border-left: 3px solid #f6ad55;
+        }
+        .error {
+            background: rgba(245, 101, 101, 0.2);
+            color: #fed7d7;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #f56565;
+        }
+        .success {
+            background: rgba(72, 187, 120, 0.2);
+            color: #c6f6d5;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid #48bb78;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            color: #f6ad55;
+            font-size: 1.1rem;
+        }
+        .api-test {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #4a5568;
+        }
+        .api-btn {
+            width: 48%;
+            margin: 0 1% 1rem 1%;
+            padding: 10px;
+            background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
+            color: #2d3748;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .api-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(246, 173, 85, 0.4);
+        }
+        .logout-btn {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%) !important;
+            color: white !important;
+        }
+        a { color: #f6ad55; text-decoration: none; }
+        a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>📈 Система функций</h1>
-    <a href="/login.html" class="btn">🚀 Войти</a>
-    <a href="/profile.html" class="btn">👤 Личный кабинет</a>
+    <!-- Математическая иконка (КРАСИВАЯ) -->
+    <div class="math-icon">
+        <span class="math-formula">𝑓</span><span class="math-paren">(</span><span class="math-var">𝑥</span><span class="math-paren">)</span>
+    </div>
+
+
+    <h1>Вход</h1>
+
+    <!-- Логин форма -->
+    <div id="loginForm" class="auth-section active">
+        <div class="form-group">
+            <label>Логин</label>
+            <input type="text" id="loginUsername" placeholder="admin" value="admin">
+        </div>
+        <div class="form-group">
+            <label>Пароль</label>
+            <input type="password" id="loginPassword" placeholder="admin123" value="admin123">
+        </div>
+        <button class="btn" onclick="login()">Войти</button>
+        <p style="text-align: center; margin-top: 1rem; color: #a0aec0;">
+            Нет аккаунта? <a href="#" onclick="showRegister()" style="cursor: pointer;">Зарегистрироваться</a>
+        </p>
+    </div>
+
+    <!-- Регистрация форма -->
+    <div id="registerForm" class="auth-section">
+        <div class="form-group">
+            <label>Логин (мин. 3 символа)</label>
+            <input type="text" id="regUsername" placeholder="имя пользователя">
+        </div>
+        <div class="form-group">
+            <label>Пароль (мин. 6 символов)</label>
+            <input type="password" id="regPassword" placeholder="123456">
+        </div>
+        <button class="btn" onclick="register()">Зарегистрироваться</button>
+        <p style="text-align: center; margin-top: 1rem; color: #a0aec0;">
+            Уже есть аккаунт? <a href="#" onclick="showLogin()" style="cursor: pointer;">Войти</a>
+        </p>
+    </div>
+
+    <!-- Профиль пользователя -->
+    <div id="userProfile" class="auth-section">
+        <div class="success" id="welcomeMsg"></div>
+        <div class="user-info">
+            <h3>👤 Профиль</h3>
+            <div>Имя: <span id="userName">-</span></div>
+            <div>Роль: <span id="userRole">-</span></div>
+            <div>ID: <span id="userId">-</span></div>
+        </div>
+        <div class="token-section">
+            <strong>JWT Токен:</strong><br>
+            <span id="jwtToken">-</span>
+            <button class="btn" style="width: auto; margin-top: 0.5rem; padding: 6px 12px; font-size: 0.8rem;"
+                    onclick="copyToken()">📋 Копировать</button>
+        </div>
+        <button class="btn btn-danger" onclick="logout()">🚪 Выйти</button>
+    </div>
+
+    <!-- Тест API -->
+    <div id="apiTest" class="api-test" style="display: none;">
+        <h4>🧪 Тест защищенных API</h4>
+        <button class="api-btn" onclick="testUsersMe()">/api/v1/users/me</button>
+        <button class="api-btn" onclick="testUsersList()">/api/v1/users (ADMIN)</button>
+        <button class="api-btn logout-btn" onclick="testValidateToken()">Validate Token</button>
+        <div id="apiResult"></div>
+    </div>
+
+    <!-- Лоадер и ошибки -->
+    <div id="loading" class="loading">⏳ Загрузка...</div>
+    <div id="errorMsg" class="error" style="display: none;"></div>
 </div>
+
+<script src="app.js"></script>
 </body>
 </html>

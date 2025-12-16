@@ -1,134 +1,118 @@
 package com.example.LAB5.framework.controller;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.example.LAB5.framework.entity.User;
+import com.example.LAB5.framework.service.UserService;
+import com.example.LAB5.framework.service.UserService.UserStatistics;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/users")
 public class UserController {
 
-    private final ConcurrentHashMap<Integer, Map<String, Object>> users = new ConcurrentHashMap<>();
-    private final AtomicInteger idCounter = new AtomicInteger(1);
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
-    // Конструктор с тестовыми данными
-    public UserController() {
-        // Инициализация тестовыми данными - используем изменяемые Maps!
-        addUser("admin", "admin@example.com", "ADMIN");
-        addUser("user1", "user1@example.com", "USER");
-        addUser("user2", "user2@example.com", "USER");
-    }
+    @Autowired
+    private UserService userService;
 
-    private void addUser(String login, String email, String role) {
-        int id = idCounter.getAndIncrement();
-        // Используем HashMap вместо Map.of() для изменяемости
-        Map<String, Object> user = new HashMap<>();
-        user.put("id", id);
-        user.put("login", login);
-        user.put("email", email);
-        user.put("role", role);
-
-        users.put(id, user);
-    }
-
+    // Только ADMIN может видеть всех пользователей
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> getAllUsers() {
-        return ResponseEntity.ok(new ArrayList<>(users.values()));
+    public ResponseEntity<List<User>> getAllUsers() {
+        logger.info("ADMIN запросил всех пользователей");
+        List<User> users = userService.getAllUsers();
+        logger.debug("Возвращено {} пользователей", users.size());
+        return ResponseEntity.ok(users);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> getUserById(@PathVariable Integer id) {
-        Map<String, Object> user = users.get(id);
-        if (user == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(new HashMap<>(user)); // Возвращаем копию
-    }
+    // Любой аутентифицированный USER может видеть себя
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/me")
+    public ResponseEntity<User> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
+        // Username берется из SecurityContext (установлен JwtAuthenticationFilter)
+        String username = org.springframework.security.core.context.SecurityContextHolder
+                .getContext().getAuthentication().getName();
+        logger.debug("Пользователь {} запросил свои данные", username);
 
-    @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody Map<String, Object> userRequest) {
-        try {
-            Integer newId = idCounter.getAndIncrement();
-
-            // Безопасное получение значений
-            Object loginObj = userRequest.get("login");
-            Object emailObj = userRequest.get("email");
-            Object roleObj = userRequest.get("role");
-
-            if (loginObj == null || emailObj == null) {
-                return ResponseEntity.badRequest().body(
-                        Map.of("error", "Missing required fields: login, email")
+        userService.findByUsername(username)
+                .ifPresentOrElse(
+                        user -> logger.info("Данные пользователя {} возвращены", username),
+                        () -> logger.warn("Пользователь {} не найден в БД", username)
                 );
-            }
 
-            String login = loginObj.toString();
-            String email = emailObj.toString();
-            String role = roleObj != null ? roleObj.toString() : "USER";
+        return userService.findByUsername(username)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 
-            // Создаем изменяемую Map
-            Map<String, Object> newUser = new HashMap<>();
-            newUser.put("id", newId);
-            newUser.put("login", login);
-            newUser.put("email", email);
-            newUser.put("role", role);
+    // Только ADMIN может создавать пользователей
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody User userRequest) {
+        logger.info("ADMIN создает пользователя: {}", userRequest.getUsername());
 
-            users.put(newId, newUser);
-            return ResponseEntity.status(HttpStatus.CREATED).body(newUser);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("error", "Invalid request data", "message", e.getMessage())
+        try {
+            // UserService уже использует BCrypt через passwordEncoder
+            User createdUser = userService.createUser(
+                    userRequest.getUsername(),
+                    userRequest.getPassword()
             );
+            logger.info("Создан пользователь ID={} {}", createdUser.getId(), createdUser.getUsername());
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Ошибка создания: {}", e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
 
+    // Любой аутентифицированный может обновить себя (но не роль)
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Integer id,
-                                        @RequestBody Map<String, Object> updates) {
-        if (!users.containsKey(id)) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userUpdate) {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        logger.info("Пользователь {} пытается обновить ID={}", currentUsername, id);
+
+        // Только свои данные или ADMIN
+        if (!currentUsername.equals(userService.getUserByUsername(currentUsername).get().getUsername())
+                && !"ADMIN".equals(userService.getUserByUsername(currentUsername).get().getRole())) {
+            return ResponseEntity.status(403).build();
         }
 
-        try {
-            // Получаем существующего пользователя
-            Map<String, Object> user = users.get(id);
-
-            // Создаем новую Map с обновлениями
-            Map<String, Object> updatedUser = new HashMap<>(user);
-
-            // Применяем обновления, но не позволяем менять id
-            for (Map.Entry<String, Object> entry : updates.entrySet()) {
-                if (!"id".equals(entry.getKey())) { // Защищаем id от изменения
-                    updatedUser.put(entry.getKey(), entry.getValue());
-                }
-            }
-
-            // Обновляем в хранилище
-            users.put(id, updatedUser);
-            return ResponseEntity.ok(updatedUser);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    Map.of("error", "Failed to update user", "message", e.getMessage())
-            );
-        }
+        User updated = userService.updateUser(id, userUpdate.getUsername(), userUpdate.getPassword());
+        return updated != null ?
+                ResponseEntity.ok(updated) :
+                ResponseEntity.notFound().build();
     }
 
+    // Только ADMIN может удалять
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
-        try {
-            if (!users.containsKey(id)) {
-                return ResponseEntity.notFound().build();
-            }
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        logger.info("ADMIN удаляет пользователя ID={}", id);
 
-            // Простое и быстрое удаление
-            users.remove(id);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            // Логируем ошибку, но возвращаем 500
-            System.err.println("Error deleting user " + id + ": " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        boolean deleted = userService.deleteUser(id);
+        return deleted ?
+                ResponseEntity.noContent().build() :
+                ResponseEntity.notFound().build();
+    }
+
+    // Статистика только для своих данных или ADMIN
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.name")
+    @GetMapping("/{id}/stats")
+    public ResponseEntity<UserStatistics> getUserStats(@PathVariable Long userId) {
+        logger.debug("Запрос статистики для ID={}", userId);
+        UserStatistics stats = userService.getUserStatistics(userId);
+        return stats != null ?
+                ResponseEntity.ok(stats) :
+                ResponseEntity.notFound().build();
     }
 }

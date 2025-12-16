@@ -1,259 +1,197 @@
-// ============================================================================
-// ✅ app.js — ПОЛНАЯ РЕАЛИЗАЦИЯ ДЛЯ ЛИЧНОГО КАБИНЕТА + ТАБУЛИРОВАННЫЕ ФУНКЦИИ
-// ============================================================================
+const API_BASE = 'http://localhost:8080';
 
+// Глобальные переменные
+let currentToken = null;
 let currentUser = null;
-let selectedMathFunction = null;
 
-// ============================================================================
-// ✅ ОСНОВНЫЕ ФУНКЦИИ ПРОФИЛЯ
-// ============================================================================
-
-async function loadProfile() {
-    try {
-        const response = await fetch('/api/auth/profile', {
-            credentials: 'include'
-        });
-
-        if (response.ok) {
-            const user = await response.json();
-            currentUser = user;
-            document.getElementById('userId').textContent = user.id;
-            document.getElementById('username').textContent = user.username;
-            document.getElementById('role').textContent = user.role;
-        } else {
-            window.location.href = '/login.html';
-        }
-    } catch (error) {
-        console.error('Ошибка загрузки профиля:', error);
-        window.location.href = '/login.html';
-    }
-}
-
-async function logout() {
-    try {
-        await fetch('/api/auth/logout', {
-            method: 'POST',
-            credentials: 'include'
-        });
-        window.location.href = '/login.html';
-    } catch (error) {
-        console.error('Ошибка выхода:', error);
-        window.location.href = '/login.html';
-    }
-}
-
-// ============================================================================
-// ✅ ГЛОБАЛЬНЫЕ ФУНКЦИИ ДЛЯ МОДАЛОК (вызываются из HTML onclick)
-// ============================================================================
-
-window.openPointsModal = function() {
-    document.getElementById('pointsModal').style.display = 'block';
-    document.getElementById('pointsName').focus();
-};
-
-window.closePointsModal = function() {
-    document.getElementById('pointsModal').style.display = 'none';
-    document.getElementById('pointsName').value = '';
-    document.getElementById('pointsX').value = '';
-    document.getElementById('pointsY').value = '';
-};
-
-window.openMathModal = function() {
-    document.getElementById('mathModal').style.display = 'block';
-    loadMathFunctions();
-    document.getElementById('mathName').focus();
-};
-
-window.closeMathModal = function() {
-    document.getElementById('mathModal').style.display = 'none';
-    document.getElementById('mathName').value = '';
-    selectedMathFunction = null;
-    document.querySelectorAll('.math-function').forEach(el => {
-        el.style.background = '';
-        el.style.color = '';
+// Показать/скрыть формы
+function showSection(sectionId) {
+    document.querySelectorAll('.auth-section').forEach(section => {
+        section.classList.remove('active');
     });
-};
-
-window.showCreateModal = function() {
-    if (confirm('Что создать?\n\n• OK = По точкам\n• Cancel = По формуле')) {
-        openPointsModal();
-    } else {
-        openMathModal();
-    }
-};
-
-// ============================================================================
-// ✅ ЛОГИКА МАТЕМАТИЧЕСКИХ ФУНКЦИЙ
-// ============================================================================
-
-async function loadMathFunctions() {
-    try {
-        const response = await fetch('/api/v1/functions/tabulated/math-functions');
-        const functions = await response.json();
-
-        const container = document.getElementById('mathFunctionsList');
-        container.innerHTML = '';
-
-        functions.forEach(func => {
-            const div = document.createElement('div');
-            div.className = 'math-function';
-            div.innerHTML = `<strong>${func.key}</strong><br><small>${func.description}</small>`;
-            div.onclick = () => selectMathFunction(func.key, div);
-            container.appendChild(div);
-        });
-    } catch (error) {
-        console.error('Ошибка загрузки функций:', error);
-        document.getElementById('mathFunctionsList').innerHTML =
-            '<div style="color: var(--error-red);">Ошибка загрузки функций</div>';
-    }
+    document.getElementById(sectionId).classList.add('active');
+    document.getElementById('errorMsg').style.display = 'none';
 }
 
-function selectMathFunction(type, element) {
-    document.querySelectorAll('.math-function').forEach(el => {
-        el.style.background = '';
-        el.style.color = '';
-    });
-    element.style.background = 'var(--accent-orange)';
-    element.style.color = 'white';
-    selectedMathFunction = type;
+function showLogin() { showSection('loginForm'); }
+function showRegister() { showSection('registerForm'); }
+
+// Показать сообщение
+function showMessage(message, type = 'error') {
+    const msgEl = document.getElementById('errorMsg');
+    msgEl.textContent = message;
+    msgEl.className = type === 'success' ? 'success' : 'error';
+    msgEl.style.display = 'block';
+    setTimeout(() => msgEl.style.display = 'none', 5000);
 }
 
-// ============================================================================
-// ✅ СОЗДАНИЕ ТАБУЛИРОВАННЫХ ФУНКЦИЙ
-// ============================================================================
+// Показать/скрыть лоадер
+function setLoading(loading) {
+    document.getElementById('loading').style.display = loading ? 'block' : 'none';
+}
 
-async function createFunctionByPoints() {
-    const name = document.getElementById('pointsName').value.trim();
-    const xStr = document.getElementById('pointsX').value.trim();
-    const yStr = document.getElementById('pointsY').value.trim();
+// LOGIN
+async function login() {
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
 
-    const xValues = xStr.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
-    const yValues = yStr.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
-
-    if (!name) {
-        alert('❌ Введите название функции!');
-        document.getElementById('pointsName').focus();
-        return;
-    }
-    if (xValues.length < 2 || yValues.length < 2) {
-        alert('❌ Минимум 2 точки для X и Y!');
-        document.getElementById('pointsX').focus();
-        return;
-    }
-    if (xValues.length !== yValues.length) {
-        alert('❌ Количество X и Y точек должно совпадать!');
-        document.getElementById('pointsY').focus();
+    if (!username || !password) {
+        showMessage('Заполните все поля!');
         return;
     }
 
-    for (let i = 1; i < xValues.length; i++) {
-        if (xValues[i] <= xValues[i-1]) {
-            alert('❌ X значения должны СТРОГО возрастать!');
-            document.getElementById('pointsX').focus();
-            return;
-        }
-    }
-
+    setLoading(true);
     try {
-        showLoading(true, 'points');
-        const response = await fetch('/api/v1/functions/tabulated/by-points', {
+        const response = await fetch(`${API_BASE}/api/auth/login`, {
             method: 'POST',
-            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, xValues, yValues })
+            body: JSON.stringify({ username, password })
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-            closePointsModal();
-            alert('✅ Функция создана успешно!');
+            currentToken = data.token;
+            currentUser = data;
+            showProfile();
+            showMessage(`Добро пожаловать, ${data.username}! 🎉`, 'success');
         } else {
-            const error = await response.json().catch(() => ({}));
-            alert(`❌ Ошибка: ${error.error || error.message || 'Не удалось создать'}`);
+            showMessage(data.error || 'Ошибка входа');
         }
     } catch (error) {
-        console.error('Ошибка:', error);
-        alert('❌ Ошибка сети: ' + error.message);
+        showMessage('Ошибка сети: ' + error.message);
     } finally {
-        showLoading(false, 'points');
+        setLoading(false);
     }
 }
 
-async function createFunctionByMath() {
-    const name = document.getElementById('mathName').value.trim();
-    const mathFunctionType = selectedMathFunction;
-    const fromX = parseFloat(document.getElementById('mathFromX').value);
-    const toX = parseFloat(document.getElementById('mathToX').value);
-    const pointsCount = parseInt(document.getElementById('mathPointsCount').value);
+// REGISTER
+async function register() {
+    const username = document.getElementById('regUsername').value;
+    const password = document.getElementById('regPassword').value;
 
-    if (!name) {
-        alert('❌ Введите название функции!');
+    if (username.length < 3) {
+        showMessage('Логин должен содержать минимум 3 символа');
         return;
     }
-    if (!mathFunctionType) {
-        alert('❌ Выберите тип функции!');
-        return;
-    }
-    if (isNaN(fromX) || isNaN(toX) || fromX >= toX) {
-        alert('❌ fromX < toX!');
-        return;
-    }
-    if (isNaN(pointsCount) || pointsCount < 2 || pointsCount > 1000) {
-        alert('❌ Точки: 2-1000!');
+    if (password.length < 6) {
+        showMessage('Пароль должен содержать минимум 6 символов');
         return;
     }
 
+    setLoading(true);
     try {
-        showLoading(true, 'math');
-        const response = await fetch('/api/v1/functions/tabulated/by-math-function', {
+        const response = await fetch(`${API_BASE}/api/auth/register`, {
             method: 'POST',
-            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, mathFunctionType, fromX, toX, pointsCount })
+            body: JSON.stringify({ username, password })
         });
 
+        const data = await response.json();
+
         if (response.ok) {
-            closeMathModal();
-            alert('✅ Функция создана успешно!');
+            currentToken = data.token;
+            currentUser = data;
+            showProfile();
+            showMessage(`Аккаунт создан, ${data.username}! 🎉`, 'success');
         } else {
-            const error = await response.json().catch(() => ({}));
-            alert(`❌ Ошибка: ${error.error || error.message || 'Не удалось создать'}`);
+            showMessage(data.error || 'Ошибка регистрации');
         }
     } catch (error) {
-        console.error('Ошибка:', error);
-        alert('❌ Ошибка сети: ' + error.message);
+        showMessage('Ошибка сети: ' + error.message);
     } finally {
-        showLoading(false, 'math');
+        setLoading(false);
     }
 }
 
-// ============================================================================
-// ✅ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-// ============================================================================
+// ПОКАЗАТЬ ПРОФИЛЬ
+function showProfile() {
+    showSection('userProfile');
+    document.getElementById('apiTest').style.display = 'block';
 
-function showLoading(show, modalType = 'points') {
-    const selector = modalType === 'math' ? '#mathModal .btn-create' : '.btn-create';
-    const btns = document.querySelectorAll(selector);
-    btns.forEach(btn => {
-        btn.disabled = show;
-        btn.textContent = show ? 'Создаётся...' : 'Создать';
+    document.getElementById('welcomeMsg').innerHTML =
+        `✅ <strong>${currentUser.username}</strong> (${currentUser.role}) успешно авторизован!`;
+
+    document.getElementById('userName').textContent = currentUser.username;
+    document.getElementById('userRole').textContent = currentUser.role;
+    document.getElementById('userId').textContent = currentUser.userId;
+    document.getElementById('jwtToken').textContent = currentToken;
+}
+
+// КОПИРОВАТЬ ТОКЕН
+function copyToken() {
+    navigator.clipboard.writeText(currentToken).then(() => {
+        showMessage('Токен скопирован в буфер!', 'success');
     });
 }
 
-window.onclick = function(event) {
-    if (event.target.classList.contains('modal')) {
-        closePointsModal();
-        closeMathModal();
-    }
-};
+// LOGOUT
+function logout() {
+    currentToken = null;
+    currentUser = null;
+    document.getElementById('apiTest').style.display = 'none';
+    showLogin();
+    showMessage('Вы вышли из системы 👋', 'success');
+}
 
-window.onkeydown = function(event) {
-    if (event.key === 'Escape') {
-        closePointsModal();
-        closeMathModal();
-    }
-};
+// ТЕСТ API
+async function testApi(url, method = 'GET', body = null) {
+    const apiResult = document.getElementById('apiResult');
+    setLoading(true);
 
-window.onload = function() {
-    loadProfile();
-};
+    try {
+        const response = await fetch(`${API_BASE}${url}`, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: body ? JSON.stringify(body) : null
+        });
+
+        const data = await response.json();
+
+        apiResult.innerHTML = `
+            <div class="success">
+                ✅ <strong>${method} ${url}</strong><br>
+                Status: <strong>${response.status}</strong><br>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            </div>
+        `;
+    } catch (error) {
+        apiResult.innerHTML = `
+            <div class="error">
+                ❌ Ошибка: ${error.message}
+            </div>
+        `;
+    } finally {
+        setLoading(false);
+    }
+}
+
+// Тестовые кнопки
+async function testUsersMe() {
+    await testApi('/api/v1/users/me');
+}
+
+async function testUsersList() {
+    await testApi('/api/v1/users');
+}
+
+async function testValidateToken() {
+    await testApi('/api/auth/validate', 'GET');
+}
+
+// ENTER по формам
+document.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        if (document.getElementById('loginForm').classList.contains('active')) {
+            login();
+        } else if (document.getElementById('registerForm').classList.contains('active')) {
+            register();
+        }
+    }
+});
+
+// Автофокус
+document.getElementById('loginUsername').focus();
