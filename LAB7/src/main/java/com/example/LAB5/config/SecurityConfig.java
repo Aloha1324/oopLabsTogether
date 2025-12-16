@@ -23,7 +23,7 @@ import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity   // @PreAuthorize и т.п.
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -39,26 +39,27 @@ public class SecurityConfig {
         MvcRequestMatcher.Builder mvc = new MvcRequestMatcher.Builder(introspector);
 
         http
-                // Stateless JWT, CSRF не нужен
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                // Наш JWT‑фильтр перед стандартным UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                // Авторизация запросов
                 .authorizeHttpRequests(auth -> auth
-                        // ПУБЛИЧНЫЕ ресурсы (фронтенд + health + auth)
-                        .requestMatchers(mvc.pattern("/app.js")).permitAll()
+                        // ✅ СТАТИЧЕСКИЕ РЕСУРСЫ (фронтенд)
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                         .requestMatchers(
                                 mvc.pattern("/"),
                                 mvc.pattern("/index.html"),
-                                mvc.pattern("/health"),
-                                mvc.pattern("/ping"),
-                                mvc.pattern("/api/auth/**")
+                                mvc.pattern("/app.js")
                         ).permitAll()
-                        // Всё остальное — только с валидным JWT
+
+                        // ✅ ЭНДПОИНТЫ АВТОРИЗАЦИИ — ДОЛЖНЫ БЫТЬ ОТКРЫТЫ!
+                        .requestMatchers(mvc.pattern("/api/auth/**")).permitAll()
+
+                        // ✅ ЭНДПОИНТ ДЛЯ ВЫПАДАЮЩЕГО СПИСКА ФУНКЦИЙ (не требует токена)
+                        .requestMatchers(mvc.pattern("/api/v1/functions/tabulated/math-functions")).permitAll()
+
+                        // 🔒 ВСЁ ОСТАЛЬНОЕ — ТОЛЬКО С ВАЛИДНЫМ JWT
                         .anyRequest().authenticated()
                 );
 
@@ -67,14 +68,13 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // BCrypt для безопасного хранения паролей
         return new BCryptPasswordEncoder();
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService); // твой CustomUserDetailsService
+        provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
