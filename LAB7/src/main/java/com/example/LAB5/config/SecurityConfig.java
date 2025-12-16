@@ -49,17 +49,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // ПУБЛИЧНЫЕ ресурсы (фронтенд + health + auth)
                         .requestMatchers(
-                                mvc.pattern("/"),           // корень приложения (/lab7-api/)
+                                mvc.pattern("/"),
                                 mvc.pattern("/index.html"),
                                 mvc.pattern("/favicon.ico"),
-                                mvc.pattern("/**/*.html"),
-                                mvc.pattern("/**/*.js"),
-                                mvc.pattern("/**/*.css"),
-                                mvc.pattern("/**/*.png"),
-                                mvc.pattern("/**/*.jpg"),
+                                mvc.pattern("/static/**"),   // если используете папку static
                                 mvc.pattern("/health"),
                                 mvc.pattern("/ping"),
-                                mvc.pattern("/api/auth/**") // login/register/validate/me
+                                mvc.pattern("/api/auth/**")
                         ).permitAll()
                         // Всё остальное — только с валидным JWT
                         .anyRequest().authenticated()
