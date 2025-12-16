@@ -16,12 +16,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // Включает @PreAuthorize в контроллерах
+@EnableMethodSecurity   // @PreAuthorize и т.п.
 public class SecurityConfig {
 
     @Autowired
@@ -33,27 +34,34 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    HandlerMappingIntrospector introspector) throws Exception {
-        MvcRequestMatcher.Builder mvcMatcherBuilder = new MvcRequestMatcher.Builder(introspector);
+
+        MvcRequestMatcher.Builder mvc = new MvcRequestMatcher.Builder(introspector);
 
         http
-                // Отключаем CSRF для stateless JWT API
+                // Stateless JWT, CSRF не нужен
                 .csrf(csrf -> csrf.disable())
-                // STATELESS сессии (JWT)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Добавляем JWT фильтр ВПЕРЕДИ стандартных фильтров
-                .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
-                // Настройка авторизации
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                // Наш JWT‑фильтр перед стандартным UsernamePasswordAuthenticationFilter
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // Авторизация запросов
                 .authorizeHttpRequests(auth -> auth
-                        // Публичный доступ
+                        // ПУБЛИЧНЫЕ ресурсы (фронтенд + health + auth)
                         .requestMatchers(
-                                mvcMatcherBuilder.pattern("/"),
-                                mvcMatcherBuilder.pattern("/health"),
-                                mvcMatcherBuilder.pattern("/ping"),
-                                mvcMatcherBuilder.pattern("/api/auth/**"),  // login/register
-                                mvcMatcherBuilder.pattern("/api/test"),
-                                mvcMatcherBuilder.pattern("/ui/**")
+                                mvc.pattern("/"),           // корень приложения (/lab7-api/)
+                                mvc.pattern("/index.html"),
+                                mvc.pattern("/favicon.ico"),
+                                mvc.pattern("/**/*.html"),
+                                mvc.pattern("/**/*.js"),
+                                mvc.pattern("/**/*.css"),
+                                mvc.pattern("/**/*.png"),
+                                mvc.pattern("/**/*.jpg"),
+                                mvc.pattern("/health"),
+                                mvc.pattern("/ping"),
+                                mvc.pattern("/api/auth/**") // login/register/validate/me
                         ).permitAll()
-                        // Все остальные требуют JWT токен
+                        // Всё остальное — только с валидным JWT
                         .anyRequest().authenticated()
                 );
 
@@ -62,15 +70,16 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+        // BCrypt для безопасного хранения паролей
         return new BCryptPasswordEncoder();
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userDetailsService); // твой CustomUserDetailsService
+        provider.setPasswordEncoder(passwordEncoder());
+        return provider;
     }
 
     @Bean
