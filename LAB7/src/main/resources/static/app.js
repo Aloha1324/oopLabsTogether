@@ -1,10 +1,8 @@
 const API_BASE = 'http://localhost:8080/lab7-api';
 
-// Глобальные переменные
 let currentToken = null;
 let currentUser = null;
 
-// Показать/скрыть формы
 function showSection(sectionId) {
     document.querySelectorAll('.auth-section').forEach(section => {
         section.classList.remove('active');
@@ -15,8 +13,24 @@ function showSection(sectionId) {
 
 function showLogin() { showSection('loginForm'); }
 function showRegister() { showSection('registerForm'); }
+function showProfile() {
+    showSection('userProfile');
+    if (currentUser) {
+        document.getElementById('welcomeMsg').innerHTML =
+            `✅ <strong>${currentUser.username}</strong> (${currentUser.role}) успешно авторизован!`;
+        document.getElementById('userName').textContent = currentUser.username;
+        document.getElementById('userRole').textContent = currentUser.role;
+        document.getElementById('userId').textContent = currentUser.userId;
+        document.getElementById('jwtToken').textContent = currentToken;
+    }
+}
 
-// Показать сообщение
+function showCreateByPoints() { showSection('createByPoints'); }
+function showCreateByFormula() {
+    showSection('createByFormula');
+    loadMathFunctions();
+}
+
 function showMessage(message, type = 'error') {
     const msgEl = document.getElementById('errorMsg');
     msgEl.textContent = message;
@@ -25,173 +39,204 @@ function showMessage(message, type = 'error') {
     setTimeout(() => msgEl.style.display = 'none', 5000);
 }
 
-// Показать/скрыть лоадер
 function setLoading(loading) {
     document.getElementById('loading').style.display = loading ? 'block' : 'none';
 }
 
-// LOGIN
+// AUTH
 async function login() {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
-
-    if (!username || !password) {
-        showMessage('Заполните все поля!');
-        return;
-    }
-
+    if (!username || !password) return showMessage('Заполните все поля!');
     setLoading(true);
     try {
-        const response = await fetch(`${API_BASE}/api/auth/login`, {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
-
-        const data = await response.json();
-
-        if (response.ok) {
+        const data = await res.json();
+        if (res.ok) {
             currentToken = data.token;
             currentUser = data;
             showProfile();
             showMessage(`Добро пожаловать, ${data.username}! 🎉`, 'success');
         } else {
-            showMessage(data.error || 'Ошибка входа');
+            showMessage(data.message || data.error || 'Ошибка входа');
         }
-    } catch (error) {
-        showMessage('Ошибка сети: ' + error.message);
+    } catch (err) {
+        showMessage('Ошибка сети: ' + err.message);
     } finally {
         setLoading(false);
     }
 }
 
-// REGISTER
 async function register() {
     const username = document.getElementById('regUsername').value;
     const password = document.getElementById('regPassword').value;
-
-    if (username.length < 3) {
-        showMessage('Логин должен содержать минимум 3 символа');
-        return;
-    }
-    if (password.length < 6) {
-        showMessage('Пароль должен содержать минимум 6 символов');
-        return;
-    }
-
+    if (username.length < 3) return showMessage('Логин должен содержать минимум 3 символа');
+    if (password.length < 6) return showMessage('Пароль должен содержать минимум 6 символов');
     setLoading(true);
     try {
-        const response = await fetch(`${API_BASE}/api/auth/register`, {
+        const res = await fetch(`${API_BASE}/api/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
         });
-
-        const data = await response.json();
-
-        if (response.ok) {
+        const data = await res.json();
+        if (res.ok) {
             currentToken = data.token;
             currentUser = data;
             showProfile();
             showMessage(`Аккаунт создан, ${data.username}! 🎉`, 'success');
         } else {
-            showMessage(data.error || 'Ошибка регистрации');
+            showMessage(data.message || data.error || 'Ошибка регистрации');
         }
-    } catch (error) {
-        showMessage('Ошибка сети: ' + error.message);
+    } catch (err) {
+        showMessage('Ошибка сети: ' + err.message);
     } finally {
         setLoading(false);
     }
 }
 
-// ПОКАЗАТЬ ПРОФИЛЬ
-function showProfile() {
-    showSection('userProfile');
-    document.getElementById('apiTest').style.display = 'block';
-
-    document.getElementById('welcomeMsg').innerHTML =
-        `✅ <strong>${currentUser.username}</strong> (${currentUser.role}) успешно авторизован!`;
-
-    document.getElementById('userName').textContent = currentUser.username;
-    document.getElementById('userRole').textContent = currentUser.role;
-    document.getElementById('userId').textContent = currentUser.userId;
-    document.getElementById('jwtToken').textContent = currentToken;
-}
-
-// КОПИРОВАТЬ ТОКЕН
 function copyToken() {
     navigator.clipboard.writeText(currentToken).then(() => {
-        showMessage('Токен скопирован в буфер!', 'success');
+        showMessage('Токен скопирован!', 'success');
     });
 }
 
-// LOGOUT
 function logout() {
     currentToken = null;
     currentUser = null;
-    document.getElementById('apiTest').style.display = 'none';
     showLogin();
     showMessage('Вы вышли из системы 👋', 'success');
 }
 
-// ТЕСТ API
-async function testApi(url, method = 'GET', body = null) {
-    const apiResult = document.getElementById('apiResult');
+// NEW: MATH FUNCTIONS
+async function loadMathFunctions() {
     setLoading(true);
-
     try {
-        const response = await fetch(`${API_BASE}${url}`, {
-            method,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${currentToken}`
-            },
-            body: body ? JSON.stringify(body) : null
+        const res = await fetch(`${API_BASE}/api/v1/functions/tabulated/math-functions`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
         });
-
-        const data = await response.json();
-
-        apiResult.innerHTML = `
-            <div class="success">
-                ✅ <strong>${method} ${url}</strong><br>
-                Status: <strong>${response.status}</strong><br>
-                <pre>${JSON.stringify(data, null, 2)}</pre>
-            </div>
-        `;
-    } catch (error) {
-        apiResult.innerHTML = `
-            <div class="error">
-                ❌ Ошибка: ${error.message}
-            </div>
-        `;
+        const functions = await res.json();
+        const select = document.getElementById('mathFunctionSelect');
+        select.innerHTML = '';
+        functions.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.key;
+            opt.textContent = f.description;
+            select.appendChild(opt);
+        });
+    } catch (err) {
+        showMessage('Не удалось загрузить функции: ' + err.message);
     } finally {
         setLoading(false);
     }
 }
 
-// Тестовые кнопки
-async function testUsersMe() {
-    await testApi('/api/v1/users/me');
+// NEW: BY POINTS
+function generatePointsTable() {
+    const countEl = document.getElementById('pointsCount');
+    const container = document.getElementById('pointsTableContainer');
+    const count = parseInt(countEl.value) || 0;
+    if (count < 2 || count > 10000) {
+        container.innerHTML = '<div class="error" style="padding:8px;">Введите число от 2 до 10000</div>';
+        return;
+    }
+    let html = `<table><thead><tr><th>x</th><th>y</th></tr></thead><tbody>`;
+    for (let i = 0; i < count; i++) {
+        html += `
+            <tr>
+                <td><input type="number" step="0.01" id="x_${i}" placeholder="x" style="width:100%;"></td>
+                <td><input type="number" step="0.01" id="y_${i}" placeholder="y" style="width:100%;"></td>
+            </tr>`;
+    }
+    html += `</tbody></table>`;
+    container.innerHTML = html;
 }
 
-async function testUsersList() {
-    await testApi('/api/v1/users');
-}
-
-async function testValidateToken() {
-    await testApi('/api/auth/validate', 'GET');
-}
-
-// ENTER по формам
-document.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        if (document.getElementById('loginForm').classList.contains('active')) {
-            login();
-        } else if (document.getElementById('registerForm').classList.contains('active')) {
-            register();
+async function createFunctionFromPoints() {
+    const name = document.getElementById('pointsName').value || null;
+    const count = parseInt(document.getElementById('pointsCount').value) || 0;
+    if (count < 2) return showMessage('Укажите ≥2 точки');
+    const xVals = [], yVals = [];
+    for (let i = 0; i < count; i++) {
+        const x = parseFloat(document.getElementById(`x_${i}`).value);
+        const y = parseFloat(document.getElementById(`y_${i}`).value);
+        if (isNaN(x) || isNaN(y)) return showMessage(`Ошибка в строке ${i + 1}: введите числа`);
+        xVals.push(x);
+        yVals.push(y);
+    }
+    for (let i = 1; i < xVals.length; i++) {
+        if (xVals[i] <= xVals[i - 1]) return showMessage('x должны строго возрастать!');
+    }
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/functions/tabulated/by-points`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({ name, xValues: xVals, yValues: yVals })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showMessage('Функция создана! 🎉', 'success');
+            showProfile();
+        } else {
+            showMessage(data.message || 'Ошибка создания');
         }
+    } catch (err) {
+        showMessage('Ошибка: ' + err.message);
+    } finally {
+        setLoading(false);
+    }
+}
+
+// NEW: BY MATH
+async function createFunctionFromMath() {
+    const name = document.getElementById('formulaName').value || null;
+    const type = document.getElementById('mathFunctionSelect').value;
+    const fromX = parseFloat(document.getElementById('fromX').value);
+    const toX = parseFloat(document.getElementById('toX').value);
+    const count = parseInt(document.getElementById('formulaPointsCount').value);
+    if (!type) return showMessage('Выберите функцию');
+    if (isNaN(fromX) || isNaN(toX)) return showMessage('Введите корректный интервал');
+    if (fromX >= toX) return showMessage('Левая граница < правой');
+    if (count < 2 || count > 10000) return showMessage('Точек от 2 до 10000');
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/functions/tabulated/by-math-function`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({ name, mathFunctionType: type, fromX, toX, pointsCount: count })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            showMessage('Функция создана! 🎉', 'success');
+            showProfile();
+        } else {
+            showMessage(data.message || 'Ошибка создания');
+        }
+    } catch (err) {
+        showMessage('Ошибка: ' + err.message);
+    } finally {
+        setLoading(false);
+    }
+}
+
+// ENTER handling
+document.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        if (document.getElementById('loginForm').classList.contains('active')) login();
+        else if (document.getElementById('registerForm').classList.contains('active')) register();
     }
 });
 
-// Автофокус
+// Auto-focus
 document.getElementById('loginUsername').focus();

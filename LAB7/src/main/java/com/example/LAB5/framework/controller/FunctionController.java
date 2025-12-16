@@ -170,6 +170,7 @@ public class FunctionController {
      */
     @PostMapping("/tabulated/by-points")
     public ResponseEntity<FunctionResponse> createTabulatedByPoints(@RequestBody Map<String, Object> request) {
+
         @SuppressWarnings("unchecked")
         String name = (String) request.get("name");
         @SuppressWarnings("unchecked")
