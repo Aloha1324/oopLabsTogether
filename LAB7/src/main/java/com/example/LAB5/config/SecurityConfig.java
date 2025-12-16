@@ -49,6 +49,7 @@ public class SecurityConfig {
                 // Авторизация запросов
                 .authorizeHttpRequests(auth -> auth
                         // ПУБЛИЧНЫЕ ресурсы (фронтенд + health + auth)
+                        .requestMatchers(mvc.pattern("/app.js")).permitAll()
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                         .requestMatchers(
                                 mvc.pattern("/"),
