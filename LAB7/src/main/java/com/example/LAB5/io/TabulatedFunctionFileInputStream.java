@@ -1,5 +1,6 @@
 package com.example.LAB5.io;
 
+import com.example.LAB5.functions.MathFunction;
 import com.example.LAB5.functions.TabulatedFunction;
 import com.example.LAB5.functions.factory.TabulatedFunctionFactory;
 import com.example.LAB5.functions.ArrayTabulatedFunction;
@@ -50,6 +51,11 @@ public class TabulatedFunctionFileInputStream {
                 @Override
                 public TabulatedFunction create(double[] xValues, double[] yValues) {
                     return new ArrayTabulatedFunction(xValues, yValues);
+                }
+
+                @Override
+                public TabulatedFunction create(MathFunction function, double xFrom, double xTo, int count) {
+                    throw new UnsupportedOperationException("File input stream does not support MathFunction-based creation");
                 }
             };
 
@@ -138,6 +144,11 @@ public class TabulatedFunctionFileInputStream {
                     @Override
                     public TabulatedFunction create(double[] xValues, double[] yValues) {
                         return new LinkedListTabulatedFunction(xValues, yValues);
+                    }
+
+                    @Override
+                    public TabulatedFunction create(MathFunction function, double xFrom, double xTo, int count) {
+                        throw new UnsupportedOperationException("File input stream does not support MathFunction-based creation");
                     }
                 };
 
