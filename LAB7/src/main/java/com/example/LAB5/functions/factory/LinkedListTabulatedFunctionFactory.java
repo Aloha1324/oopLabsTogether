@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 /**
  * Фабрика для создания табулированных функций на основе связного списка
  */
-@Component
+
 public class LinkedListTabulatedFunctionFactory implements TabulatedFunctionFactory {
 
     /**
