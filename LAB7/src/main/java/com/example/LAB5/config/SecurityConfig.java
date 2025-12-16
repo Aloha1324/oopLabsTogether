@@ -2,6 +2,7 @@ package com.example.LAB5.config;
 
 import com.example.LAB5.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -48,11 +49,10 @@ public class SecurityConfig {
                 // Авторизация запросов
                 .authorizeHttpRequests(auth -> auth
                         // ПУБЛИЧНЫЕ ресурсы (фронтенд + health + auth)
+                        .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                         .requestMatchers(
                                 mvc.pattern("/"),
                                 mvc.pattern("/index.html"),
-                                mvc.pattern("/favicon.ico"),
-                                mvc.pattern("/static/**"),   // если используете папку static
                                 mvc.pattern("/health"),
                                 mvc.pattern("/ping"),
                                 mvc.pattern("/api/auth/**")
