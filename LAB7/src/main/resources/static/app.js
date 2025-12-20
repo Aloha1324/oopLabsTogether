@@ -403,6 +403,7 @@ class WordleGame {
         this.currentGuess = [];
         this.gameOver = false;
         this.init();
+        this.messageTimeout = null;
     }
 
     init() {
@@ -485,6 +486,7 @@ class WordleGame {
     }
 
     async open() {
+
         this.wordleGame.classList.add('active');
         this.wordleOpen = true;
         document.body.style.overflow = 'hidden';
@@ -653,12 +655,30 @@ class WordleGame {
         const msgEl = this.wordleGame.querySelector('#wordleMessage');
         if (msgEl) {
             msgEl.textContent = msg;
-            msgEl.className = type;
+            msgEl.className = type || ''; // 'error', 'success' или пусто
+
+            // Автоматически скрыть сообщение через 2.5 секунды, если это ошибка
+            if (type === 'error') {
+                clearTimeout(this.messageTimeout);
+                this.messageTimeout = setTimeout(() => {
+                    if (msgEl.textContent === msg) { // только если сообщение ещё актуально
+                        this.clearMessage();
+                    }
+                }, 2500); // 2.5 секунды
+            }
         }
     }
 
     clearMessage() {
-        this.showMessage('', '');
+        const msgEl = this.wordleGame.querySelector('#wordleMessage');
+        if (msgEl) {
+            msgEl.textContent = '';
+            msgEl.className = '';
+        }
+        if (this.messageTimeout) {
+            clearTimeout(this.messageTimeout);
+            this.messageTimeout = null;
+        }
     }
 
     updateFabVisibility() {
