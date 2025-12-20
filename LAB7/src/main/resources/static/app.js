@@ -503,6 +503,7 @@ class WordleGame {
     }
 
     async newGame() {
+        this.clearMessage();
         try {
             setLoading(true);
             const res = await fetch(`${API_BASE}/api/v1/wordle/new-game`, {
