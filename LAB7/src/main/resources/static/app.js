@@ -558,7 +558,7 @@ class WordleGame {
             this.showMessage('Это слово уже было использовано!', 'error');
             return;
         }
-        const guessWord = this.currentGuess.join('').toUpperCase();
+
         try {
             setLoading(true);
             const res = await fetch(`${API_BASE}/api/v1/wordle/guess`, {
