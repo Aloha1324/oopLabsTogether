@@ -146,6 +146,7 @@
 
         .auth-section { display: none; }
         .auth-section.active { display: block; }
+
         .user-info {
             background: rgba(74, 85, 104, 0.5);
             padding: 0.8rem;
@@ -249,6 +250,7 @@
     <div class="math-icon">
         <span class="math-formula">𝑓</span><span class="math-paren">(</span><span class="math-var">𝑥</span><span class="math-paren">)</span>
     </div>
+
     <!-- LOGIN -->
     <div id="loginForm" class="auth-section active">
         <h1>Вход</h1>
@@ -342,6 +344,7 @@
         <button class="btn" onclick="createFunctionFromPoints()">✅ Создать функцию</button>
         <button class="btn btn-danger" style="margin-top: 8px;" onclick="showProfile()">← Назад</button>
     </div>
+
     <!-- CREATE BY FORMULA -->
     <div id="createByFormula" class="auth-section">
         <h2>🧮 Создать функцию по формуле</h2>
@@ -410,6 +413,7 @@
         </div>
         <button class="btn btn-danger" style="margin-top: 10px;" onclick="showProfile()">← Назад</button>
     </div>
+
     <!-- DIFFERENTIATION -->
     <div id="differentiation" class="auth-section">
         <h2>📈 Дифференцирование</h2>
@@ -423,7 +427,7 @@
             </div>
             <div>
                 <h3>Производная</h3>
-                <button class="btn" onclick="performDifferentiation()">⚡️ Дифференцировать</button>
+                <button class="btn" onclick="performDifferentiation()">⚡ Дифференцировать</button>
                 <button class="btn" style="margin-top:8px;" onclick="saveDiffResult()">💾 Сохранить</button>
                 <div id="diffResultTable" class="user-info" style="margin-top:8px; min-height:80px;"></div>
             </div>
