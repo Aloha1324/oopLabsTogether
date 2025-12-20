@@ -2,7 +2,12 @@ const API_BASE = 'http://localhost:8080/lab7-api';
 
 let currentToken = null;
 let currentUser = null;
+let factoryType = 'array'; // Default
+let activeFuncA = null;
+let activeFuncB = null;
+let activeDiffFunc = null;
 
+// ===== NAVIGATION =====
 function showSection(sectionId) {
     document.querySelectorAll('.auth-section').forEach(section => {
         section.classList.remove('active');
@@ -13,8 +18,19 @@ function showSection(sectionId) {
 
 function showLogin() { showSection('loginForm'); }
 function showRegister() { showSection('registerForm'); }
-function showProfile() {
-    showSection('userProfile');
+function showProfile() { showSection('userProfile'); updateProfileUI(); }
+
+function showCreateByPoints() { showSection('createByPoints'); }
+function showCreateByFormula() {
+    showSection('createByFormula');
+    loadMathFunctions();
+}
+
+function showFactorySettings() { showSection('factorySettings'); loadFactorySettings(); }
+function showOperations() { showSection('operations'); }
+function showDifferentiation() { showSection('differentiation'); }
+
+function updateProfileUI() {
     if (currentUser) {
         document.getElementById('welcomeMsg').innerHTML =
             `✅ <strong>${currentUser.username}</strong> (${currentUser.role}) успешно авторизован!`;
@@ -25,12 +41,7 @@ function showProfile() {
     }
 }
 
-function showCreateByPoints() { showSection('createByPoints'); }
-function showCreateByFormula() {
-    showSection('createByFormula');
-    loadMathFunctions();
-}
-
+// ===== MESSAGES & LOADING =====
 function showMessage(message, type = 'error') {
     const msgEl = document.getElementById('errorMsg');
     msgEl.textContent = message;
@@ -43,7 +54,7 @@ function setLoading(loading) {
     document.getElementById('loading').style.display = loading ? 'block' : 'none';
 }
 
-// AUTH
+// ===== AUTH =====
 async function login() {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
@@ -108,11 +119,14 @@ function copyToken() {
 function logout() {
     currentToken = null;
     currentUser = null;
+    activeFuncA = null;
+    activeFuncB = null;
+    activeDiffFunc = null;
     showLogin();
     showMessage('Вы вышли из системы 👋', 'success');
 }
 
-// NEW: MATH FUNCTIONS
+// ===== MATH FUNCTIONS (FORMULA) =====
 async function loadMathFunctions() {
     setLoading(true);
     try {
@@ -135,7 +149,7 @@ async function loadMathFunctions() {
     }
 }
 
-// NEW: BY POINTS
+// ===== CREATE BY POINTS =====
 function generatePointsTable() {
     const countEl = document.getElementById('pointsCount');
     const container = document.getElementById('pointsTableContainer');
@@ -195,7 +209,7 @@ async function createFunctionFromPoints() {
     }
 }
 
-// NEW: BY MATH
+// ===== CREATE BY FORMULA =====
 async function createFunctionFromMath() {
     const name = document.getElementById('formulaName').value || null;
     const type = document.getElementById('mathFunctionSelect').value;
@@ -230,7 +244,166 @@ async function createFunctionFromMath() {
     }
 }
 
-// ENTER handling
+// ===== FACTORY SETTINGS =====
+async function loadFactorySettings() {
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/factory`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            factoryType = data.type;
+            document.getElementById('currentFactory').textContent =
+                factoryType === 'array' ? 'Массив' : 'Связный список';
+            document.querySelector(`input[name="factory"][value="${factoryType}"]`).checked = true;
+        }
+    } catch (err) {
+        showMessage('Не удалось загрузить настройки: ' + err.message);
+    } finally {
+        setLoading(false);
+    }
+}
+
+async function saveFactorySettings() {
+    const selected = document.querySelector('input[name="factory"]:checked')?.value;
+    if (!selected) return showMessage('Выберите тип фабрики');
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/factory`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({ type: selected })
+        });
+        if (res.ok) {
+            factoryType = selected;
+            showMessage('Фабрика сохранена!', 'success');
+            showProfile();
+        } else {
+            const err = await res.json();
+            showMessage(err.message || 'Ошибка сохранения');
+        }
+    } catch (err) {
+        showMessage('Ошибка сети: ' + err.message);
+    } finally {
+        setLoading(false);
+    }
+}
+
+// ===== OPERATIONS =====
+function createFuncForOp(target, type) {
+    // Temporarily override back button
+    const originalBack = () => showSection('operations');
+    if (type === 'points') {
+        const old = showCreateByPoints;
+        showCreateByPoints = () => {
+            showSection('createByPoints');
+            const backButton = document.querySelector('#createByPoints .btn-danger');
+            if (backButton) backButton.onclick = originalBack;
+        };
+        showCreateByPoints();
+    } else {
+        const old = showCreateByFormula;
+        showCreateByFormula = () => {
+            showSection('createByFormula');
+            const backButton = document.querySelector('#createByFormula .btn-danger');
+            if (backButton) backButton.onclick = originalBack;
+        };
+        showCreateByFormula();
+    }
+}
+
+async function performOp(operation) {
+    if (!activeFuncA || !activeFuncB) return showMessage('Загрузите обе функции!');
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/functions/operations/${operation}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({
+                functionAId: activeFuncA.id,
+                functionBId: activeFuncB.id,
+                factoryType: factoryType
+            })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            renderFunctionTable(data, 'resultTable');
+            showMessage('Операция выполнена!', 'success');
+        } else {
+            showMessage(data.message || 'Ошибка операции');
+        }
+    } catch (err) {
+        showMessage('Ошибка: ' + err.message);
+    } finally {
+        setLoading(false);
+    }
+}
+
+// ===== DIFFERENTIATION =====
+async function performDifferentiation() {
+    if (!activeDiffFunc) return showMessage('Загрузите функцию для дифференцирования!');
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/functions/differentiate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({
+                functionId: activeDiffFunc.id,
+                factoryType: factoryType
+            })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            renderFunctionTable(data, 'diffResultTable');
+            showMessage('Дифференцирование выполнено!', 'success');
+        } else {
+            showMessage(data.message || 'Ошибка дифференцирования');
+        }
+    } catch (err) {
+        showMessage('Ошибка: ' + err.message);
+    } finally {
+        setLoading(false);
+    }
+}
+
+// ===== UTILITIES =====
+function renderFunctionTable(func, containerId) {
+    const container = document.getElementById(containerId);
+    if (!func || !func.xValues || !func.yValues) {
+        container.innerHTML = '<div>Нет данных</div>';
+        return;
+    }
+    let html = `<table><thead><tr><th>x</th><th>y</th></tr></thead><tbody>`;
+    for (let i = 0; i < func.xValues.length; i++) {
+        html += `<tr><td>${Number(func.xValues[i]).toFixed(4)}</td><td>${Number(func.yValues[i]).toFixed(4)}</td></tr>`;
+    }
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
+
+function saveResult() {
+    showMessage('Сохранение результата — в разработке', 'success');
+}
+
+function saveDiffResult() {
+    showMessage('Сохранение производной — в разработке', 'success');
+}
+
+function loadFunction(target) {
+    showMessage(`Загрузка функции — в разработке (${target})`, 'success');
+}
+
+// ===== KEYBOARD & INIT =====
 document.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
         if (document.getElementById('loginForm').classList.contains('active')) login();

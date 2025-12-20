@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Function Analyzer - LAB5 | Вход</title>
+    <title>Function Analyzer - LAB7 | Вход</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -20,8 +20,8 @@
             padding: 2rem;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            max-width: 500px;
-            width: 90%;
+            max-width: 900px;
+            width: 95%;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1);
         }
@@ -173,6 +173,8 @@
         input[type="number"] {
             text-align: center;
         }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
     </style>
 </head>
 <body>
@@ -223,8 +225,17 @@
             <div>Имя: <span id="userName">-</span></div>
             <div>Роль: <span id="userRole">-</span></div>
             <div>ID: <span id="userId">-</span></div>
-            <button class="btn" style="margin-top: 10px;" onclick="showCreateByPoints()">📊 Создать по точкам</button>
-            <button class="btn" style="margin-top: 10px;" onclick="showCreateByFormula()">🧮 Создать по формуле</button>
+
+            <hr style="margin:15px 0; border-color:#4a5568;">
+
+            <h3>🔧 Управление</h3>
+            <div class="grid-2">
+                <button class="btn" onclick="showFactorySettings()">⚙️ Фабрика</button>
+                <button class="btn" onclick="showOperations()">➕ Операции</button>
+                <button class="btn" onclick="showDifferentiation()">📈 Дифференцирование</button>
+                <button class="btn" onclick="showCreateByPoints()">📊 По точкам</button>
+                <button class="btn" onclick="showCreateByFormula()">🧮 По формуле</button>
+            </div>
         </div>
         <div class="token-section">
             <strong>JWT Токен:</strong><br>
@@ -275,6 +286,72 @@
         </div>
         <button class="btn" onclick="createFunctionFromMath()">✅ Создать функцию</button>
         <button class="btn btn-danger" style="margin-top: 10px;" onclick="showProfile()">← Назад</button>
+    </div>
+
+    <!-- FACTORY SETTINGS -->
+    <div id="factorySettings" class="auth-section">
+        <h2>⚙️ Настройки фабрики</h2>
+        <p>Текущая фабрика: <strong id="currentFactory">Загрузка...</strong></p>
+        <div class="form-group">
+            <label><input type="radio" name="factory" value="array"> Массив</label>
+            <label><input type="radio" name="factory" value="linked-list"> Связный список</label>
+        </div>
+        <button class="btn" onclick="saveFactorySettings()">💾 Сохранить</button>
+        <button class="btn btn-danger" style="margin-top: 10px;" onclick="showProfile()">← Назад</button>
+    </div>
+
+    <!-- OPERATIONS -->
+    <div id="operations" class="auth-section">
+        <h2>➕ Поэлементные операции</h2>
+        <div class="grid-3" style="margin-top:15px;">
+            <div>
+                <h3>Функция A</h3>
+                <button class="btn" onclick="loadFunction('A')">📂 Загрузить</button>
+                <button class="btn" onclick="createFuncForOp('A', 'points')">📊 По точкам</button>
+                <button class="btn" onclick="createFuncForOp('A', 'formula')">🧮 По формуле</button>
+                <div id="funcATable" class="user-info" style="margin-top:10px; min-height:100px;"></div>
+            </div>
+            <div>
+                <h3>Функция B</h3>
+                <button class="btn" onclick="loadFunction('B')">📂 Загрузить</button>
+                <button class="btn" onclick="createFuncForOp('B', 'points')">📊 По точкам</button>
+                <button class="btn" onclick="createFuncForOp('B', 'formula')">🧮 По формуле</button>
+                <div id="funcBTable" class="user-info" style="margin-top:10px; min-height:100px;"></div>
+            </div>
+            <div>
+                <h3>Результат</h3>
+                <div class="grid-2" style="margin-top:10px; gap:5px;">
+                    <button class="btn" onclick="performOp('add')">➕</button>
+                    <button class="btn" onclick="performOp('sub')">➖</button>
+                    <button class="btn" onclick="performOp('mul')">✖️</button>
+                    <button class="btn" onclick="performOp('div')">➗</button>
+                </div>
+                <button class="btn" style="margin-top:10px;" onclick="saveResult()">💾 Сохранить результат</button>
+                <div id="resultTable" class="user-info" style="margin-top:10px; min-height:100px;"></div>
+            </div>
+        </div>
+        <button class="btn btn-danger" style="margin-top: 15px;" onclick="showProfile()">← Назад</button>
+    </div>
+
+    <!-- DIFFERENTIATION -->
+    <div id="differentiation" class="auth-section">
+        <h2>📈 Дифференцирование</h2>
+        <div class="grid-2" style="margin-top:15px; gap:15px;">
+            <div>
+                <h3>Исходная функция</h3>
+                <button class="btn" onclick="loadFunction('DIFF')">📂 Загрузить</button>
+                <button class="btn" onclick="createFuncForOp('DIFF', 'points')">📊 По точкам</button>
+                <button class="btn" onclick="createFuncForOp('DIFF', 'formula')">🧮 По формуле</button>
+                <div id="diffInputTable" class="user-info" style="margin-top:10px; min-height:100px;"></div>
+            </div>
+            <div>
+                <h3>Производная</h3>
+                <button class="btn" onclick="performDifferentiation()">⚡ Дифференцировать</button>
+                <button class="btn" style="margin-top:10px;" onclick="saveDiffResult()">💾 Сохранить</button>
+                <div id="diffResultTable" class="user-info" style="margin-top:10px; min-height:100px;"></div>
+            </div>
+        </div>
+        <button class="btn btn-danger" style="margin-top: 15px;" onclick="showProfile()">← Назад</button>
     </div>
 
     <!-- LOADER & ERROR -->

@@ -25,10 +25,10 @@ C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\ja
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\ArrayTabulatedFunctionRemovable.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\concurrent\ReadWriteTaskExecutor.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\Request\PointOperationRequest.java
+C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\controller\api\OperationsController.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\repository\FunctionRepository.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\concurrent\WriteTask.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\controller\api\SimpleApiController.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\ui\WebController.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\Response\ApiResponse.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\security\JwtAuthenticationFilter.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\exceptions\InterpolationException.java
@@ -49,6 +49,7 @@ C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\ja
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\Response\PaginatedResponse.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\config\SecurityConfig.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\security\AuthRequest.java
+C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\ui\GlobalExceptionHandler.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\Response\CalculationResponse.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\repository\PointRepository.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\Response\ErrorResponse.java
@@ -73,7 +74,6 @@ C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\ja
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\io\TabulatedFunctionFileInputStream.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\controller\PointController.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\Request\IntegrationRequest.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\ui\IndexController.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\UserDTO.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\controller\api\FunctionApiController.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\operations\RightSteppingDifferentialOperator.java
@@ -83,6 +83,7 @@ C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\ja
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\factory\ArrayTabulatedFunctionFactory.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\ZeroFunction.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\concurrent\MultiplyingTask.java
+C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\Request\FactorySettingsRequest.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\exceptions\InconsistentFunctionsException.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\controller\AuthController.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\operations\TabulatedDifferentialOperator.java
