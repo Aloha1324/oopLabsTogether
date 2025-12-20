@@ -14,167 +14,234 @@
             align-items: center;
             justify-content: center;
             color: #e2e8f0;
+            padding: 10px;
+            box-sizing: border-box;
         }
+
         .container {
             background: rgba(45, 55, 72, 0.95);
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            max-width: 900px;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
             width: 95%;
+            max-width: 900px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1);
         }
+
         .math-icon {
             text-align: center;
-            margin-bottom: 1.5rem;
-            font-size: 4.5rem;
+            margin-bottom: 1rem;
+            font-size: 3rem;
             line-height: 1;
         }
+
         .math-formula {
             font-family: 'Cambria Math', 'Times New Roman', serif;
-            font-size: 3.8rem;
+            font-size: 2.5rem;
             font-weight: bold;
             color: #f6ad55;
             font-style: italic;
             position: relative;
             top: -0.1em;
         }
+
         .math-paren {
             font-family: 'Cambria Math', 'Times New Roman', serif;
-            font-size: 3.2rem;
+            font-size: 2.2rem;
             color: #f6ad55;
             font-weight: 300;
             line-height: 1;
         }
+
         .math-var {
             font-family: 'Cambria Math', 'Times New Roman', serif;
-            font-size: 3.5rem;
+            font-size: 2.5rem;
             font-weight: bold;
             color: #fbbf24;
             font-style: italic;
             margin: 0 0.1em;
         }
+
         @supports not (font-family: 'Cambria Math') {
             .math-formula, .math-var, .math-paren {
                 font-family: 'Times New Roman', serif;
                 font-style: italic;
             }
         }
+
         h1, h2, h3, h4 {
             text-align: center;
             color: #f7fafc;
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem;
         }
-        h2 { font-size: 1.6rem; margin-top: 1rem; }
+
+        h2 { font-size: 1.4rem; margin-top: 1rem; }
+
         .form-group {
-            margin-bottom: 1.2rem;
+            margin-bottom: 0.8rem;
         }
+
         label {
             display: block;
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.3rem;
             font-weight: 500;
             color: #e2e8f0;
+            font-size: 0.9rem;
         }
+
         input, select {
             width: 100%;
-            padding: 10px 12px;
+            padding: 8px 10px;
             border: 2px solid #4a5568;
-            border-radius: 8px;
-            font-size: 0.95rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
             background: #4a5568;
             color: #e2e8f0;
             transition: all 0.2s;
         }
+
         input::placeholder, select {
             color: #a0aec0;
+            font-size: 0.9rem;
         }
+
         input:focus, select:focus {
             outline: none;
             border-color: #f6ad55;
             background: #5a6678;
         }
+
         .btn {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             background: linear-gradient(135deg, #f6ad55 0%, #ed8936 100%);
             color: #2d3748;
             border: none;
-            border-radius: 8px;
-            font-size: 1rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
         }
+
         .btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 5px 15px rgba(246, 173, 85, 0.4);
+            box-shadow: 0 5px 10px rgba(246, 173, 85, 0.4);
             background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
         }
+
         .btn:active { transform: translateY(0); }
+
         .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
             background: #718096;
         }
+
         .btn-danger {
             background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
         }
+
         .auth-section { display: none; }
         .auth-section.active { display: block; }
-        .user-info, .token-section {
+        .user-info {
             background: rgba(74, 85, 104, 0.5);
-            padding: 1rem;
-            border-radius: 10px;
-            margin: 1rem 0;
-            border-left: 4px solid #f6ad55;
-        }
-        .token-section {
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            word-break: break-all;
-        }
-        .error, .success {
-            padding: 10px;
+            padding: 0.8rem;
             border-radius: 8px;
-            margin: 1rem 0;
-            text-align: center;
+            margin: 0.8rem 0;
+            border-left: 4px solid #f6ad55;
+            font-size: 0.9rem;
         }
+
+        .error, .success {
+            padding: 8px;
+            border-radius: 6px;
+            margin: 0.8rem 0;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
         .error {
             background: rgba(245, 101, 101, 0.2);
             border-left: 4px solid #f56565;
         }
+
         .success {
             background: rgba(72, 187, 120, 0.2);
             border-left: 4px solid #48bb78;
         }
+
         .loading {
             display: none;
             text-align: center;
             color: #f6ad55;
-            font-size: 1.1rem;
-            margin: 1rem 0;
+            font-size: 1rem;
+            margin: 0.8rem 0;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 0.5rem;
+            font-size: 0.85rem;
         }
+
         th, td {
-            padding: 8px;
+            padding: 6px;
             text-align: center;
             border: 1px solid #4a5568;
         }
+
         th {
             background: rgba(246, 173, 85, 0.2);
             color: #f6ad55;
         }
+
         input[type="number"] {
             text-align: center;
         }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+
+        /* Мобильная адаптация */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+                width: 98%;
+                max-width: 100%;
+            }
+
+            .math-icon { font-size: 2.5rem; }
+            .math-formula { font-size: 2rem; }
+            .math-paren, .math-var { font-size: 1.8rem; }
+
+            h1, h2 { font-size: 1.2rem; }
+            .form-group { margin-bottom: 0.6rem; }
+            label { font-size: 0.85rem; }
+            input, select { font-size: 0.85rem; padding: 6px 8px; }
+            .btn { font-size: 0.85rem; padding: 8px; }
+            .user-info { padding: 0.6rem; font-size: 0.85rem; }
+            table { font-size: 0.8rem; }
+            th, td { padding: 4px; }
+            .grid-2, .grid-3 { gap: 6px; }
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 0.8rem; }
+            .math-icon { font-size: 2rem; }
+            .math-formula { font-size: 1.6rem; }
+            .math-paren, .math-var { font-size: 1.6rem; }
+            h1, h2 { font-size: 1rem; }
+            .form-group { margin-bottom: 0.5rem; }
+            label { font-size: 0.8rem; }
+            input, select { font-size: 0.8rem; padding: 5px 6px; }
+            .btn { font-size: 0.8rem; padding: 6px; }
+            .user-info { padding: 0.5rem; font-size: 0.8rem; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; gap: 6px; }
+        }
     </style>
 </head>
 <body>
@@ -182,7 +249,6 @@
     <div class="math-icon">
         <span class="math-formula">𝑓</span><span class="math-paren">(</span><span class="math-var">𝑥</span><span class="math-paren">)</span>
     </div>
-
     <!-- LOGIN -->
     <div id="loginForm" class="auth-section active">
         <h1>Вход</h1>
@@ -195,8 +261,17 @@
             <input type="password" id="loginPassword" placeholder="admin123" value="admin123">
         </div>
         <button class="btn" onclick="login()">Войти</button>
-        <p style="text-align: center; margin-top: 1rem; color: #a0aec0;">
-            Нет аккаунта? <a href="#" onclick="showRegister()">Зарегистрироваться</a>
+        <p style="text-align: center; margin-top: 0.8rem; color: #a0aec0; font-size: 0.85rem;">
+            Нет аккаунта?
+            <a
+                    href="#"
+                    onclick="showRegister()"
+                    style="color: #f6ad55; text-decoration: none; font-weight: 500;"
+                    onmouseover="this.style.color='#ed8936'"
+                    onmouseout="this.style.color='#f6ad55'"
+            >
+                Зарегистрироваться
+            </a>
         </p>
     </div>
 
@@ -212,8 +287,17 @@
             <input type="password" id="regPassword" placeholder="123456">
         </div>
         <button class="btn" onclick="register()">Зарегистрироваться</button>
-        <p style="text-align: center; margin-top: 1rem; color: #a0aec0;">
-            Уже есть аккаунт? <a href="#" onclick="showLogin()">Войти</a>
+        <p style="text-align: center; margin-top: 0.8rem; color: #a0aec0; font-size: 0.85rem;">
+            Уже есть аккаунт?
+            <a
+                    href="#"
+                    onclick="showLogin()"
+                    style="color: #f6ad55; text-decoration: none; font-weight: 500;"
+                    onmouseover="this.style.color='#ed8936'"
+                    onmouseout="this.style.color='#f6ad55'"
+            >
+                Войти
+            </a>
         </p>
     </div>
 
@@ -226,7 +310,7 @@
             <div>Роль: <span id="userRole">-</span></div>
             <div>ID: <span id="userId">-</span></div>
 
-            <hr style="margin:15px 0; border-color:#4a5568;">
+            <hr style="margin: 0.8rem 0; border-color:#4a5568;">
 
             <h3>🔧 Управление</h3>
             <div class="grid-2">
@@ -236,11 +320,6 @@
                 <button class="btn" onclick="showCreateByPoints()">📊 По точкам</button>
                 <button class="btn" onclick="showCreateByFormula()">🧮 По формуле</button>
             </div>
-        </div>
-        <div class="token-section">
-            <strong>JWT Токен:</strong><br>
-            <span id="jwtToken">-</span>
-            <button class="btn" style="width: auto; padding: 5px 10px; font-size: 0.8rem; margin-top: 5px;" onclick="copyToken()">📋 Копировать</button>
         </div>
         <button class="btn btn-danger" onclick="logout()">🚪 Выйти</button>
     </div>
@@ -261,9 +340,8 @@
             <div id="pointsTableContainer"></div>
         </div>
         <button class="btn" onclick="createFunctionFromPoints()">✅ Создать функцию</button>
-        <button class="btn btn-danger" style="margin-top: 10px;" onclick="showProfile()">← Назад</button>
+        <button class="btn btn-danger" style="margin-top: 8px;" onclick="showProfile()">← Назад</button>
     </div>
-
     <!-- CREATE BY FORMULA -->
     <div id="createByFormula" class="auth-section">
         <h2>🧮 Создать функцию по формуле</h2>
@@ -278,14 +356,14 @@
         <div class="form-group">
             <label>Интервал [от, до]</label>
             <input type="number" step="0.1" id="fromX" placeholder="От (напр. 0)">
-            <input type="number" step="0.1" id="toX" placeholder="До (напр. 10)" style="margin-top: 8px;">
+            <input type="number" step="0.1" id="toX" placeholder="До (напр. 10)" style="margin-top: 6px;">
         </div>
         <div class="form-group">
             <label>Количество точек (2–10000)</label>
             <input type="number" min="2" max="10000" id="formulaPointsCount" value="10">
         </div>
         <button class="btn" onclick="createFunctionFromMath()">✅ Создать функцию</button>
-        <button class="btn btn-danger" style="margin-top: 10px;" onclick="showProfile()">← Назад</button>
+        <button class="btn btn-danger" style="margin-top: 8px;" onclick="showProfile()">← Назад</button>
     </div>
 
     <!-- FACTORY SETTINGS -->
@@ -297,61 +375,60 @@
             <label><input type="radio" name="factory" value="linked-list"> Связный список</label>
         </div>
         <button class="btn" onclick="saveFactorySettings()">💾 Сохранить</button>
-        <button class="btn btn-danger" style="margin-top: 10px;" onclick="showProfile()">← Назад</button>
+        <button class="btn btn-danger" style="margin-top: 8px;" onclick="showProfile()">← Назад</button>
     </div>
 
     <!-- OPERATIONS -->
     <div id="operations" class="auth-section">
         <h2>➕ Поэлементные операции</h2>
-        <div class="grid-3" style="margin-top:15px;">
+        <div class="grid-3" style="margin-top:10px;">
             <div>
                 <h3>Функция A</h3>
                 <button class="btn" onclick="loadFunction('A')">📂 Загрузить</button>
                 <button class="btn" onclick="createFuncForOp('A', 'points')">📊 По точкам</button>
                 <button class="btn" onclick="createFuncForOp('A', 'formula')">🧮 По формуле</button>
-                <div id="funcATable" class="user-info" style="margin-top:10px; min-height:100px;"></div>
+                <div id="funcATable" class="user-info" style="margin-top:8px; min-height:80px;"></div>
             </div>
             <div>
                 <h3>Функция B</h3>
                 <button class="btn" onclick="loadFunction('B')">📂 Загрузить</button>
                 <button class="btn" onclick="createFuncForOp('B', 'points')">📊 По точкам</button>
                 <button class="btn" onclick="createFuncForOp('B', 'formula')">🧮 По формуле</button>
-                <div id="funcBTable" class="user-info" style="margin-top:10px; min-height:100px;"></div>
+                <div id="funcBTable" class="user-info" style="margin-top:8px; min-height:80px;"></div>
             </div>
             <div>
                 <h3>Результат</h3>
-                <div class="grid-2" style="margin-top:10px; gap:5px;">
+                <div class="grid-2" style="margin-top:8px; gap:4px;">
                     <button class="btn" onclick="performOp('add')">➕</button>
                     <button class="btn" onclick="performOp('sub')">➖</button>
                     <button class="btn" onclick="performOp('mul')">✖️</button>
                     <button class="btn" onclick="performOp('div')">➗</button>
                 </div>
-                <button class="btn" style="margin-top:10px;" onclick="saveResult()">💾 Сохранить результат</button>
-                <div id="resultTable" class="user-info" style="margin-top:10px; min-height:100px;"></div>
+                <button class="btn" style="margin-top:8px;" onclick="saveResult()">💾 Сохранить результат</button>
+                <div id="resultTable" class="user-info" style="margin-top:8px; min-height:80px;"></div>
             </div>
         </div>
-        <button class="btn btn-danger" style="margin-top: 15px;" onclick="showProfile()">← Назад</button>
+        <button class="btn btn-danger" style="margin-top: 10px;" onclick="showProfile()">← Назад</button>
     </div>
-
     <!-- DIFFERENTIATION -->
     <div id="differentiation" class="auth-section">
         <h2>📈 Дифференцирование</h2>
-        <div class="grid-2" style="margin-top:15px; gap:15px;">
+        <div class="grid-2" style="margin-top:10px; gap:10px;">
             <div>
                 <h3>Исходная функция</h3>
                 <button class="btn" onclick="loadFunction('DIFF')">📂 Загрузить</button>
                 <button class="btn" onclick="createFuncForOp('DIFF', 'points')">📊 По точкам</button>
                 <button class="btn" onclick="createFuncForOp('DIFF', 'formula')">🧮 По формуле</button>
-                <div id="diffInputTable" class="user-info" style="margin-top:10px; min-height:100px;"></div>
+                <div id="diffInputTable" class="user-info" style="margin-top:8px; min-height:80px;"></div>
             </div>
             <div>
                 <h3>Производная</h3>
-                <button class="btn" onclick="performDifferentiation()">⚡ Дифференцировать</button>
-                <button class="btn" style="margin-top:10px;" onclick="saveDiffResult()">💾 Сохранить</button>
-                <div id="diffResultTable" class="user-info" style="margin-top:10px; min-height:100px;"></div>
+                <button class="btn" onclick="performDifferentiation()">⚡️ Дифференцировать</button>
+                <button class="btn" style="margin-top:8px;" onclick="saveDiffResult()">💾 Сохранить</button>
+                <div id="diffResultTable" class="user-info" style="margin-top:8px; min-height:80px;"></div>
             </div>
         </div>
-        <button class="btn btn-danger" style="margin-top: 15px;" onclick="showProfile()">← Назад</button>
+        <button class="btn btn-danger" style="margin-top: 10px;" onclick="showProfile()">← Назад</button>
     </div>
 
     <!-- LOADER & ERROR -->
