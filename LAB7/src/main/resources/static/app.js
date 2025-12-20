@@ -2,7 +2,7 @@ const API_BASE = 'http://localhost:8080/lab7-api';
 
 let currentToken = null;
 let currentUser = null;
-let factoryType = 'array'; // Default
+let factoryType = 'array';
 let activeFuncA = null;
 let activeFuncB = null;
 let activeDiffFunc = null;
@@ -19,13 +19,8 @@ function showSection(sectionId) {
 function showLogin() { showSection('loginForm'); }
 function showRegister() { showSection('registerForm'); }
 function showProfile() { showSection('userProfile'); updateProfileUI(); }
-
 function showCreateByPoints() { showSection('createByPoints'); }
-function showCreateByFormula() {
-    showSection('createByFormula');
-    loadMathFunctions();
-}
-
+function showCreateByFormula() { showSection('createByFormula'); loadMathFunctions(); }
 function showFactorySettings() { showSection('factorySettings'); loadFactorySettings(); }
 function showOperations() { showSection('operations'); }
 function showDifferentiation() { showSection('differentiation'); }
@@ -37,7 +32,6 @@ function updateProfileUI() {
         document.getElementById('userName').textContent = currentUser.username;
         document.getElementById('userRole').textContent = currentUser.role;
         document.getElementById('userId').textContent = currentUser.userId;
-        // УДАЛЕНО: отображение токена
     }
 }
 
@@ -54,7 +48,7 @@ function setLoading(loading) {
     document.getElementById('loading').style.display = loading ? 'block' : 'none';
 }
 
-// ===== AUTH =====
+// ===== AUTH (остается БЕЗ ИЗМЕНЕНИЙ) =====
 async function login() {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
@@ -71,6 +65,7 @@ async function login() {
             currentToken = data.token;
             currentUser = data;
             showProfile();
+            wordleGame.updateFabVisibility(); // ← Wordle FAB показывается
             showMessage(`Добро пожаловать, ${data.username}! 🎉`, 'success');
         } else {
             showMessage(data.message || data.error || 'Ошибка входа');
@@ -99,6 +94,7 @@ async function register() {
             currentToken = data.token;
             currentUser = data;
             showProfile();
+            wordleGame.updateFabVisibility(); // ← Wordle FAB показывается
             showMessage(`Аккаунт создан, ${data.username}! 🎉`, 'success');
         } else {
             showMessage(data.message || data.error || 'Ошибка регистрации');
@@ -110,14 +106,13 @@ async function register() {
     }
 }
 
-// УДАЛЕНО: функция copyToken()
-
 function logout() {
     currentToken = null;
     currentUser = null;
     activeFuncA = null;
     activeFuncB = null;
     activeDiffFunc = null;
+    wordleGame.updateFabVisibility(); // ← Wordle FAB скрывается
     showLogin();
     showMessage('Вы вышли из системы 👋', 'success');
 }
@@ -397,6 +392,278 @@ function saveDiffResult() {
 function loadFunction(target) {
     showMessage(`Загрузка функции — в разработке (${target})`, 'success');
 }
+
+// ===== WORDLE GAME CLASS =====
+class WordleGame {
+    constructor() {
+        this.wordleOpen = false;
+        this.wordleGame = null;
+        this.gameState = null;
+        this.guesses = [];
+        this.currentGuess = [];
+        this.gameOver = false;
+        this.init();
+    }
+
+    init() {
+        this.createGameDOM();
+        this.setupEventListeners();
+        this.updateFabVisibility();
+    }
+
+    createGameDOM() {
+        this.wordleGame = document.createElement('div');
+        this.wordleGame.id = 'wordleGame';
+        this.wordleGame.innerHTML = `
+            <div class="wordle-overlay" onclick="wordleGame.close()">
+                <div class="wordle-container" onclick="event.stopPropagation()">
+                    <div class="wordle-header">
+                        <h3>🟩🟨⬜ WORDLE</h3>
+                        <button class="wordle-close" onclick="wordleGame.close()">✕</button>
+                    </div>
+                    <div class="wordle-game">
+                        <div id="wordleGrid"></div>
+                        <div class="wordle-keyboard"></div>
+                        <div class="wordle-info">
+                            <div>Осталось попыток: <span id="wordleAttempts">6</span></div>
+                            <div id="wordleMessage"></div>
+                            <div>
+                                <button class="btn" style="width:100%; margin-top:10px;" onclick="wordleGame.newGame()">🔄 Новая игра</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(this.wordleGame);
+        this.setupKeyboard();
+    }
+
+    setupEventListeners() {
+        document.addEventListener('keydown', (e) => {
+            if (!this.wordleOpen || this.gameOver) return;
+            if (e.key === 'Backspace') {
+                e.preventDefault();
+                this.handleKeyPress('⌫');
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                this.handleKeyPress('.');
+            } else if (e.key.length === 1 && /[А-ЯЁ]/.test(e.key.toUpperCase())) {
+                this.handleKeyPress(e.key.toUpperCase());
+            }
+        });
+    }
+
+    setupKeyboard() {
+        const keyboard = this.wordleGame.querySelector('.wordle-keyboard');
+        const keys = [
+            ['Й', 'Ц', 'У', 'К', 'Е', 'Ё', 'Н', 'Г', 'Ш', 'Щ', 'З', 'Х', 'Ъ'],
+            ['Ф', 'Ы', 'В', 'А', 'П', 'Р', 'О', 'Л', 'Д', 'Ж', 'Э'],
+            ['Я', 'Ч', 'С', 'М', 'И', 'Т', 'Ь', 'Б', 'Ю', '.', '⌫']
+        ];
+
+        keys.forEach(row => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'wordle-key-row';
+            row.forEach(key => {
+                const btn = document.createElement('button');
+                btn.className = 'wordle-key';
+                btn.textContent = key;
+                btn.onclick = () => this.handleKeyPress(key);
+                rowDiv.appendChild(btn);
+            });
+            keyboard.appendChild(rowDiv);
+        });
+    }
+
+    async toggle() {
+        if (!currentUser) {
+            showMessage('⚠️ Сначала авторизуйтесь!', 'error');
+            return;
+        }
+        this.wordleOpen ? this.close() : await this.open();
+    }
+
+    async open() {
+        this.wordleGame.classList.add('active');
+        this.wordleOpen = true;
+        document.body.style.overflow = 'hidden';
+        document.getElementById('wordleFabContainer').classList.add('active');
+        await this.loadGameState();
+    }
+
+    close() {
+        this.wordleGame.classList.remove('active');
+        this.wordleOpen = false;
+        document.body.style.overflow = '';
+        document.getElementById('wordleFabContainer')?.classList.remove('active');
+        this.gameOver = false;
+    }
+
+    async newGame() {
+        try {
+            setLoading(true);
+            const res = await fetch(`${API_BASE}/api/v1/wordle/new-game`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${currentToken}` }
+            });
+            if (res.ok) {
+                this.gameState = await res.json();
+                this.guesses = [];
+                this.currentGuess = [];
+                this.gameOver = false;
+                this.updateGrid();
+                this.updateAttempts();
+                this.clearMessage();
+                showMessage('🆕 Новая игра начата!', 'success');
+            } else {
+                const err = await res.json();
+                showMessage(err.message || 'Ошибка создания игры');
+            }
+        } catch (err) {
+            showMessage('Ошибка сети: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async loadGameState() {
+        try {
+            const res = await fetch(`${API_BASE}/api/v1/wordle/state`, {
+                headers: { 'Authorization': `Bearer ${currentToken}` }
+            });
+            if (res.ok && res.status !== 204) {
+                this.gameState = await res.json();
+                this.updateAttempts();
+            } else {
+                await this.newGame();
+            }
+        } catch (err) {
+            await this.newGame();
+        }
+    }
+
+    async submitGuess() {
+        if (this.currentGuess.length !== 5) {
+            this.showMessage('Введите 5 букв!', 'error');
+            return;
+        }
+
+        const guessWord = this.currentGuess.join('').toUpperCase();
+        try {
+            setLoading(true);
+            const res = await fetch(`${API_BASE}/api/v1/wordle/guess`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentToken}`
+                },
+                body: JSON.stringify({ word: guessWord })
+            });
+            const result = await res.json();
+
+            if (result.won || (result.message && result.message.includes('🎉'))) {
+                this.guesses.push({ word: guessWord, status: result.status });
+                this.gameOver = true;
+                this.showMessage(result.message || '🎉 Победа!', 'success');
+            } else if (result.message) {
+                this.showMessage(result.message, 'error');
+            } else {
+                this.guesses.push({ word: guessWord, status: result.status });
+                this.currentGuess = [];
+                this.updateGrid();
+                this.updateAttempts();
+
+                if (this.gameState && this.gameState.attemptsLeft <= 0) {
+                    this.gameOver = true;
+                    this.showMessage(`Игра окончена! Слово: ${this.gameState.targetWord}`, 'error');
+                }
+            }
+        } catch (err) {
+            showMessage('Ошибка сети: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    handleKeyPress(key) {
+        if (this.gameOver) return;
+
+        if (key === '⌫') {
+            this.currentGuess.pop();
+        } else if (key === '.') {
+            this.submitGuess();
+        } else if (key.length === 1 && this.currentGuess.length < 5) {
+            this.currentGuess.push(key);
+        }
+
+        this.updateGrid();
+    }
+
+    updateGrid() {
+        const grid = this.wordleGame.querySelector('#wordleGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        for (let i = 0; i < 6; i++) {
+            const row = document.createElement('div');
+            row.className = 'wordle-row';
+
+            for (let j = 0; j < 5; j++) {
+                const cell = document.createElement('div');
+                cell.className = 'wordle-cell';
+
+                if (i < this.guesses.length) {
+                    const guess = this.guesses[i];
+                    if (j < guess.word.length && guess.status) {
+                        cell.textContent = guess.word[j];
+                        cell.className = `wordle-cell ${guess.status[j]}`;
+                    }
+                } else if (i === this.guesses.length && j < this.currentGuess.length) {
+                    cell.textContent = this.currentGuess[j];
+                    cell.className = 'wordle-cell current';
+                }
+
+                row.appendChild(cell);
+            }
+            grid.appendChild(row);
+        }
+    }
+
+    updateAttempts() {
+        const attemptsEl = this.wordleGame.querySelector('#wordleAttempts');
+        if (attemptsEl) {
+            attemptsEl.textContent = this.gameState ? this.gameState.attemptsLeft : 6;
+        }
+    }
+
+    showMessage(msg, type) {
+        const msgEl = this.wordleGame.querySelector('#wordleMessage');
+        if (msgEl) {
+            msgEl.textContent = msg;
+            msgEl.className = type;
+        }
+    }
+
+    clearMessage() {
+        this.showMessage('', '');
+    }
+
+    updateFabVisibility() {
+        const fabContainer = document.getElementById('wordleFabContainer');
+        if (fabContainer) {
+            if (currentUser) {
+                fabContainer.style.display = 'flex';
+            } else {
+                fabContainer.style.display = 'none';
+                this.close();
+            }
+        }
+    }
+}
+
+// Глобальный экземпляр Wordle
+const wordleGame = new WordleGame();
 
 // ===== KEYBOARD & INIT =====
 document.addEventListener('keypress', (e) => {
