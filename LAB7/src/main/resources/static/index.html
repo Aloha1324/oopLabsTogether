@@ -416,9 +416,10 @@
 
 .wordle-key-row {
     display: flex;
-    gap: 6px;
-    margin-bottom: 8px;
+    gap: 4px; /* уменьшил отступ */
+    margin-bottom: 6px;
     justify-content: center;
+    flex-wrap: nowrap; /* важно: не переносить */
 }
 
 .wordle-key-row:last-child {
@@ -426,17 +427,18 @@
 }
 
 .wordle-key {
-    flex: 1;
-    padding: 12px 6px;
+    flex: 1; /* растягиваются равномерно */
+    min-width: 0; /* позволяет сжиматься меньше контента */
+    padding: 10px 0; /* уменьшил боковые отступы */
     background: #4a5568;
     border: 1px solid #6b7280;
     color: #e2e8f0;
-    border-radius: 6px;
-    font-size: 0.9rem;
+    border-radius: 5px; /* чуть меньше */
+    font-size: 0.85rem; /* чуть меньше шрифт */
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
-    min-width: 36px;
+    /* Убираем min-width, который мешает сжатию */
 }
 
 .wordle-key:hover {

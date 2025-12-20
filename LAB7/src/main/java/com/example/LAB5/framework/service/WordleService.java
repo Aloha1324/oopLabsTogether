@@ -1,6 +1,10 @@
 package com.example.LAB5.framework.service;
 
+import io.jsonwebtoken.io.IOException;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -10,15 +14,26 @@ public class WordleService {
     // ✅ Карта: userId -> GameState
     private final Map<String, GameSession> userGames = new ConcurrentHashMap<>();
 
-    private static final List<String> WORDS = Arrays.asList(
-            "АКТЁР", "КНИГА", "БАГАЖ", "ЖЕЛЧЬ", "ЧАЙКА", "ЗЕМЛЯ", "ГОРОД", "ЗНАМЯ",
-            "ЗВЕРЬ", "БАШНЯ", "ВАХТА", "ДОЖДЬ", "ВЕТЕР", "ГАРАЖ", "ПТИЦА", "АБОБА",
-            "ОКЕАН", "БОЧКА", "ПЕСОК", "РЕЧКА", "ОЗЕРО", "РУЧЕЙ", "ТРАВА", "ПЕРЕЦ",
-            "БОМБА", "КАТОК", "ГОРЕМ", "ВУМЕН", "ЯГОДА", "ВЕДРО", "ГРУША", "КАКИШ",
-            "БУЛАТ", "АРБУЗ", "СЛОВО", "БУКВА", "ОГРЧК", "КИПИШ", "МЕСТО", "ШМАЛЬ",
-            "САПЁР", "ЦАЦКА", "ШАЙБА", "ЩЕНОК", "ЦАПЛЯ", "ЦУКАТ", "ЯБЕДА", "ЯКОРЬ",
-            "ЯРЛЫК"
-    );
+    private static final List<String> WORDS;
+
+    static {
+        try {
+            ClassPathResource resource = new ClassPathResource("russian_nouns_5word.txt");
+            WORDS = Files.readAllLines(resource.getFile().toPath())
+                    .stream()
+                    .map(String::trim)
+                    .filter(word -> word.length() == 5) // на всякий случай
+                    .map(String::toUpperCase)
+                    .toList(); // или .collect(Collectors.toList()) для Java <16
+        } catch (IOException e) {
+            throw new RuntimeException("Не удалось загрузить словарь: russian_nouns_5word.txt", e);
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (WORDS.isEmpty()) {
+            throw new RuntimeException("Словарь пуст!");
+        }
+    }
 
     private final Random random = new Random();
 

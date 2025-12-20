@@ -548,7 +548,6 @@ class WordleGame {
             this.showMessage('Введите 5 букв!', 'error');
             return;
         }
-
         const guessWord = this.currentGuess.join('').toUpperCase();
         try {
             setLoading(true);
@@ -562,6 +561,9 @@ class WordleGame {
             });
             const result = await res.json();
 
+            // 🔥 Обновляем состояние игры после хода!
+            await this.loadGameState(); // ← ЭТОТ ВЫЗОВ ОБНОВИТ this.gameState
+
             if (result.won || (result.message && result.message.includes('🎉'))) {
                 this.guesses.push({ word: guessWord, status: result.status });
                 this.gameOver = true;
@@ -572,8 +574,7 @@ class WordleGame {
                 this.guesses.push({ word: guessWord, status: result.status });
                 this.currentGuess = [];
                 this.updateGrid();
-                this.updateAttempts();
-
+                this.updateAttempts(); // Теперь отображает актуальное значение
                 if (this.gameState && this.gameState.attemptsLeft <= 0) {
                     this.gameOver = true;
                     this.showMessage(`Игра окончена! Слово: ${this.gameState.targetWord}`, 'error');
