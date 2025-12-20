@@ -37,7 +37,7 @@ function updateProfileUI() {
         document.getElementById('userName').textContent = currentUser.username;
         document.getElementById('userRole').textContent = currentUser.role;
         document.getElementById('userId').textContent = currentUser.userId;
-        document.getElementById('jwtToken').textContent = currentToken;
+        // УДАЛЕНО: отображение токена
     }
 }
 
@@ -110,11 +110,7 @@ async function register() {
     }
 }
 
-function copyToken() {
-    navigator.clipboard.writeText(currentToken).then(() => {
-        showMessage('Токен скопирован!', 'success');
-    });
-}
+// УДАЛЕНО: функция copyToken()
 
 function logout() {
     currentToken = null;
@@ -295,7 +291,6 @@ async function saveFactorySettings() {
 
 // ===== OPERATIONS =====
 function createFuncForOp(target, type) {
-    // Temporarily override back button
     const originalBack = () => showSection('operations');
     if (type === 'points') {
         const old = showCreateByPoints;
@@ -411,5 +406,4 @@ document.addEventListener('keypress', (e) => {
     }
 });
 
-// Auto-focus
 document.getElementById('loginUsername').focus();
