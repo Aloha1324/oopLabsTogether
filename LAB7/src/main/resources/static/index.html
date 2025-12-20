@@ -427,18 +427,22 @@
 }
 
 .wordle-key {
-    flex: 1; /* растягиваются равномерно */
-    min-width: 0; /* позволяет сжиматься меньше контента */
-    padding: 10px 0; /* уменьшил боковые отступы */
+    flex: 1;
+    min-width: 0;
+    padding: 10px 0;
     background: #4a5568;
     border: 1px solid #6b7280;
     color: #e2e8f0;
-    border-radius: 5px; /* чуть меньше */
-    font-size: 0.85rem; /* чуть меньше шрифт */
+    border-radius: 5px;
+    font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
-    /* Убираем min-width, который мешает сжатию */
+
+    box-sizing: border-box; /* включает padding и border в общую ширину */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .wordle-key:hover {

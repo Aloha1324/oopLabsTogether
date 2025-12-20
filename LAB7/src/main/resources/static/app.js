@@ -489,7 +489,9 @@ class WordleGame {
         this.wordleOpen = true;
         document.body.style.overflow = 'hidden';
         document.getElementById('wordleFabContainer').classList.add('active');
-        await this.loadGameState();
+
+        // ВСЕГДА запускаем НОВУЮ игру при открытии
+        await this.newGame();
     }
 
     close() {
@@ -546,6 +548,14 @@ class WordleGame {
     async submitGuess() {
         if (this.currentGuess.length !== 5) {
             this.showMessage('Введите 5 букв!', 'error');
+            return;
+        }
+        const guessWord = this.currentGuess.join('').toUpperCase();
+
+        //Запрет повторного ввода уже использованных слов
+        const alreadyGuessed = this.guesses.some(g => g.word === guessWord);
+        if (alreadyGuessed) {
+            this.showMessage('Это слово уже было использовано!', 'error');
             return;
         }
         const guessWord = this.currentGuess.join('').toUpperCase();
