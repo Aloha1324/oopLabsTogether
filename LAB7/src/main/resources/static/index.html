@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Function Analyzer - LAB7 | Вход</title>
+    <!-- Chart.js для отрисовки графиков функций (задание 3) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -244,7 +246,7 @@
             .grid-2, .grid-3 { grid-template-columns: 1fr; gap: 6px; }
         }
 
-                       /* ===== WORDLE STYLES ===== */
+        /* ===== WORDLE STYLES ===== */
 
         /* Адаптивная FAB-кнопка */
         .wordle-fab-container {
@@ -301,7 +303,7 @@
             transition: all 0.25s ease;
         }
 
-        /* На мобильных — показывать FAB всегда, без hover-эффекта дададада */
+        /* На мобильных — показывать FAB всегда, без hover-эффекта */
         @media (max-width: 768px) {
             .wordle-fab-container {
                 align-items: center;
@@ -345,7 +347,7 @@
             top: 0;
             left: 0;
             width: 100vw;
-            height: 100dvh; /* ← dvh = dynamic viewport height (поддерживается в современных браузерах) */
+            height: 100dvh;
             background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(8px);
             display: flex;
@@ -362,16 +364,17 @@
             padding: 20px;
             width: 100%;
             max-width: 420px;
-            max-height: 85dvh; /* ← не 95vh, чтобы оставить место для системных элементов */
+            max-height: 85dvh;
             box-shadow: 0 20px 40px rgba(0,0,0,0.5);
             border: 1px solid rgba(255,255,255,0.1);
             backdrop-filter: blur(16px);
-            overflow-y: auto; /* ← ВАЖНО: позволяет скроллить, если не помещается */
-            -webkit-overflow-scrolling: touch; /* гладкий скролл на iOS */
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
+
         .wordle-game {
             display: flex;
             flex-direction: column;
@@ -421,11 +424,13 @@
             border-color: #16a34a !important;
             color: white;
         }
+
         .wordle-cell.yellow, .wordle-cell.present {
             background: #f59e0b !important;
             border-color: #f59e0b !important;
             color: white;
         }
+
         .wordle-cell.gray, .wordle-cell.absent {
             background: #4a5568 !important;
             border-color: #6b7280 !important;
@@ -433,7 +438,7 @@
         }
 
         /* Адаптивная клавиатура */
-        #wordleKeyboard {
+        .wordle-keyboard {
             display: flex;
             flex-direction: column;
             gap: 6px;
@@ -469,6 +474,7 @@
         .wordle-key:hover:not(:disabled) {
             background: #6b7d8f;
         }
+
         .wordle-key:active {
             transform: scale(0.96);
         }
@@ -500,6 +506,7 @@
             font-weight: 600;
             transition: opacity 0.2s;
         }
+
         #wordleMessage.success { color: #10b981; }
         #wordleMessage.error { color: #f87171; }
 
@@ -510,11 +517,13 @@
             align-items: center;
             margin-bottom: 16px;
         }
+
         .wordle-header h3 {
             margin: 0;
             color: #f6ad55;
             font-size: 1.3rem;
         }
+
         .wordle-close {
             background: none;
             border: none;
@@ -525,11 +534,18 @@
             border-radius: 50%;
             transition: all 0.2s;
         }
+
         .wordle-close:hover {
             background: rgba(246, 173, 85, 0.2);
             color: #f6ad55;
         }
 
+        /* Стили для графика */
+        #functionChart {
+            height: 300px;
+            width: 100%;
+            max-width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -552,13 +568,8 @@
         <button class="btn" onclick="login()">Войти</button>
         <p style="text-align: center; margin-top: 0.8rem; color: #a0aec0; font-size: 0.85rem;">
             Нет аккаунта?
-            <a
-                    href="#"
-                    onclick="showRegister()"
-                    style="color: #f6ad55; text-decoration: none; font-weight: 500;"
-                    onmouseover="this.style.color='#ed8936'"
-                    onmouseout="this.style.color='#f6ad55'"
-            >
+            <a href="#" onclick="showRegister()" style="color: #f6ad55; text-decoration: none; font-weight: 500;"
+               onmouseover="this.style.color='#ed8936'" onmouseout="this.style.color='#f6ad55'">
                 Зарегистрироваться
             </a>
         </p>
@@ -578,13 +589,8 @@
         <button class="btn" onclick="register()">Зарегистрироваться</button>
         <p style="text-align: center; margin-top: 0.8rem; color: #a0aec0; font-size: 0.85rem;">
             Уже есть аккаунт?
-            <a
-                    href="#"
-                    onclick="showLogin()"
-                    style="color: #f6ad55; text-decoration: none; font-weight: 500;"
-                    onmouseover="this.style.color='#ed8936'"
-                    onmouseout="this.style.color='#f6ad55'"
-            >
+            <a href="#" onclick="showLogin()" style="color: #f6ad55; text-decoration: none; font-weight: 500;"
+               onmouseover="this.style.color='#ed8936'" onmouseout="this.style.color='#f6ad55'">
                 Войти
             </a>
         </p>
@@ -608,6 +614,7 @@
                 <button class="btn" onclick="showDifferentiation()">📈 Дифференцирование</button>
                 <button class="btn" onclick="showCreateByPoints()">📊 По точкам</button>
                 <button class="btn" onclick="showCreateByFormula()">🧮 По формуле</button>
+                <button class="btn" onclick="showFunctionViewer()">📊 График</button>
             </div>
         </div>
         <button class="btn btn-danger" onclick="logout()">🚪 Выйти</button>
@@ -722,10 +729,44 @@
         <button class="btn btn-danger" style="margin-top: 10px;" onclick="showProfile()">← Назад</button>
     </div>
 
+    <!-- =============== FUNCTION VIEWER (ГРАФИК) ================ -->
+    <div id="functionViewer" class="auth-section">
+        <h2>📊 График функции</h2>
+
+        <div class="form-group">
+            <label for="functionSelect">Выберите функцию</label>
+            <select id="functionSelect" class="form-control" onchange="loadFunctionForGraph()">
+                <option value="">-- Выберите функцию --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="evalX">Вычислить значение в точке x</label>
+            <div style="display: flex; gap: 8px; align-items: end;">
+                <input type="number" step="any" id="evalX" class="form-control" placeholder="Введите x">
+                <button class="btn" onclick="evaluateAtX()">🔍 Вычислить</button>
+            </div>
+            <div id="evalResult" class="success" style="display: none; margin-top: 8px;"></div>
+        </div>
+
+        <div class="form-group" style="height: 300px; margin: 20px 0;">
+            <canvas id="functionChart"></canvas>
+        </div>
+
+        <div id="functionPointsTable" style="margin-top: 20px;"></div>
+
+        <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn" onclick="showCreateByPoints()">➕ Создать по точкам</button>
+            <button class="btn" onclick="showCreateByFormula()">🧮 Создать по формуле</button>
+            <button class="btn btn-danger" onclick="showProfile()">← Назад</button>
+        </div>
+    </div>
+
     <!-- LOADER & ERROR -->
     <div id="loading" class="loading">⏳ Загрузка...</div>
     <div id="errorMsg" class="error" style="display: none;"></div>
 </div>
+
 <!-- Wordle FAB Button -->
 <div id="wordleFabContainer" class="wordle-fab-container"
      onclick="wordleGame.toggle()"
@@ -735,6 +776,8 @@
     <div class="wordle-fab">🧩</div>
     <span class="wordle-fab-label">Wordle</span>
 </div>
+
+<!-- Wordle Game Container (будет создан динамически) -->
 
 <script src="app.js"></script>
 </body>

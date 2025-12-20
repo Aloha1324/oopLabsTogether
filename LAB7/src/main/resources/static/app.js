@@ -6,6 +6,7 @@ let factoryType = 'array';
 let activeFuncA = null;
 let activeFuncB = null;
 let activeDiffFunc = null;
+let currentChart = null;
 
 // ===== NAVIGATION =====
 function showSection(sectionId) {
@@ -24,6 +25,7 @@ function showCreateByFormula() { showSection('createByFormula'); loadMathFunctio
 function showFactorySettings() { showSection('factorySettings'); loadFactorySettings(); }
 function showOperations() { showSection('operations'); }
 function showDifferentiation() { showSection('differentiation'); }
+function showFunctionViewer() { showSection('functionViewer'); loadFunctionsForViewer(); }
 
 function updateProfileUI() {
     if (currentUser) {
@@ -48,7 +50,7 @@ function setLoading(loading) {
     document.getElementById('loading').style.display = loading ? 'block' : 'none';
 }
 
-// ===== AUTH (остается БЕЗ ИЗМЕНЕНИЙ) =====
+// ===== AUTH =====
 async function login() {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
@@ -65,7 +67,7 @@ async function login() {
             currentToken = data.token;
             currentUser = data;
             showProfile();
-            wordleGame.updateFabVisibility(); // ← Wordle FAB показывается
+            wordleGame.updateFabVisibility();
             showMessage(`Добро пожаловать, ${data.username}! 🎉`, 'success');
         } else {
             showMessage(data.message || data.error || 'Ошибка входа');
@@ -94,7 +96,7 @@ async function register() {
             currentToken = data.token;
             currentUser = data;
             showProfile();
-            wordleGame.updateFabVisibility(); // ← Wordle FAB показывается
+            wordleGame.updateFabVisibility();
             showMessage(`Аккаунт создан, ${data.username}! 🎉`, 'success');
         } else {
             showMessage(data.message || data.error || 'Ошибка регистрации');
@@ -112,7 +114,7 @@ function logout() {
     activeFuncA = null;
     activeFuncB = null;
     activeDiffFunc = null;
-    wordleGame.updateFabVisibility(); // ← Wordle FAB скрывается
+    wordleGame.updateFabVisibility();
     showLogin();
     showMessage('Вы вышли из системы 👋', 'success');
 }
@@ -167,11 +169,14 @@ async function createFunctionFromPoints() {
     if (count < 2) return showMessage('Укажите ≥2 точки');
     const xVals = [], yVals = [];
     for (let i = 0; i < count; i++) {
-        const x = parseFloat(document.getElementById(`x_${i}`).value);
-        const y = parseFloat(document.getElementById(`y_${i}`).value);
-        if (isNaN(x) || isNaN(y)) return showMessage(`Ошибка в строке ${i + 1}: введите числа`);
-        xVals.push(x);
-        yVals.push(y);
+        const xInput = document.getElementById(`x_${i}`).value;
+        const yInput = document.getElementById(`y_${i}`).value;
+        if (xInput === '' || yInput === '') return showMessage(`Ошибка в строке ${i + 1}: введите числа`);
+        const x = parseFloat(xInput);
+        const y = parseFloat(yInput);
+        if (isNaN(x) || isNaN(y)) return showMessage(`Ошибка в строке ${i + 1}: введите корректные числа`);
+        xVals.push(parseFloat(x.toFixed(10)));
+        yVals.push(parseFloat(y.toFixed(10)));
     }
     for (let i = 1; i < xVals.length; i++) {
         if (xVals[i] <= xVals[i - 1]) return showMessage('x должны строго возрастать!');
@@ -288,7 +293,6 @@ async function saveFactorySettings() {
 function createFuncForOp(target, type) {
     const originalBack = () => showSection('operations');
     if (type === 'points') {
-        const old = showCreateByPoints;
         showCreateByPoints = () => {
             showSection('createByPoints');
             const backButton = document.querySelector('#createByPoints .btn-danger');
@@ -296,7 +300,6 @@ function createFuncForOp(target, type) {
         };
         showCreateByPoints();
     } else {
-        const old = showCreateByFormula;
         showCreateByFormula = () => {
             showSection('createByFormula');
             const backButton = document.querySelector('#createByFormula .btn-danger');
@@ -393,6 +396,181 @@ function loadFunction(target) {
     showMessage(`Загрузка функции — в разработке (${target})`, 'success');
 }
 
+// ============== ГРАФИК ФУНКЦИИ ==============
+async function loadFunctionsForViewer() {
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/functions`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.message || 'Не удалось загрузить функции');
+        }
+        const functions = await res.json();
+        const select = document.getElementById('functionSelect');
+        select.innerHTML = '<option value="">-- Выберите функцию --</option>';
+        functions.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.id;
+            opt.textContent = `${f.name} (${f.type})`;
+            select.appendChild(opt);
+        });
+    } catch (err) {
+        showMessage(err.message);
+    } finally {
+        setLoading(false);
+    }
+}
+
+async function loadFunctionForGraph() {
+    const id = document.getElementById('functionSelect').value;
+    if (!id) {
+        clearGraphAndTable();
+        return;
+    }
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/functions/${id}`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.message || 'Функция не найдена');
+        }
+        const func = await res.json();
+        renderFunctionGraph(func);
+        renderFunctionTableForGraph(func, 'functionPointsTable');
+    } catch (err) {
+        showMessage(err.message);
+        clearGraphAndTable();
+    } finally {
+        setLoading(false);
+    }
+}
+
+function clearGraphAndTable() {
+    renderFunctionGraph(null);
+    document.getElementById('functionPointsTable').innerHTML = '';
+    document.getElementById('evalResult').style.display = 'none';
+}
+
+function renderFunctionGraph(func) {
+    const ctx = document.getElementById('functionChart').getContext('2d');
+    if (currentChart) {
+        currentChart.destroy();
+        currentChart = null;
+    }
+    if (!func || !func.points) return;
+
+    const xData = func.points.map(p => p.x);
+    const yData = func.points.map(p => p.y);
+
+    currentChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: xData.map(x => x.toFixed(4)),
+            datasets: [{
+                label: func.name,
+                data: yData,
+                borderColor: '#f6ad55',
+                backgroundColor: 'rgba(246, 173, 85, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.3,
+                pointRadius: 4,
+                pointBackgroundColor: '#fbbf24'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    title: { display: true, text: 'x', color: '#e2e8f0' },
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    ticks: { color: '#a0aec0' }
+                },
+                y: {
+                    title: { display: true, text: 'y', color: '#e2e8f0' },
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    ticks: { color: '#a0aec0' }
+                }
+            },
+            plugins: {
+                legend: { labels: { color: '#e2e8f0' } },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: (context) => `y = ${parseFloat(context.parsed.y).toFixed(6)}`
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+}
+
+function renderFunctionTableForGraph(func, containerId) {
+    const container = document.getElementById(containerId);
+    if (!func || !func.points) {
+        container.innerHTML = '';
+        return;
+    }
+    let html = `<h3>Точки функции "${func.name}"</h3><table class="table"><thead><tr><th>x</th><th>y</th></tr></thead><tbody>`;
+    func.points.forEach(p => {
+        html += `<tr><td>${p.x.toFixed(6)}</td><td>${p.y.toFixed(6)}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
+
+async function evaluateAtX() {
+    const id = document.getElementById('functionSelect').value;
+    const xInput = document.getElementById('evalX').value.trim();
+    if (!id) return showMessage('Сначала выберите функцию');
+    const x = parseFloat(xInput);
+    if (isNaN(x)) return showMessage('Введите корректное число в поле x');
+
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/functions/operations/value`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({ functionId: parseInt(id), x: x })
+        });
+        const result = await res.json();
+        const evalResultEl = document.getElementById('evalResult');
+        if (res.ok && result.success) {
+            evalResultEl.textContent = `f(${x}) = ${result.result.toFixed(8)}`;
+            evalResultEl.style.display = 'block';
+        } else {
+            throw new Error(result.message || 'Ошибка вычисления значения');
+        }
+    } catch (err) {
+        showMessage(err.message);
+        document.getElementById('evalResult').style.display = 'none';
+    } finally {
+        setLoading(false);
+    }
+}
+
+function showCreateByPointsForViewer() {
+    showCreateByPoints();
+}
+
+function showCreateByFormulaForViewer() {
+    showCreateByFormula();
+}
+
 // ===== WORDLE GAME CLASS =====
 class WordleGame {
     constructor() {
@@ -486,13 +664,10 @@ class WordleGame {
     }
 
     async open() {
-
         this.wordleGame.classList.add('active');
         this.wordleOpen = true;
         document.body.style.overflow = 'hidden';
         document.getElementById('wordleFabContainer').classList.add('active');
-
-        // ВСЕГДА запускаем НОВУЮ игру при открытии
         await this.newGame();
     }
 
@@ -505,7 +680,6 @@ class WordleGame {
     }
 
     async newGame() {
-        this.clearMessage();
         try {
             setLoading(true);
             const res = await fetch(`${API_BASE}/api/v1/wordle/new-game`, {
@@ -554,8 +728,6 @@ class WordleGame {
             return;
         }
         const guessWord = this.currentGuess.join('').toUpperCase();
-
-        //Запрет повторного ввода уже использованных слов
         const alreadyGuessed = this.guesses.some(g => g.word === guessWord);
         if (alreadyGuessed) {
             this.showMessage('Это слово уже было использовано!', 'error');
@@ -573,9 +745,7 @@ class WordleGame {
                 body: JSON.stringify({ word: guessWord })
             });
             const result = await res.json();
-
-            // 🔥 Обновляем состояние игры после хода!
-            await this.loadGameState(); // ← ЭТОТ ВЫЗОВ ОБНОВИТ this.gameState
+            await this.loadGameState();
 
             if (result.won || (result.message && result.message.includes('🎉'))) {
                 this.guesses.push({ word: guessWord, status: result.status });
@@ -587,7 +757,7 @@ class WordleGame {
                 this.guesses.push({ word: guessWord, status: result.status });
                 this.currentGuess = [];
                 this.updateGrid();
-                this.updateAttempts(); // Теперь отображает актуальное значение
+                this.updateAttempts();
                 if (this.gameState && this.gameState.attemptsLeft <= 0) {
                     this.gameOver = true;
                     this.showMessage(`Игра окончена! Слово: ${this.gameState.targetWord}`, 'error');
@@ -655,16 +825,15 @@ class WordleGame {
         const msgEl = this.wordleGame.querySelector('#wordleMessage');
         if (msgEl) {
             msgEl.textContent = msg;
-            msgEl.className = type || ''; // 'error', 'success' или пусто
+            msgEl.className = type || '';
 
-            // Автоматически скрыть сообщение через 2.5 секунды, если это ошибка
             if (type === 'error') {
                 clearTimeout(this.messageTimeout);
                 this.messageTimeout = setTimeout(() => {
-                    if (msgEl.textContent === msg) { // только если сообщение ещё актуально
+                    if (msgEl.textContent === msg) {
                         this.clearMessage();
                     }
-                }, 2500); // 2.5 секунды
+                }, 2500);
             }
         }
     }
@@ -694,7 +863,6 @@ class WordleGame {
     }
 }
 
-// Глобальный экземпляр Wordle
 const wordleGame = new WordleGame();
 
 // ===== KEYBOARD & INIT =====

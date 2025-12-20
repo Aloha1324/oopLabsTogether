@@ -34,6 +34,7 @@ C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\ja
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\exceptions\InterpolationException.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\factory\TabulatedFunctionFactory.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\concurrent\ReadTask.java
+C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\service\WordleService.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\Request\UpdateFunctionRequest.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\controller\FunctionController.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\service\FunctionService.java
@@ -80,6 +81,7 @@ C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\ja
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\io\TabulatedFunctionFileWriter.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\io\ArrayTabulatedFunctionSerialization.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\concurrent\MultiplyingTaskExecutor.java
+C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\controller\WordleController.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\factory\ArrayTabulatedFunctionFactory.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\ZeroFunction.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\concurrent\MultiplyingTask.java
