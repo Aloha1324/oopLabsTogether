@@ -101,6 +101,7 @@ public class FunctionController {
     public ResponseEntity<FunctionResponse> createTabulatedByPoints(@RequestBody Map<String, Object> request) {
 
         TabulatedFunctionFactory factory = factoryProvider.getCurrentFactory();
+        System.out.println(">>> Текущая фабрика: " + factory); // ← добавьте это
         if (factory == null) {
             throw new IllegalStateException("Фабрика не установлена!");
         }

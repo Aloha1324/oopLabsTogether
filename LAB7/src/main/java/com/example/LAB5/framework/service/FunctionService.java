@@ -827,6 +827,15 @@ public class FunctionService {
      */
     public FunctionResponse createTabulatedFunctionFromPoints(String name, List<Double> xValues, List<Double> yValues) {
         long startTime = System.nanoTime();
+        // После получения xValues и yValues
+        if (xValues == null || yValues == null) {
+            throw new IllegalArgumentException("xValues и yValues не могут быть null");
+        }
+        for (int i = 0; i < xValues.size(); i++) {
+            if (xValues.get(i) == null || yValues.get(i) == null) {
+                throw new IllegalArgumentException("Значения не могут быть null (строка " + i + ")");
+            }
+        }
 
         // Валидация входных данных
         if (xValues == null || yValues == null || xValues.isEmpty() || yValues.isEmpty()) {
