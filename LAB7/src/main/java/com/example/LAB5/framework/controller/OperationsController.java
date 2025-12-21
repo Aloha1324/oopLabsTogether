@@ -29,26 +29,32 @@ public class OperationsController {
     }
 
     @PostMapping("/operations/value")
-    public ResponseEntity<CalculationResponse> calculateValue(@RequestBody Map<String, Object> request) {
-        Long functionId = ((Number) request.get("functionId")).longValue();
-        Double x = ((Number) request.get("x")).doubleValue();
+    public ResponseEntity<Map<String, Object>> calculateValue(@RequestBody Map<String, Object> request) {
+        try {
+            if (!request.containsKey("functionId") || !request.containsKey("x")) {
+                throw new IllegalArgumentException("Отсутствуют обязательные поля: functionId, x");
+            }
+            Long functionId = ((Number) request.get("functionId")).longValue();
+            Double x = ((Number) request.get("x")).doubleValue();
 
-        // Проверяем права доступа и получаем функцию
-        Function function = functionService.getFunctionById(functionId);
+            Function function = functionService.getFunctionById(functionId);
+            TabulatedFunction tf = toTabulatedFunction(function);
+            double result = tf.apply(x);
 
-        // Преобразуем в TabulatedFunction для вычисления
-        TabulatedFunction tf = toTabulatedFunction(function);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("result", result);
+            response.put("message", "Успешно");
 
-        // Вычисляем значение (TabulatedFunction уже имеет apply(double x))
-        double result = tf.apply(x);
+            return ResponseEntity.ok(response); // ← просто Map, без приведения
 
-        // Возвращаем ответ в формате, который ожидает фронтенд
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("result", result);
-        response.put("message", "Успешно");
-
-        return ResponseEntity.ok((CalculationResponse) response);
+        }  catch (Exception e) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("success", false);          // boolean → Object
+        error.put("error", "Ошибка вычисления"); // String → Object
+        error.put("message", e.getMessage()); // String → Object
+        return ResponseEntity.badRequest().body(error);
+        }
     }
 
     @PostMapping("/operations/{operation}")
