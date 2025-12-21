@@ -82,6 +82,7 @@ async function login() {
         if (res.ok) {
             currentToken = data.token;
             currentUser = data;
+             clearGraphDisplay();
             showProfile();
             wordleGame.updateFabVisibility();
             showMessage(`Добро пожаловать, ${data.username}! 🎉`, 'success');
@@ -124,6 +125,13 @@ async function register() {
     }
 }
 
+function clearGraphDisplay() {
+    document.getElementById('graphFunctionName').textContent = '—';
+    document.getElementById('graphTableContainer').innerHTML = '<p>Выберите функцию для отображения</p>';
+    // Если используете Chart.js или другой график — уничтожьте его
+    currentGraphFunction = null;
+}
+
 function logout() {
     currentToken = null;
     currentUser = null;
@@ -131,6 +139,7 @@ function logout() {
     activeFuncB = null;
     activeDiffFunc = null;
     wordleGame.updateFabVisibility();
+    clearGraphDisplay(); //Сбросить график
     showLogin();
     showMessage('Вы вышли из системы 👋', 'success');
 }
@@ -167,27 +176,29 @@ async function loadMathFunctions() {
 
 // ===== CREATE BY POINTS =====
 function generatePointsTable() {
-    const count = parseInt(document.getElementById('pointsCount').value) || 0;
-      if (count > 10000) {
-        showErrorModal('Максимальное количество точек — 10 000');
-        return;
-      }
-      if (count < 2) {
-        showErrorModal('Минимум 2 точки');
-        return;
-      }
-
+    const input = document.getElementById('pointsCount');
     const container = document.getElementById('pointsTableContainer');
-    const hasData = container.querySelector('input') &&
-                  Array.from(container.querySelectorAll('input')).some(inp => inp.value !== '');
-    if (hasData) {
-        if (!confirm('Текущие данные будут потеряны. Продолжить?')) return;
-    }
-    const countEl = document.getElementById('pointsCount');
+
+    if (!input || !container) return;
+
+    const count = parseInt(input.value) || 0;
+
+    // Очистка контейнера при некорректном количестве
     if (count < 2 || count > 10000) {
-        container.innerHTML = '<div class="error" style="padding:8px;">Введите число от 2 до 10000</div>';
+        container.innerHTML = '';
         return;
     }
+
+    // Проверка на существующие данные
+    const hasData = container.querySelector('input') &&
+                    Array.from(container.querySelectorAll('input')).some(inp => inp.value !== '');
+    if (hasData) {
+        if (!confirm('Текущие данные будут потеряны. Продолжить?')) {
+            return;
+        }
+    }
+
+    // Генерация таблицы
     let html = `<table><thead><tr><th>x</th><th>y</th></tr></thead><tbody>`;
     for (let i = 0; i < count; i++) {
         html += `

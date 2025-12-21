@@ -1,6 +1,8 @@
 package com.example.LAB5.framework.controller;
 
+import com.example.LAB5.DTO.Response.CalculationResponse;
 import com.example.LAB5.DTO.Response.FunctionResponse;
+import com.example.LAB5.framework.entity.Function;
 import com.example.LAB5.framework.service.FunctionService;
 import com.example.LAB5.framework.service.TabulatedFunctionFactoryProvider;
 import com.example.LAB5.functions.TabulatedFunction;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -23,6 +26,29 @@ public class OperationsController {
                                 TabulatedFunctionFactoryProvider factoryProvider) {
         this.functionService = functionService;
         this.factoryProvider = factoryProvider;
+    }
+
+    @PostMapping("/operations/value")
+    public ResponseEntity<CalculationResponse> calculateValue(@RequestBody Map<String, Object> request) {
+        Long functionId = ((Number) request.get("functionId")).longValue();
+        Double x = ((Number) request.get("x")).doubleValue();
+
+        // Проверяем права доступа и получаем функцию
+        Function function = functionService.getFunctionById(functionId);
+
+        // Преобразуем в TabulatedFunction для вычисления
+        TabulatedFunction tf = toTabulatedFunction(function);
+
+        // Вычисляем значение (TabulatedFunction уже имеет apply(double x))
+        double result = tf.apply(x);
+
+        // Возвращаем ответ в формате, который ожидает фронтенд
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("result", result);
+        response.put("message", "Успешно");
+
+        return ResponseEntity.ok((CalculationResponse) response);
     }
 
     @PostMapping("/operations/{operation}")
