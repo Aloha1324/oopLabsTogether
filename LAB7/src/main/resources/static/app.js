@@ -82,7 +82,6 @@ async function login() {
         if (res.ok) {
             currentToken = data.token;
             currentUser = data;
-             clearGraphDisplay();
             showProfile();
             wordleGame.updateFabVisibility();
             showMessage(`Добро пожаловать, ${data.username}! 🎉`, 'success');
@@ -125,12 +124,7 @@ async function register() {
     }
 }
 
-function clearGraphDisplay() {
-    document.getElementById('graphFunctionName').textContent = '—';
-    document.getElementById('graphTableContainer').innerHTML = '<p>Выберите функцию для отображения</p>';
-    // Если используете Chart.js или другой график — уничтожьте его
-    currentGraphFunction = null;
-}
+
 
 function logout() {
     currentToken = null;
@@ -139,7 +133,7 @@ function logout() {
     activeFuncB = null;
     activeDiffFunc = null;
     wordleGame.updateFabVisibility();
-    clearGraphDisplay(); //Сбросить график
+
     showLogin();
     showMessage('Вы вышли из системы 👋', 'success');
 }
