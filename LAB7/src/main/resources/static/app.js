@@ -170,29 +170,28 @@ async function loadMathFunctions() {
 
 // ===== CREATE BY POINTS =====
 function generatePointsTable() {
-    const input = document.getElementById('pointsCount');
+    const count = parseInt(document.getElementById('pointsCount').value) || 0;
+      if (count > 10000) {
+        showErrorModal('Максимальное количество точек — 10 000');
+        return;
+      }
+      if (count < 2) {
+        showErrorModal('Минимум 2 точки');
+        return;
+      }
+
     const container = document.getElementById('pointsTableContainer');
-
-    if (!input || !container) return;
-
-    const count = parseInt(input.value) || 0;
-
-    // Очистка контейнера при некорректном количестве
+    const hasData = container.querySelector('input') &&
+                  Array.from(container.querySelectorAll('input')).some(inp => inp.value !== '');
+    if (hasData) {
+        if (!confirm('Текущие данные будут потеряны. Продолжить?')) return;
+    }
+    const countEl = document.getElementById('pointsCount');
+    const count = parseInt(countEl.value) || 0;
     if (count < 2 || count > 10000) {
-        container.innerHTML = '';
+        container.innerHTML = '<div class="error" style="padding:8px;">Введите число от 2 до 10000</div>';
         return;
     }
-
-    // Проверка на существующие данные
-    const hasData = container.querySelector('input') &&
-                    Array.from(container.querySelectorAll('input')).some(inp => inp.value !== '');
-    if (hasData) {
-        if (!confirm('Текущие данные будут потеряны. Продолжить?')) {
-            return;
-        }
-    }
-
-    // Генерация таблицы
     let html = `<table><thead><tr><th>x</th><th>y</th></tr></thead><tbody>`;
     for (let i = 0; i < count; i++) {
         html += `
