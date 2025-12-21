@@ -11,6 +11,8 @@ let currentChart = null;
 let lastResultId = null;
 let lastDiffResultId = null;
 
+let hasUnsavedChanges = false;
+
 // ===== NAVIGATION =====
 function showSection(sectionId) {
     document.querySelectorAll('.auth-section').forEach(section => {
@@ -179,7 +181,6 @@ function generatePointsTable() {
         if (!confirm('Текущие данные будут потеряны. Продолжить?')) return;
     }
     const countEl = document.getElementById('pointsCount');
-    const container = document.getElementById('pointsTableContainer');
     const count = parseInt(countEl.value) || 0;
     if (count < 2 || count > 10000) {
         container.innerHTML = '<div class="error" style="padding:8px;">Введите число от 2 до 10000</div>';
@@ -392,7 +393,6 @@ async function performOp(operation) {
                 'Authorization': `Bearer ${currentToken}`
             },
             body: JSON.stringify({
-                lastResultId = data.id;
                 functionAId: activeFuncA.id,
                 functionBId: activeFuncB.id,
                 factoryType: factoryType
@@ -425,7 +425,6 @@ async function performDifferentiation() {
                 'Authorization': `Bearer ${currentToken}`
             },
             body: JSON.stringify({
-                lastDiffResultId = data.id;
                 functionId: activeDiffFunc.id,
                 factoryType: factoryType
             })
@@ -569,7 +568,7 @@ async function loadFunction(target) {
 async function loadFunctionsForViewer() {
     setLoading(true);
     try {
-        const res = await fetch(`${API_BASE}/api/functions`, {
+        const res = await fetch(`${API_BASE}/api/v1/functions/my`, {
             headers: { 'Authorization': `Bearer ${currentToken}` }
         });
         if (!res.ok) {
@@ -596,6 +595,123 @@ async function loadFunctionsForViewer() {
         setLoading(false);
     }
 }
+
+async function showFunctionSelector(target) {
+    const selectId = target === 'A' ? 'funcASelector' :
+                     target === 'B' ? 'funcBSelector' : 'diffFuncSelector';
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    // Показываем селект
+    select.style.display = 'block';
+
+    // Загружаем только функции текущего пользователя
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/functions/my`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const functions = await res.json();
+        if (!res.ok) throw new Error('Не удалось загрузить функции');
+
+        // Очищаем и заполняем
+        select.innerHTML = '<option value="">-- Выберите функцию --</option>';
+        functions.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.id;
+            opt.textContent = `${f.name} (ID: ${f.id})`;
+            select.appendChild(opt);
+        });
+    } catch (err) {
+        showErrorModal('Ошибка загрузки: ' + err.message);
+        select.style.display = 'none';
+    } finally {
+        setLoading(false);
+    }
+}
+
+async function selectFunctionFromDropdown(target, funcId) {
+    if (!funcId) return;
+
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/functions/${funcId}`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const func = await res.json();
+        if (!res.ok) throw new Error('Функция не найдена');
+
+        if (target === 'A') {
+            activeFuncA = func;
+            renderEditableTable(func, 'funcATable', 'A');
+        } else if (target === 'B') {
+            activeFuncB = func;
+            renderEditableTable(func, 'funcBTable', 'B');
+        } else if (target === 'DIFF') {
+            activeDiffFunc = func;
+            renderEditableTable(func, 'diffInputTable', 'DIFF');
+        }
+
+        showMessage('Функция загружена!', 'success');
+    } catch (err) {
+        showErrorModal('Ошибка: ' + err.message);
+    } finally {
+        setLoading(false);
+        // Можно скрыть селект, или оставить для повторного выбора
+    }
+}
+
+function toggleFunctionSelector(target) {
+    const selectId =
+        target === 'A' ? 'funcASelector' :
+        target === 'B' ? 'funcBSelector' : 'diffFuncSelector';
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    if (select.style.display === 'none') {
+        // Загрузить список функций и показать
+        loadUserFunctionsIntoSelect(target);
+    } else {
+        // Скрыть
+        select.style.display = 'none';
+    }
+}
+
+async function loadUserFunctionsIntoSelect(target) {
+    const selectId =
+        target === 'A' ? 'funcASelector' :
+        target === 'B' ? 'funcBSelector' : 'diffFuncSelector';
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    setLoading(true);
+    try {
+        // ⚠️ ВАЖНО: используем НОВЫЙ эндпоинт, который возвращает ТОЛЬКО функции пользователя
+        const res = await fetch(`${API_BASE}/api/v1/functions/my`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (!res.ok) throw new Error('Не удалось загрузить функции');
+        const functions = await res.json();
+
+        // Очистка и заполнение
+        select.innerHTML = '<option value="">-- Выберите функцию --</option>';
+        functions.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.id;
+            opt.textContent = `${f.name || 'Без названия'} (ID: ${f.id})`;
+            select.appendChild(opt);
+        });
+
+        // Показываем
+        select.style.display = 'block';
+    } catch (err) {
+        showErrorModal('Ошибка загрузки функций: ' + err.message);
+    } finally {
+        setLoading(false);
+    }
+}
+
+
 
 async function loadFunctionForGraph() {
     const id = document.getElementById('functionSelect').value;

@@ -1,105 +1,74 @@
 package com.example.LAB5.operations;
 
 import com.example.LAB5.exceptions.InconsistentFunctionsException;
-import com.example.LAB5.functions.factory.ArrayTabulatedFunctionFactory;
-import com.example.LAB5.functions.Point;
 import com.example.LAB5.functions.TabulatedFunction;
 import com.example.LAB5.functions.factory.TabulatedFunctionFactory;
 
 public class TabulatedFunctionOperationService {
 
-    private TabulatedFunctionFactory factory;
-
-    public TabulatedFunctionOperationService() {
-        this.factory = new ArrayTabulatedFunctionFactory();
-    }
+    private final TabulatedFunctionFactory factory;
 
     public TabulatedFunctionOperationService(TabulatedFunctionFactory factory) {
         this.factory = factory;
     }
 
-    public TabulatedFunctionFactory getFactory() {
-        return factory;
-    }
-
-    public void setFactory(TabulatedFunctionFactory factory) {
-        this.factory = factory;
-    }
-
-    public static Point[] asPoints(TabulatedFunction tabulatedFunction) {
-        int size = 0;
-        for (Point ignored : tabulatedFunction) {
-            size++;
+    // Валидация совместимости доменов
+    private void validateCompatibleDomains(TabulatedFunction a, TabulatedFunction b) {
+        int n = a.getCount();
+        if (n != b.getCount()) {
+            throw new InconsistentFunctionsException("Функции имеют разное количество точек: " + a.getCount() + " ≠ " + b.getCount());
         }
-        Point[] points = new Point[size];
-        int i = 0;
-        for (Point point : tabulatedFunction) {
-            points[i++] = point;
+        final double EPS = 1e-9;
+        for (int i = 0; i < n; i++) {
+            if (Math.abs(a.getX(i) - b.getX(i)) > EPS) {
+                throw new InconsistentFunctionsException("Несовпадение x-координат в точке " + i + ": " + a.getX(i) + " ≠ " + b.getX(i));
+            }
         }
-        return points;
     }
 
-    private interface BiOperation {
-        double apply(double u, double v);
+    // Безопасное деление с проверкой на ноль
+    private void validateNoDivisionByZero(TabulatedFunction divisor) {
+        final double EPS = 1e-12;
+        int n = divisor.getCount();
+        for (int i = 0; i < n; i++) {
+            if (Math.abs(divisor.getY(i)) < EPS) {
+                throw new ArithmeticException("Деление на ноль в точке x = " + divisor.getX(i));
+            }
+        }
     }
 
-    private TabulatedFunction doOperation(TabulatedFunction a, TabulatedFunction b, BiOperation operation) {
-        if (a.getCount() != b.getCount()) {
-            throw new InconsistentFunctionsException("Functions have different number of points");
+    // Обобщённый метод выполнения бинарной операции
+    private TabulatedFunction performOperation(TabulatedFunction a, TabulatedFunction b, java.util.function.DoubleBinaryOperator op, boolean isDivision) {
+        validateCompatibleDomains(a, b);
+        if (isDivision) {
+            validateNoDivisionByZero(b);
         }
 
-        Point[] aPoints = asPoints(a);
-        Point[] bPoints = asPoints(b);
-
-        int n = aPoints.length;
-
-        double[] xValues = new double[n];
-        double[] yValues = new double[n];
+        int n = a.getCount();
+        double[] x = new double[n];
+        double[] y = new double[n];
 
         for (int i = 0; i < n; i++) {
-            if (Double.compare(aPoints[i].x, bPoints[i].x) != 0) {
-                throw new InconsistentFunctionsException("X values differ at index " + i);
-            }
-            xValues[i] = aPoints[i].x;
-            yValues[i] = operation.apply(aPoints[i].y, bPoints[i].y);
+            x[i] = a.getX(i);
+            y[i] = op.applyAsDouble(a.getY(i), b.getY(i));
         }
 
-        return factory.create(xValues, yValues);
+        return factory.create(x, y);
     }
 
     public TabulatedFunction add(TabulatedFunction a, TabulatedFunction b) {
-        return doOperation(a, b, (u, v) -> u + v);
+        return performOperation(a, b, Double::sum, false);
     }
 
     public TabulatedFunction subtract(TabulatedFunction a, TabulatedFunction b) {
-        return doOperation(a, b, (u, v) -> u - v);
+        return performOperation(a, b, (u, v) -> u - v, false);
     }
 
-    /**
-     * Умножает две табулированные функции покоординатно
-     * a первая функция
-     *  b вторая функция
-     * новая функция, где y[i] = a.y[i] * b.y[i]
-     * InconsistentFunctionsException если функции имеют разное количество точек или разные x-значения
-     */
     public TabulatedFunction multiply(TabulatedFunction a, TabulatedFunction b) {
-        return doOperation(a, b, (u, v) -> u * v);
+        return performOperation(a, b, (u, v) -> u * v, false);
     }
 
-    /**
-     * Делит две табулированные функции покоординатно
-     * a функция-числитель
-     *  b функция-знаменатель
-     *  новая функция, где y[i] = a.y[i] / b.y[i]
-     * InconsistentFunctionsException если функции имеют разное количество точек или разные x-значения
-     * ArithmeticException если b.y[i] = 0 для любого i
-     */
     public TabulatedFunction divide(TabulatedFunction a, TabulatedFunction b) {
-        return doOperation(a, b, (u, v) -> {
-            if (Math.abs(v) < 1e-12) {
-                throw new ArithmeticException("Division by zero at point with y = " + v);
-            }
-            return u / v;
-        });
+        return performOperation(a, b, (u, v) -> u / v, true);
     }
 }

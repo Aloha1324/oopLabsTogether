@@ -119,6 +119,11 @@ public class FunctionService {
         void process(Function function);
     }
 
+    public List<Function> getAllFunctionsForCurrentUser() {
+        User currentUser = getCurrentUser();
+        return getFunctionsByUserId(currentUser.getId());
+    }
+
     public Function getFunctionByIdOrNull(Long id) {
         long startTime = System.nanoTime();
         Optional<Function> result = functionRepository.findById(id);

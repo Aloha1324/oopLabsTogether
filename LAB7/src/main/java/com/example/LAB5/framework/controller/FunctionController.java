@@ -46,9 +46,10 @@ public class FunctionController {
         return factoryProvider.getCurrentFactory().create(x, y);
     }
 
-    @GetMapping
-    public ResponseEntity<List<FunctionResponse>> getAllFunctionsForUser() {
-        List<Function> functions = functionService.getAllFunctions();
+    //
+    @GetMapping("/my")
+    public ResponseEntity<List<FunctionResponse>> getAllFunctionsForCurrentUser() {
+        List<Function> functions = functionService.getAllFunctionsForCurrentUser();
         return ResponseEntity.ok(functions.stream()
                 .map(functionService::convertToResponse)
                 .toList());

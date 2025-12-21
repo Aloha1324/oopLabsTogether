@@ -693,7 +693,10 @@
         <div class="grid-3" style="margin-top:10px;">
             <div>
                 <h3>Функция A</h3>
-                <button class="btn" onclick="loadFunction('A')">📂 Загрузить</button>
+                <button class="btn" onclick="toggleFunctionSelector('A')">📂 Загрузить</button>
+                <select id="funcASelector" style="display: none; margin-top: 6px; width: 100%;"
+                        onchange="selectFunctionFromDropdown('A', this.value)">
+                </select>
                 <button class="btn" onclick="document.getElementById('fileInputA').click()">📥 Из файла</button>
                 <button class="btn" onclick="createFuncForOp('A', 'points')">📊 По точкам</button>
                 <button class="btn" onclick="createFuncForOp('A', 'formula')">🧮 По формуле</button>
@@ -702,7 +705,10 @@
             </div>
             <div>
                 <h3>Функция B</h3>
-                <button class="btn" onclick="loadFunction('B')">📂 Загрузить</button>
+                <button class="btn" onclick="toggleFunctionSelector('B')">📂 Загрузить</button>
+                <select id="funcBSelector" style="display: none; margin-top: 6px; width: 100%;"
+                        onchange="selectFunctionFromDropdown('B', this.value)">
+                </select>
                 <button class="btn" onclick="document.getElementById('fileInputB').click()">📥 Из файла</button>
                 <button class="btn" onclick="createFuncForOp('B', 'points')">📊 По точкам</button>
                 <button class="btn" onclick="createFuncForOp('B', 'formula')">🧮 По формуле</button>
@@ -730,7 +736,10 @@
         <div class="grid-2" style="margin-top:10px; gap:10px;">
             <div>
                 <h3>Исходная функция</h3>
-                <button class="btn" onclick="loadFunction('DIFF')">📂 Загрузить</button>
+                <button class="btn" onclick="toggleFunctionSelector('DIFF')">📂 Загрузить</button>
+                <select id="diffFuncSelector" style="display: none; margin-top: 6px; width: 100%;"
+                        onchange="selectFunctionFromDropdown('DIFF', this.value)">
+                </select>
                 <button class="btn" onclick="document.getElementById('fileInputDIFF').click()">📥 Из файла</button>
                 <button class="btn" onclick="createFuncForOp('DIFF', 'points')">📊 По точкам</button>
                 <button class="btn" onclick="createFuncForOp('DIFF', 'formula')">🧮 По формуле</button>
