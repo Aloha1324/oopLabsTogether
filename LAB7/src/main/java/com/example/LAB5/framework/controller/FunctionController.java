@@ -6,6 +6,7 @@ import com.example.LAB5.framework.entity.Function;
 import com.example.LAB5.framework.service.FunctionService;
 import com.example.LAB5.framework.service.TabulatedFunctionFactoryProvider;
 import com.example.LAB5.functions.TabulatedFunction;
+import com.example.LAB5.functions.factory.TabulatedFunctionFactory;
 import com.example.LAB5.io.FunctionsIO;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,6 +99,11 @@ public class FunctionController {
      */
     @PostMapping("/tabulated/by-points")
     public ResponseEntity<FunctionResponse> createTabulatedByPoints(@RequestBody Map<String, Object> request) {
+
+        TabulatedFunctionFactory factory = factoryProvider.getCurrentFactory();
+        if (factory == null) {
+            throw new IllegalStateException("Фабрика не установлена!");
+        }
 
         @SuppressWarnings("unchecked")
         String name = (String) request.get("name");
