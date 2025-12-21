@@ -49,16 +49,16 @@ public class FunctionService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final List<PerformanceMetrics> performanceMetrics = new ArrayList<>();
 
-    private final TabulatedFunctionFactory tabulatedFunctionFactory;
+    private final TabulatedFunctionFactoryProvider factoryProvider;
     @Autowired
     public FunctionService(FunctionRepository functionRepository,
                            PointRepository pointRepository,
                            UserService userService,
-                           TabulatedFunctionFactory tabulatedFunctionFactory) {
+                           TabulatedFunctionFactoryProvider factoryProvider) {
         this.functionRepository = functionRepository;
         this.pointRepository = pointRepository;
         this.userService = userService;
-        this.tabulatedFunctionFactory = tabulatedFunctionFactory;
+        this.factoryProvider = factoryProvider;
     }
 
     public static class PerformanceMetrics {
@@ -114,7 +114,6 @@ public class FunctionService {
                     processedCount, errorCount, processingTime, getSuccessRate());
         }
     }
-
     @FunctionalInterface
     public interface FunctionProcessor {
         void process(Function function);
@@ -176,6 +175,55 @@ public class FunctionService {
         long durationMs = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
         performanceMetrics.add(new PerformanceMetrics("SAVE_FUNCTION", durationMs, 1, "SPRING_DATA_JPA"));
         return savedFunction;
+    }
+
+    /**
+     * Сохраняет уже созданную и валидную табулированную функцию в базу данных.
+     * Используется для результатов операций (сложение, дифференцирование и т.д.).
+     *
+     * @param tabulatedFunction валидная табулированная функция
+     * @param name              название функции
+     * @return DTO-ответ для фронтенда
+     */
+    public FunctionResponse saveTabulatedFunction(TabulatedFunction tabulatedFunction, String name) {
+        long startTime = System.nanoTime();
+
+        if (tabulatedFunction == null) {
+            throw new IllegalArgumentException("Табулированная функция не может быть null");
+        }
+
+        User currentUser = getCurrentUser();
+        String functionName = (name != null && !name.trim().isEmpty())
+                ? name
+                : "Результат операции " + System.currentTimeMillis();
+
+        Function function = new Function();
+        function.setName(functionName);
+        function.setExpression("РЕЗУЛЬТАТ ОПЕРАЦИИ: " + tabulatedFunction.getCount() + " точек");
+        function.setUser(currentUser);
+        function.setCreatedAt(LocalDateTime.now());
+
+        Function savedFunction = functionRepository.save(function);
+
+        // Сохраняем точки из уже валидной TabulatedFunction
+        List<Point> points = new ArrayList<>();
+        for (int i = 0; i < tabulatedFunction.getCount(); i++) {
+            Point point = new Point();
+            point.setXValue(tabulatedFunction.getX(i));
+            point.setYValue(tabulatedFunction.getY(i));
+            point.setFunction(savedFunction);
+            point.setUser(currentUser);
+            points.add(point);
+        }
+
+        pointRepository.saveAll(points);
+        savedFunction.setPoints(points);
+
+        long endTime = System.nanoTime();
+        long durationMs = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
+        performanceMetrics.add(new PerformanceMetrics("SAVE_TABULATED_FUNCTION", durationMs, points.size(), "SPRING_DATA_JPA"));
+
+        return convertToResponse(savedFunction);
     }
 
     public List<Function> getAllFunctions() {
@@ -794,7 +842,7 @@ public class FunctionService {
         double[] yArray = yValues.stream().mapToDouble(Double::doubleValue).toArray();
 
         // ✅ СОЗДАЁМ TabulatedFunction ЧЕРЕЗ ФАБРИКУ (key requirement!)
-        TabulatedFunction tabFunc = tabulatedFunctionFactory.create(xArray, yArray);
+        TabulatedFunction tabFunc = factoryProvider.getCurrentFactory().create(xArray, yArray);
 
         // Если дошли сюда — фабрика успешно создала валидную функцию (x строго возрастает и т.д.)
 
@@ -854,7 +902,7 @@ public class FunctionService {
         }
 
         // ✅ СОЗДАЁМ TabulatedFunction ЧЕРЕЗ ФАБРИКУ И MathFunction
-        TabulatedFunction tabFunc = tabulatedFunctionFactory.create(mathFunc, fromX, toX, pointsCount);
+        TabulatedFunction tabFunc = factoryProvider.getCurrentFactory().create(mathFunc, fromX, toX, pointsCount);
 
         User currentUser = getCurrentUser();
         String functionName = (name != null && !name.trim().isEmpty())
@@ -911,7 +959,7 @@ public class FunctionService {
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
     }
 
-    private FunctionResponse convertToResponse(Function function) {
+    public FunctionResponse convertToResponse(Function function) {
         if (function == null) return null;
         FunctionResponse response = new FunctionResponse();
         response.setId(function.getId());

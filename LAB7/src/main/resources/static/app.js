@@ -8,6 +8,9 @@ let activeFuncB = null;
 let activeDiffFunc = null;
 let currentChart = null;
 
+let lastResultId = null;
+let lastDiffResultId = null;
+
 // ===== NAVIGATION =====
 function showSection(sectionId) {
     document.querySelectorAll('.auth-section').forEach(section => {
@@ -271,6 +274,44 @@ async function createFunctionFromMath() {
     }
 }
 
+async function loadFile(input, target) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/functions/import`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${currentToken}` },
+            body: formData
+        });
+        const func = await res.json();
+        if (res.ok) {
+            if (target === 'A') {
+                activeFuncA = func;
+                renderEditableTable(func, 'funcATable', 'A');
+            } else if (target === 'B') {
+                activeFuncB = func;
+                renderEditableTable(func, 'funcBTable', 'B');
+            } else if (target === 'DIFF') {
+                activeDiffFunc = func;
+                renderEditableTable(func, 'diffInputTable', 'DIFF');
+            }
+            showMessage('Функция загружена из файла!', 'success');
+        } else {
+            showErrorModal('Ошибка загрузки из файла');
+        }
+    } catch (err) {
+        showErrorModal('Ошибка: ' + err.message);
+    } finally {
+        setLoading(false);
+        input.value = ''; // reset
+    }
+}
+
 // ===== FACTORY SETTINGS =====
 async function loadFactorySettings() {
     setLoading(true);
@@ -351,6 +392,7 @@ async function performOp(operation) {
                 'Authorization': `Bearer ${currentToken}`
             },
             body: JSON.stringify({
+                lastResultId = data.id;
                 functionAId: activeFuncA.id,
                 functionBId: activeFuncB.id,
                 factoryType: factoryType
@@ -358,7 +400,8 @@ async function performOp(operation) {
         });
         const data = await res.json();
         if (res.ok) {
-            renderFunctionTable(data, 'resultTable');
+            renderReadOnlyTable(data, 'resultTable');
+            lastResultId = data.id;
             showMessage('Операция выполнена!', 'success');
         } else {
             showErrorModal(data.error || data.message || 'Ошибка операции');
@@ -382,13 +425,15 @@ async function performDifferentiation() {
                 'Authorization': `Bearer ${currentToken}`
             },
             body: JSON.stringify({
+                lastDiffResultId = data.id;
                 functionId: activeDiffFunc.id,
                 factoryType: factoryType
             })
         });
         const data = await res.json();
         if (res.ok) {
-            renderFunctionTable(data, 'diffResultTable');
+            renderReadOnlyTable(data, 'diffResultTable');
+            lastDiffResultId = data.id;
             showMessage('Дифференцирование выполнено!', 'success');
         } else {
             showErrorModal(data.error || data.message || 'Ошибка дифференцирования');
@@ -401,30 +446,123 @@ async function performDifferentiation() {
 }
 
 // ===== UTILITIES =====
-function renderFunctionTable(func, containerId) {
+// Для операндов (редактируемый Y)
+function renderEditableTable(func, containerId, target) {
     const container = document.getElementById(containerId);
-    if (!func || !func.xValues || !func.yValues) {
+    if (!func || !func.points || func.points.length === 0) {
         container.innerHTML = '<div>Нет данных</div>';
         return;
     }
     let html = `<table><thead><tr><th>x</th><th>y</th></tr></thead><tbody>`;
-    for (let i = 0; i < func.xValues.length; i++) {
-        html += `<tr><td>${Number(func.xValues[i]).toFixed(4)}</td><td>${Number(func.yValues[i]).toFixed(4)}</td></tr>`;
-    }
+    func.points.forEach((p, i) => {
+        html += `
+            <tr>
+                <td>${Number(p.x).toFixed(4)}</td>
+                <td>
+                    <input type="number" step="0.01"
+                           value="${Number(p.y).toFixed(4)}"
+                           oninput="updateY('${target}', ${i}, this.value)">
+                </td>
+            </tr>`;
+    });
     html += `</tbody></table>`;
     container.innerHTML = html;
 }
 
+// Для результата (только чтение)
+function renderReadOnlyTable(func, containerId) {
+    const container = document.getElementById(containerId);
+    if (!func || !func.points || func.points.length === 0) {
+        container.innerHTML = '<div>Нет данных</div>';
+        return;
+    }
+    let html = `<table><thead><tr><th>x</th><th>y</th></tr></thead><tbody>`;
+    func.points.forEach(p => {
+        html += `<tr><td>${Number(p.x).toFixed(4)}</td><td>${Number(p.y).toFixed(4)}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+    container.innerHTML = html;
+}
+
+function updateY(target, index, value) {
+    let func;
+    if (target === 'A') func = activeFuncA;
+    else if (target === 'B') func = activeFuncB;
+    else if (target === 'DIFF') func = activeDiffFunc;
+    else return;
+
+    if (func && func.points && index < func.points.length) {
+        const oldY = func.points[index].y;
+        func.points[index].y = parseFloat(value);
+        console.log(`Y[${index}] изменён с ${oldY} на ${value}`);
+    }
+}
+
+
 function saveResult() {
-    showMessage('Сохранение результата — в разработке', 'success');
+    if (!activeFuncA || !activeFuncB) return showErrorModal('Нет данных для сохранения');
+    // Предположим, что performOp сохраняет ID результата в lastResultId
+    if (typeof lastResultId === 'number') {
+        const a = document.createElement('a');
+        a.href = `${API_BASE}/api/v1/functions/${lastResultId}/export`;
+        a.download = `result_${lastResultId}.bin`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    } else {
+        showErrorModal('Сначала выполните операцию');
+    }
 }
 
 function saveDiffResult() {
-    showMessage('Сохранение производной — в разработке', 'success');
+    if (!activeDiffFunc) return showErrorModal('Нет данных для сохранения');
+    if (typeof lastDiffResultId === 'number') {
+        const a = document.createElement('a');
+        a.href = `${API_BASE}/api/v1/functions/${lastDiffResultId}/export`;
+        a.download = `derivative_${lastDiffResultId}.bin`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    } else {
+        showErrorModal('Сначала выполните дифференцирование');
+    }
 }
 
-function loadFunction(target) {
-    showMessage(`Загрузка функции — в разработке (${target})`, 'success');
+async function loadFunction(target) {
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/functions`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        const functions = await res.json();
+        if (!res.ok) throw new Error('Не удалось загрузить функции');
+
+        const funcId = prompt('Введите ID функции:\n' +
+            functions.map(f => `${f.id}: ${f.name}`).join('\n'));
+        if (!funcId) return;
+
+        const func = functions.find(f => f.id == funcId);
+        if (!func) {
+            showErrorModal('Функция не найдена');
+            return;
+        }
+
+        if (target === 'A') {
+            activeFuncA = func;
+            renderEditableTable(func, 'funcATable', 'A');
+        } else if (target === 'B') {
+            activeFuncB = func;
+            renderEditableTable(func, 'funcBTable', 'B');
+        } else if (target === 'DIFF') {
+            activeDiffFunc = func;
+            renderEditableTable(func, 'diffInputTable', 'DIFF');
+        }
+        showMessage('Функция загружена!', 'success');
+    } catch (err) {
+        showErrorModal('Ошибка загрузки: ' + err.message);
+    } finally {
+        setLoading(false);
+    }
 }
 
 // ============== ГРАФИК ФУНКЦИИ ==============

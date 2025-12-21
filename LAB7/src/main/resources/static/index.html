@@ -694,16 +694,20 @@
             <div>
                 <h3>Функция A</h3>
                 <button class="btn" onclick="loadFunction('A')">📂 Загрузить</button>
+                <button class="btn" onclick="document.getElementById('fileInputA').click()">📥 Из файла</button>
                 <button class="btn" onclick="createFuncForOp('A', 'points')">📊 По точкам</button>
                 <button class="btn" onclick="createFuncForOp('A', 'formula')">🧮 По формуле</button>
                 <div id="funcATable" class="user-info" style="margin-top:8px; min-height:80px;"></div>
+                <input type="file" id="fileInputA" style="display:none;" accept=".bin" onchange="loadFile(this, 'A')">
             </div>
             <div>
                 <h3>Функция B</h3>
                 <button class="btn" onclick="loadFunction('B')">📂 Загрузить</button>
+                <button class="btn" onclick="document.getElementById('fileInputB').click()">📥 Из файла</button>
                 <button class="btn" onclick="createFuncForOp('B', 'points')">📊 По точкам</button>
                 <button class="btn" onclick="createFuncForOp('B', 'formula')">🧮 По формуле</button>
                 <div id="funcBTable" class="user-info" style="margin-top:8px; min-height:80px;"></div>
+                <input type="file" id="fileInputB" style="display:none;" accept=".bin" onchange="loadFile(this, 'B')">
             </div>
             <div>
                 <h3>Результат</h3>
@@ -727,9 +731,11 @@
             <div>
                 <h3>Исходная функция</h3>
                 <button class="btn" onclick="loadFunction('DIFF')">📂 Загрузить</button>
+                <button class="btn" onclick="document.getElementById('fileInputDIFF').click()">📥 Из файла</button>
                 <button class="btn" onclick="createFuncForOp('DIFF', 'points')">📊 По точкам</button>
                 <button class="btn" onclick="createFuncForOp('DIFF', 'formula')">🧮 По формуле</button>
                 <div id="diffInputTable" class="user-info" style="margin-top:8px; min-height:80px;"></div>
+                <input type="file" id="fileInputDIFF" style="display:none;" accept=".bin" onchange="loadFile(this, 'DIFF')">
             </div>
             <div>
                 <h3>Производная</h3>
