@@ -1,5 +1,6 @@
 package com.example.LAB5.framework.controller;
 
+import com.example.LAB5.DTO.Request.UpdateFunctionRequest;
 import com.example.LAB5.DTO.Response.FunctionResponse;
 import com.example.LAB5.framework.entity.Function;
 import com.example.LAB5.framework.service.FunctionService;
@@ -46,6 +47,18 @@ public class FunctionController {
         return factoryProvider.getCurrentFactory().create(x, y);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<FunctionResponse> updateFunction(
+            @PathVariable Long id,
+            @RequestBody UpdateFunctionRequest request) {
+        return ResponseEntity.ok(functionService.updateFunction(id, request));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<FunctionResponse> getFunctionById(@PathVariable Long id) {
+        Function f = functionService.getFunctionById(id);
+        return ResponseEntity.ok(functionService.convertToResponse(f));
+    }
     //
     @GetMapping("/my")
     public ResponseEntity<List<FunctionResponse>> getAllFunctionsForCurrentUser() {

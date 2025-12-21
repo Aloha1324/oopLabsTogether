@@ -483,17 +483,56 @@ function renderReadOnlyTable(func, containerId) {
     container.innerHTML = html;
 }
 
-function updateY(target, index, value) {
+async function updateY(target, index, value) {
     let func;
     if (target === 'A') func = activeFuncA;
     else if (target === 'B') func = activeFuncB;
     else if (target === 'DIFF') func = activeDiffFunc;
     else return;
 
-    if (func && func.points && index < func.points.length) {
-        const oldY = func.points[index].y;
-        func.points[index].y = parseFloat(value);
-        console.log(`Y[${index}] изменён с ${oldY} на ${value}`);
+    if (!func || !func.points || index >= func.points.length || func.id == null) {
+        console.warn('Невозможно обновить: функция не загружена или нет ID');
+        return;
+    }
+
+    const oldY = func.points[index].y;
+    const newY = parseFloat(value);
+
+    if (isNaN(newY)) {
+        func.points[index].y = oldY; // откат
+        return;
+    }
+
+    // 1. Обновляем локально (для UI)
+    func.points[index].y = newY;
+
+    // 2. Отправляем на сервер
+    try {
+        const response = await fetch(`${API_BASE}/api/v1/functions/${func.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({
+                points: func.points.map(p => ({
+                    x: p.x,
+                    y: p.y
+                }))
+                // Остальные поля (name, type и т.д.) не обязательны при обновлении точек
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `HTTP ${response.status}`);
+        }
+
+        console.log(`✅ Точка ${index} обновлена: ${oldY} → ${newY}`);
+    } catch (error) {
+        // ❌ При ошибке — откатываем локальные изменения
+        func.points[index].y = oldY;
+        showErrorModal(`Ошибка обновления точки: ${error.message}`);
     }
 }
 
