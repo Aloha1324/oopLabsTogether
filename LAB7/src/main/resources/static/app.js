@@ -146,9 +146,12 @@ async function loadMathFunctions() {
         const select = document.getElementById('mathFunctionSelect');
         select.innerHTML = '';
 
-        const sortedFunctions = functions.sort((a, b) =>
-          a.description.localeCompare(b.description, 'ru')
-        );
+        const sortedFunctions = (functions || []).sort((a, b) => {
+            const descA = (a?.description || '');
+            const descB = (b?.description || '');
+            return descA.localeCompare(descB, 'ru');
+        });
+
         sortedFunctions.forEach(f => {
             const opt = document.createElement('option');
             opt.value = f.key;
@@ -617,9 +620,11 @@ async function loadFunctionsForViewer() {
         const select = document.getElementById('functionSelect');
         select.innerHTML = '<option value="">-- Выберите функцию --</option>';
 
-        const sortedFunctions = functions.sort((a, b) =>
-          a.description.localeCompare(b.description, 'ru')
-        );
+        const sortedFunctions = (functions || []).sort((a, b) => {
+            const nameA = (a?.name || '').toString();
+            const nameB = (b?.name || '').toString();
+            return nameA.localeCompare(nameB, 'ru');
+        });
 
         sortedFunctions.forEach(f => {
             const opt = document.createElement('option');
@@ -1052,13 +1057,13 @@ class WordleGame {
 
     async submitGuess() {
         if (this.currentGuess.length !== 5) {
-            this.showErrorModal('Введите 5 букв!', 'error');
+            this.showMessage('Введите 5 букв!', 'error');
             return;
         }
         const guessWord = this.currentGuess.join('').toUpperCase();
         const alreadyGuessed = this.guesses.some(g => g.word === guessWord);
         if (alreadyGuessed) {
-            this.showErrorModal('Это слово уже было использовано!', 'error');
+            this.showMessage('Это слово уже было использовано!', 'error');
             return;
         }
 
@@ -1080,7 +1085,7 @@ class WordleGame {
                 this.gameOver = true;
                 this.showMessage(result.message || '🎉 Победа!', 'success');
             } else if (result.message) {
-                this.showErrorModal(result.message, 'error');
+                this.showMessage(result.message, 'error');
             } else {
                 this.guesses.push({ word: guessWord, status: result.status });
                 this.currentGuess = [];
@@ -1092,7 +1097,7 @@ class WordleGame {
                 }
             }
         } catch (err) {
-            showErrorModal('Ошибка сети: ' + err.message);
+            showMessage('Ошибка сети: ' + err.message);
         } finally {
             setLoading(false);
         }
