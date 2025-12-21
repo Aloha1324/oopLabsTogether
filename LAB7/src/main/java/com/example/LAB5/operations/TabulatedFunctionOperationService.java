@@ -4,6 +4,9 @@ import com.example.LAB5.exceptions.InconsistentFunctionsException;
 import com.example.LAB5.functions.TabulatedFunction;
 import com.example.LAB5.functions.factory.TabulatedFunctionFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TabulatedFunctionOperationService {
 
     private final TabulatedFunctionFactory factory;

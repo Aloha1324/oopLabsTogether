@@ -92,8 +92,14 @@ public class SynchronizedTabulatedFunction implements TabulatedFunction {
     @Override
     public Iterator<Point> iterator() {
         logger.trace("Создание итератора для синхронизированной функции");
+
+        // Создаём копию точек без вызова несуществующего метода
         synchronized (function) {
-            Point[] copyPoints = TabulatedFunctionOperationService.asPoints(function);
+            int n = function.getCount();
+            Point[] copyPoints = new Point[n];
+            for (int i = 0; i < n; i++) {
+                copyPoints[i] = new Point(function.getX(i), function.getY(i));
+            }
             logger.debug("Создана копия {} точек для итератора", copyPoints.length);
 
             return new Iterator<Point>() {
@@ -102,25 +108,19 @@ public class SynchronizedTabulatedFunction implements TabulatedFunction {
 
                 @Override
                 public boolean hasNext() {
-                    boolean hasNext = currentIndex < points.length;
-                    logger.trace("Проверка hasNext: {}", hasNext);
-                    return hasNext;
+                    return currentIndex < points.length;
                 }
 
                 @Override
                 public Point next() {
                     if (!hasNext()) {
-                        logger.warn("Попытка получить next() при отсутствии элементов");
                         throw new NoSuchElementException("No more elements in iterator");
                     }
-                    Point point = points[currentIndex++];
-                    logger.trace("Получена точка: x={}, y={}", point.x, point.y);
-                    return point;
+                    return points[currentIndex++];
                 }
 
                 @Override
                 public void remove() {
-                    logger.warn("Попытка вызвать remove() в итераторе");
                     throw new UnsupportedOperationException("Remove operation is not supported");
                 }
             };
