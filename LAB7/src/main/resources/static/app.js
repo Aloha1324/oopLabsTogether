@@ -181,7 +181,6 @@ function generatePointsTable() {
         if (!confirm('Текущие данные будут потеряны. Продолжить?')) return;
     }
     const countEl = document.getElementById('pointsCount');
-    const count = parseInt(countEl.value) || 0;
     if (count < 2 || count > 10000) {
         container.innerHTML = '<div class="error" style="padding:8px;">Введите число от 2 до 10000</div>';
         return;
