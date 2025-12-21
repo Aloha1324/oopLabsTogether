@@ -9,6 +9,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/factory")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class FactoryController {
 
     private final TabulatedFunctionFactoryProvider factoryProvider;

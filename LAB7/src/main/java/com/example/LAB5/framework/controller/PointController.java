@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/points")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class PointController {
 
     private final ConcurrentHashMap<Integer, Map<String, Object>> points = new ConcurrentHashMap<>();

@@ -25,6 +25,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/functions")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class FunctionController {
 
 

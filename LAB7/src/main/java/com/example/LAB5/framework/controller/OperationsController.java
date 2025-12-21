@@ -16,6 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/functions")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class OperationsController {
 
     private final FunctionService functionService;
