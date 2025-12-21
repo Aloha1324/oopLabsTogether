@@ -46,6 +46,17 @@ function showMessage(message, type = 'error') {
     setTimeout(() => msgEl.style.display = 'none', 5000);
 }
 
+function showErrorModal(message) {
+    document.getElementById('modalErrorMessage').textContent = message;
+    document.getElementById('errorModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // блокируем скролл
+}
+
+function closeErrorModal() {
+    document.getElementById('errorModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
 function setLoading(loading) {
     document.getElementById('loading').style.display = loading ? 'block' : 'none';
 }
@@ -54,7 +65,7 @@ function setLoading(loading) {
 async function login() {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
-    if (!username || !password) return showMessage('Заполните все поля!');
+    if (!username || !password) return showErrorModal('Заполните все поля!');
     setLoading(true);
     try {
         const res = await fetch(`${API_BASE}/api/auth/login`, {
@@ -70,10 +81,10 @@ async function login() {
             wordleGame.updateFabVisibility();
             showMessage(`Добро пожаловать, ${data.username}! 🎉`, 'success');
         } else {
-            showMessage(data.message || data.error || 'Ошибка входа');
+            showErrorModal(data.message || data.error || 'Ошибка входа');
         }
     } catch (err) {
-        showMessage('Ошибка сети: ' + err.message);
+        showErrorModal('Ошибка сети: ' + err.message);
     } finally {
         setLoading(false);
     }
@@ -82,8 +93,8 @@ async function login() {
 async function register() {
     const username = document.getElementById('regUsername').value;
     const password = document.getElementById('regPassword').value;
-    if (username.length < 3) return showMessage('Логин должен содержать минимум 3 символа');
-    if (password.length < 6) return showMessage('Пароль должен содержать минимум 6 символов');
+    if (username.length < 3) return showErrorModal('Логин должен содержать минимум 3 символа');
+    if (password.length < 6) return showErrorModal('Пароль должен содержать минимум 6 символов');
     setLoading(true);
     try {
         const res = await fetch(`${API_BASE}/api/auth/register`, {
@@ -99,10 +110,10 @@ async function register() {
             wordleGame.updateFabVisibility();
             showMessage(`Аккаунт создан, ${data.username}! 🎉`, 'success');
         } else {
-            showMessage(data.message || data.error || 'Ошибка регистрации');
+            showErrorModal(data.message || data.error || 'Ошибка регистрации');
         }
     } catch (err) {
-        showMessage('Ошибка сети: ' + err.message);
+        showErrorModal('Ошибка сети: ' + err.message);
     } finally {
         setLoading(false);
     }
@@ -129,14 +140,18 @@ async function loadMathFunctions() {
         const functions = await res.json();
         const select = document.getElementById('mathFunctionSelect');
         select.innerHTML = '';
-        functions.forEach(f => {
+
+        const sortedFunctions = functions.sort((a, b) =>
+          a.description.localeCompare(b.description, 'ru')
+        );
+        sortedFunctions.forEach(f => {
             const opt = document.createElement('option');
             opt.value = f.key;
             opt.textContent = f.description;
             select.appendChild(opt);
         });
     } catch (err) {
-        showMessage('Не удалось загрузить функции: ' + err.message);
+        showErrorModal('Не удалось загрузить функции: ' + err.message);
     } finally {
         setLoading(false);
     }
@@ -144,6 +159,22 @@ async function loadMathFunctions() {
 
 // ===== CREATE BY POINTS =====
 function generatePointsTable() {
+    const count = parseInt(document.getElementById('pointsCount').value) || 0;
+      if (count > 10000) {
+        showErrorModal('Максимальное количество точек — 10 000');
+        return;
+      }
+      if (count < 2) {
+        showErrorModal('Минимум 2 точки');
+        return;
+      }
+
+    const container = document.getElementById('pointsTableContainer');
+    const hasData = container.querySelector('input') &&
+                  Array.from(container.querySelectorAll('input')).some(inp => inp.value !== '');
+    if (hasData) {
+        if (!confirm('Текущие данные будут потеряны. Продолжить?')) return;
+    }
     const countEl = document.getElementById('pointsCount');
     const container = document.getElementById('pointsTableContainer');
     const count = parseInt(countEl.value) || 0;
@@ -166,20 +197,20 @@ function generatePointsTable() {
 async function createFunctionFromPoints() {
     const name = document.getElementById('pointsName').value || null;
     const count = parseInt(document.getElementById('pointsCount').value) || 0;
-    if (count < 2) return showMessage('Укажите ≥2 точки');
+    if (count < 2) return showErrorModal('Укажите ≥2 точки');
     const xVals = [], yVals = [];
     for (let i = 0; i < count; i++) {
         const xInput = document.getElementById(`x_${i}`).value;
         const yInput = document.getElementById(`y_${i}`).value;
-        if (xInput === '' || yInput === '') return showMessage(`Ошибка в строке ${i + 1}: введите числа`);
+        if (xInput === '' || yInput === '') return showErrorModal(`Ошибка в строке ${i + 1}: введите числа`);
         const x = parseFloat(xInput);
         const y = parseFloat(yInput);
-        if (isNaN(x) || isNaN(y)) return showMessage(`Ошибка в строке ${i + 1}: введите корректные числа`);
+        if (isNaN(x) || isNaN(y)) return showErrorModal(`Ошибка в строке ${i + 1}: введите корректные числа`);
         xVals.push(parseFloat(x.toFixed(10)));
         yVals.push(parseFloat(y.toFixed(10)));
     }
     for (let i = 1; i < xVals.length; i++) {
-        if (xVals[i] <= xVals[i - 1]) return showMessage('x должны строго возрастать!');
+        if (xVals[i] <= xVals[i - 1]) return showErrorModal('x должны строго возрастать!');
     }
     setLoading(true);
     try {
@@ -196,10 +227,10 @@ async function createFunctionFromPoints() {
             showMessage('Функция создана! 🎉', 'success');
             showProfile();
         } else {
-            showMessage(data.message || 'Ошибка создания');
+            showErrorModal(data.error || data.message || 'Ошибка создания');
         }
     } catch (err) {
-        showMessage('Ошибка: ' + err.message);
+        showErrorModal('Ошибка: ' + err.message);
     } finally {
         setLoading(false);
     }
@@ -212,10 +243,10 @@ async function createFunctionFromMath() {
     const fromX = parseFloat(document.getElementById('fromX').value);
     const toX = parseFloat(document.getElementById('toX').value);
     const count = parseInt(document.getElementById('formulaPointsCount').value);
-    if (!type) return showMessage('Выберите функцию');
-    if (isNaN(fromX) || isNaN(toX)) return showMessage('Введите корректный интервал');
-    if (fromX >= toX) return showMessage('Левая граница < правой');
-    if (count < 2 || count > 10000) return showMessage('Точек от 2 до 10000');
+    if (!type) return showErrorModal('Выберите функцию');
+    if (isNaN(fromX) || isNaN(toX)) return showErrorModal('Введите корректный интервал');
+    if (fromX >= toX) return showErrorModal('Левая граница < правой');
+    if (count < 2 || count > 10000) return showErrorModal('Точек от 2 до 10000');
     setLoading(true);
     try {
         const res = await fetch(`${API_BASE}/api/v1/functions/tabulated/by-math-function`, {
@@ -231,10 +262,10 @@ async function createFunctionFromMath() {
             showMessage('Функция создана! 🎉', 'success');
             showProfile();
         } else {
-            showMessage(data.message || 'Ошибка создания');
+            showErrorModal(data.error || data.message || 'Ошибка создания');
         }
     } catch (err) {
-        showMessage('Ошибка: ' + err.message);
+        showErrorModal('Ошибка: ' + err.message);
     } finally {
         setLoading(false);
     }
@@ -255,7 +286,7 @@ async function loadFactorySettings() {
             document.querySelector(`input[name="factory"][value="${factoryType}"]`).checked = true;
         }
     } catch (err) {
-        showMessage('Не удалось загрузить настройки: ' + err.message);
+        showErrorModal('Не удалось загрузить настройки: ' + err.message);
     } finally {
         setLoading(false);
     }
@@ -263,7 +294,7 @@ async function loadFactorySettings() {
 
 async function saveFactorySettings() {
     const selected = document.querySelector('input[name="factory"]:checked')?.value;
-    if (!selected) return showMessage('Выберите тип фабрики');
+    if (!selected) return showErrorModal('Выберите тип фабрики');
     setLoading(true);
     try {
         const res = await fetch(`${API_BASE}/api/v1/factory`, {
@@ -280,10 +311,10 @@ async function saveFactorySettings() {
             showProfile();
         } else {
             const err = await res.json();
-            showMessage(err.message || 'Ошибка сохранения');
+            showErrorModal(err.message || 'Ошибка сохранения');
         }
     } catch (err) {
-        showMessage('Ошибка сети: ' + err.message);
+        showErrorModal('Ошибка сети: ' + err.message);
     } finally {
         setLoading(false);
     }
@@ -310,7 +341,7 @@ function createFuncForOp(target, type) {
 }
 
 async function performOp(operation) {
-    if (!activeFuncA || !activeFuncB) return showMessage('Загрузите обе функции!');
+    if (!activeFuncA || !activeFuncB) return showErrorModal('Загрузите обе функции!');
     setLoading(true);
     try {
         const res = await fetch(`${API_BASE}/api/v1/functions/operations/${operation}`, {
@@ -330,10 +361,10 @@ async function performOp(operation) {
             renderFunctionTable(data, 'resultTable');
             showMessage('Операция выполнена!', 'success');
         } else {
-            showMessage(data.message || 'Ошибка операции');
+            showErrorModal(data.error || data.message || 'Ошибка операции');
         }
     } catch (err) {
-        showMessage('Ошибка: ' + err.message);
+        showErrorModal('Ошибка: ' + err.message);
     } finally {
         setLoading(false);
     }
@@ -341,7 +372,7 @@ async function performOp(operation) {
 
 // ===== DIFFERENTIATION =====
 async function performDifferentiation() {
-    if (!activeDiffFunc) return showMessage('Загрузите функцию для дифференцирования!');
+    if (!activeDiffFunc) return showErrorModal('Загрузите функцию для дифференцирования!');
     setLoading(true);
     try {
         const res = await fetch(`${API_BASE}/api/v1/functions/differentiate`, {
@@ -360,10 +391,10 @@ async function performDifferentiation() {
             renderFunctionTable(data, 'diffResultTable');
             showMessage('Дифференцирование выполнено!', 'success');
         } else {
-            showMessage(data.message || 'Ошибка дифференцирования');
+            showErrorModal(data.error || data.message || 'Ошибка дифференцирования');
         }
     } catch (err) {
-        showMessage('Ошибка: ' + err.message);
+        showErrorModal('Ошибка: ' + err.message);
     } finally {
         setLoading(false);
     }
@@ -410,14 +441,19 @@ async function loadFunctionsForViewer() {
         const functions = await res.json();
         const select = document.getElementById('functionSelect');
         select.innerHTML = '<option value="">-- Выберите функцию --</option>';
-        functions.forEach(f => {
+
+        const sortedFunctions = functions.sort((a, b) =>
+          a.description.localeCompare(b.description, 'ru')
+        );
+
+        sortedFunctions.forEach(f => {
             const opt = document.createElement('option');
             opt.value = f.id;
             opt.textContent = `${f.name} (${f.type})`;
             select.appendChild(opt);
         });
     } catch (err) {
-        showMessage(err.message);
+        showErrorModal(err.message);
     } finally {
         setLoading(false);
     }
@@ -442,7 +478,7 @@ async function loadFunctionForGraph() {
         renderFunctionGraph(func);
         renderFunctionTableForGraph(func, 'functionPointsTable');
     } catch (err) {
-        showMessage(err.message);
+        showErrorModal(err.message);
         clearGraphAndTable();
     } finally {
         setLoading(false);
@@ -533,9 +569,9 @@ function renderFunctionTableForGraph(func, containerId) {
 async function evaluateAtX() {
     const id = document.getElementById('functionSelect').value;
     const xInput = document.getElementById('evalX').value.trim();
-    if (!id) return showMessage('Сначала выберите функцию');
+    if (!id) return showErrorModal('Сначала выберите функцию');
     const x = parseFloat(xInput);
-    if (isNaN(x)) return showMessage('Введите корректное число в поле x');
+    if (isNaN(x)) return showErrorModal('Введите корректное число в поле x');
 
     setLoading(true);
     try {
@@ -556,7 +592,7 @@ async function evaluateAtX() {
             throw new Error(result.message || 'Ошибка вычисления значения');
         }
     } catch (err) {
-        showMessage(err.message);
+        showErrorModal(err.message);
         document.getElementById('evalResult').style.display = 'none';
     } finally {
         setLoading(false);
@@ -657,7 +693,7 @@ class WordleGame {
 
     async toggle() {
         if (!currentUser) {
-            showMessage('⚠️ Сначала авторизуйтесь!', 'error');
+            showErrorModal('⚠️ Сначала авторизуйтесь!', 'error');
             return;
         }
         this.wordleOpen ? this.close() : await this.open();
@@ -697,10 +733,10 @@ class WordleGame {
                 showMessage('🆕 Новая игра начата!', 'success');
             } else {
                 const err = await res.json();
-                showMessage(err.message || 'Ошибка создания игры');
+                showErrorModal(err.message || 'Ошибка создания игры');
             }
         } catch (err) {
-            showMessage('Ошибка сети: ' + err.message);
+            showErrorModal('Ошибка сети: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -724,13 +760,13 @@ class WordleGame {
 
     async submitGuess() {
         if (this.currentGuess.length !== 5) {
-            this.showMessage('Введите 5 букв!', 'error');
+            this.showErrorModal('Введите 5 букв!', 'error');
             return;
         }
         const guessWord = this.currentGuess.join('').toUpperCase();
         const alreadyGuessed = this.guesses.some(g => g.word === guessWord);
         if (alreadyGuessed) {
-            this.showMessage('Это слово уже было использовано!', 'error');
+            this.showErrorModal('Это слово уже было использовано!', 'error');
             return;
         }
 
@@ -752,7 +788,7 @@ class WordleGame {
                 this.gameOver = true;
                 this.showMessage(result.message || '🎉 Победа!', 'success');
             } else if (result.message) {
-                this.showMessage(result.message, 'error');
+                this.showErrorModal(result.message, 'error');
             } else {
                 this.guesses.push({ word: guessWord, status: result.status });
                 this.currentGuess = [];
@@ -760,11 +796,11 @@ class WordleGame {
                 this.updateAttempts();
                 if (this.gameState && this.gameState.attemptsLeft <= 0) {
                     this.gameOver = true;
-                    this.showMessage(`Игра окончена! Слово: ${this.gameState.targetWord}`, 'error');
+                    this.showErrorModal(`Игра окончена! Слово: ${this.gameState.targetWord}`, 'error');
                 }
             }
         } catch (err) {
-            showMessage('Ошибка сети: ' + err.message);
+            showErrorModal('Ошибка сети: ' + err.message);
         } finally {
             setLoading(false);
         }
@@ -820,6 +856,7 @@ class WordleGame {
             attemptsEl.textContent = this.gameState ? this.gameState.attemptsLeft : 6;
         }
     }
+
 
     showMessage(msg, type) {
         const msgEl = this.wordleGame.querySelector('#wordleMessage');

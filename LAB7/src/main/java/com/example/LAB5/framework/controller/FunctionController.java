@@ -16,11 +16,11 @@ import java.util.List;
 @RequestMapping("/api/v1/functions")
 public class FunctionController {
 
-    // ✅ СТАРЫЙ функционал (in-memory) — ОСТАЁТСЯ БЕЗ ИЗМЕНЕНИЙ
+    // СТАРЫЙ функционал (in-memory)
     private final ConcurrentHashMap<Integer, Map<String, Object>> functions = new ConcurrentHashMap<>();
     private final AtomicInteger idCounter = new AtomicInteger(1);
 
-    // ✅ НОВЫЙ функционал (БД)
+    // функционал (БД)
     private final FunctionService functionService;
 
     @Autowired
@@ -204,17 +204,17 @@ public class FunctionController {
     @GetMapping("/tabulated/math-functions")
     public ResponseEntity<List<MathFunctionInfo>> getMathFunctions() {
         List<MathFunctionInfo> functions = List.of(
-                new MathFunctionInfo("LINEAR", "Линейная функция ax + b"),
-                new MathFunctionInfo("QUADRATIC", "Квадратичная функция ax² + bx + c"),
-                new MathFunctionInfo("SIN", "Синус a*sin(bx + c)"),
-                new MathFunctionInfo("COS", "Косинус a*cos(bx + c)"),
-                new MathFunctionInfo("EXP", "Экспонента a*e^(bx)"),
-                new MathFunctionInfo("LOG", "Логарифм a*ln(bx) + c"),
-                new MathFunctionInfo("POWER", "Степенная функция a*x^b"),
-                new MathFunctionInfo("ROOT", "Корень a*x^(1/b)"),
-                new MathFunctionInfo("IDENTITY", "Тождественная функция x")
+                new MathFunctionInfo("IDENTITY", "Тождественная функция (f(x) = x)"),
+                new MathFunctionInfo("SQR", "Квадратичная функция (f(x) = x²)"),
+                new MathFunctionInfo("UNIT", "Константа 1"),
+                new MathFunctionInfo("ZERO", "Константа 0"),
+                new MathFunctionInfo("CONST_2", "Константа 2")
         );
-        return ResponseEntity.ok(functions);
+        // Сортируем по описанию (по русскому названию)
+        List<MathFunctionInfo> sorted = functions.stream()
+                .sorted(Comparator.comparing(MathFunctionInfo::description))
+                .toList();
+        return ResponseEntity.ok(sorted);
     }
 
 

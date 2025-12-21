@@ -39,9 +39,8 @@ public class FunctionService {
             "IDENTITY", new IdentityFunction(),
             "SQR", new SqrFunction(),
             "UNIT", new UnitFunction(),
-            "CONST_2", new ConstantFunction(2.0),
-            "LINEAR", new IdentityFunction() // или можно сделать отдельный LinearFunction, но Identity = x
-            // Добавь другие, если есть
+            "ZERO", new ZeroFunction(),
+            "CONST_2", new ConstantFunction(2.0)
     );
 
     private final FunctionRepository functionRepository;
