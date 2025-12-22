@@ -29,6 +29,10 @@ public class Function {
     @OneToMany(mappedBy = "function", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Point> points = new ArrayList<>();
 
+    // === НОВОЕ ПОЛЕ: тип реализации табулированной функции ===
+    @Column(name = "implementation_type", nullable = false, length = 20)
+    private String implementationType = "array"; // по умолчанию — массив
+
     // Конструкторы
     public Function() {}
 
@@ -37,12 +41,25 @@ public class Function {
         this.expression = expression;
         this.user = user;
         this.createdAt = LocalDateTime.now();
+        this.implementationType = "array"; // значение по умолчанию
+    }
+
+    // === НОВЫЙ КОНСТРУКТОР С implementationType ===
+    public Function(String name, String expression, User user, String implementationType) {
+        this.name = name;
+        this.expression = expression;
+        this.user = user;
+        this.createdAt = LocalDateTime.now();
+        this.implementationType = implementationType != null ? implementationType : "array";
     }
 
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
+        }
+        if (implementationType == null) {
+            implementationType = "array";
         }
     }
 
@@ -65,9 +82,36 @@ public class Function {
     public List<Point> getPoints() { return points; }
     public void setPoints(List<Point> points) { this.points = points; }
 
+    // === Геттер и сеттер для implementationType ===
+    public String getImplementationType() {
+        return implementationType;
+    }
+
+    public void setImplementationType(String implementationType) {
+        this.implementationType = implementationType != null ? implementationType : "array";
+    }
 
     @Override
     public String toString() {
-        return "Function{id=" + id + ", name='" + name + "', expression='" + expression + "', createdAt=" + createdAt + "}";
+        return "Function{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", expression='" + expression + '\'' +
+                ", createdAt=" + createdAt +
+                ", implementationType='" + implementationType + '\'' +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Function function = (Function) o;
+        return id != null && id.equals(function.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

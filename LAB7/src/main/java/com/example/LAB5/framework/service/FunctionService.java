@@ -141,12 +141,12 @@ public class FunctionService {
 
     public void insertPoint(Long id, double x, double y) {
         Function f = getFunctionById(id);
-        TabulatedFunction tf = toTabulatedFunction(f);
+        TabulatedFunction tf = toTabulatedFunction(f); // ← создаёт через фабрику!
         if (!(tf instanceof Insertable)) {
             throw new UnsupportedOperationException("Функция не поддерживает вставку");
         }
         ((Insertable) tf).insert(x, y);
-        updatePointsInDatabase(id, tf);
+        updatePointsInDatabase(id, tf); // ← только обновление точек!
     }
 
     public void removePoint(Long id, int index) {
@@ -156,7 +156,7 @@ public class FunctionService {
             throw new UnsupportedOperationException("Функция не поддерживает удаление");
         }
         ((Removable) tf).remove(index);
-        updatePointsInDatabase(id, tf);
+        updatePointsInDatabase(id, tf); // ← только обновление точек!
     }
 
     private void updatePointsInDatabase(Long functionId, TabulatedFunction tf) {
@@ -170,6 +170,7 @@ public class FunctionService {
             p.setUser(getCurrentUser());
             newPoints.add(p);
         }
+        pointRepository.deleteAll(function.getPoints()); // ← удаляем старые
         pointRepository.saveAll(newPoints);
         function.setPoints(newPoints);
     }
@@ -719,37 +720,29 @@ public class FunctionService {
         }
     }
 
+    // В FunctionService.java
     public CalculationResponse integrate(IntegrationRequest request) {
-        long startTime = System.nanoTime();
-        try {
-            Long functionId = request.getFunctionId();
-            Function function = getFunctionById(functionId);
-            List<Point> points = function.getPoints();
-            if (points.size() < 2) {
-                CalculationResponse errorResponse = new CalculationResponse();
-                errorResponse.setSuccess(false);
-                errorResponse.setMessage("Function must have at least 2 points for integration");
-                errorResponse.setFunctionId(functionId);
-                return errorResponse;
-            }
-            double result = parallelTrapezoidalIntegration(points, 1);
-            long endTime = System.nanoTime();
-            long durationMs = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
-            performanceMetrics.add(new PerformanceMetrics("INTEGRATE", durationMs, points.size(), "SPRING_DATA_JPA"));
-            CalculationResponse response = new CalculationResponse();
-            response.setSuccess(true);
-            response.setFunctionId(functionId);
-            response.setResult(result);
-            response.setCalculationTime(durationMs);
-            response.setMessage("Интегрирование успешно");
-            return response;
-        } catch (Exception e) {
-            CalculationResponse errorResponse = new CalculationResponse();
-            errorResponse.setSuccess(false);
-            errorResponse.setMessage("Ошибка при интегрировании: " + e.getMessage());
-            errorResponse.setFunctionId(request.getFunctionId());
-            return errorResponse;
+        Long functionId = request.getFunctionId();
+        Function function = getFunctionById(functionId);
+        List<Point> points = function.getPoints();
+        if (points.size() < 2) {
+            throw new IllegalArgumentException("Функция должна содержать минимум 2 точки");
         }
+
+        // ← ОГРАНИЧИВАЕМ ПОТОКИ
+        int threads = Math.min(Math.max(request.getThreadCount(), 1), 16);
+
+        long startTime = System.nanoTime();
+        double result = parallelTrapezoidalIntegration(points, threads);
+        long durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+
+        CalculationResponse response = new CalculationResponse();
+        response.setSuccess(true);
+        response.setFunctionId(functionId);
+        response.setResult(result);
+        response.setCalculationTime(durationMs); // ← время в миллисекундах
+        response.setMessage("Интегрирование успешно");
+        return response;
     }
 
     private double parallelTrapezoidalIntegration(List<Point> points, int threads) {

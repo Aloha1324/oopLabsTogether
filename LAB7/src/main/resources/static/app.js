@@ -1019,6 +1019,79 @@ async function removePoint(target) {
     }
 }
 
+// Загрузка списка функций для интеграла
+async function loadFunctionsForIntegral() {
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/functions/my`, {
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (!res.ok) throw new Error('Ошибка загрузки функций');
+        const functions = await res.json();
+        const select = document.getElementById('integralFunctionSelect');
+        select.innerHTML = '<option value="">-- Выберите функцию --</option>';
+        functions.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.id;
+            opt.textContent = f.name;
+            select.appendChild(opt);
+        });
+    } catch (err) {
+        showErrorModal('Ошибка загрузки функций: ' + err.message);
+    } finally {
+        setLoading(false);
+    }
+}
+
+// Вычисление интеграла
+async function calculateIntegral() {
+    const funcId = document.getElementById('integralFunctionSelect').value;
+    const threadsInput = document.getElementById('integralThreads').value;
+    const threads = parseInt(threadsInput);
+
+    if (!funcId) return showErrorModal('Выберите функцию');
+    if (isNaN(threads) || threads < 1 || threads > 16) {
+        return showErrorModal('Количество потоков должно быть от 1 до 16');
+    }
+
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/functions/integrate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({ functionId: parseInt(funcId), threadCount: threads })
+        });
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.message || 'Ошибка вычисления интеграла');
+        }
+
+        const result = await res.json();
+        document.getElementById('integralResult').innerHTML = `
+            <div class="success">
+                <strong>Результат интеграла:</strong> ${result.result.toFixed(8)}<br>
+                <strong>Время выполнения:</strong> ${result.calculationTime} мс<br>
+                <strong>Использовано потоков:</strong> ${threads}
+            </div>
+        `;
+    } catch (err) {
+        showErrorModal('Ошибка: ' + err.message);
+    } finally {
+        setLoading(false);
+    }
+}
+
+// Навигация: показать окно интеграла
+function showIntegralViewer() {
+    showSection('integralViewer');
+    loadFunctionsForIntegral();
+}
+
+
 // ===== WORDLE GAME CLASS =====
 class WordleGame {
     constructor() {

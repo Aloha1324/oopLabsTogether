@@ -15,6 +15,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.example.LAB5.DTO.Request.IntegrationRequest;
+import com.example.LAB5.DTO.Response.CalculationResponse;
+import jakarta.validation.Valid;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -165,6 +168,11 @@ public class FunctionController {
 
         FunctionResponse response = functionService.createTabulatedFunctionFromPoints(name, xValues, yValues);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+    @PostMapping("/integrate")
+    public ResponseEntity<CalculationResponse> integrate(@Valid @RequestBody IntegrationRequest request) {
+        CalculationResponse response = functionService.integrate(request);
+        return ResponseEntity.ok(response);
     }
 
     /**

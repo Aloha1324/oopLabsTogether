@@ -644,6 +644,7 @@
                 <button class="btn" onclick="showCreateByPoints()">📊 По точкам</button>
                 <button class="btn" onclick="showCreateByFormula()">🧮 По формуле</button>
                 <button class="btn" onclick="showFunctionViewer()">📊 График</button>
+                <button class="btn" onclick="showIntegralViewer()">🧮 Интеграл</button>
             </div>
         </div>
         <button class="btn btn-danger" onclick="logout()">🚪 Выйти</button>
@@ -849,6 +850,28 @@
         <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
             <button class="btn" onclick="showCreateByPoints()">➕ Создать по точкам</button>
             <button class="btn" onclick="showCreateByFormula()">🧮 Создать по формуле</button>
+            <button class="btn btn-danger" onclick="showProfile()">← Назад</button>
+        </div>
+    </div>
+    <!-- INTEGRAL -->
+    <div id="integralViewer" class="auth-section">
+        <h2>🧮 Вычисление интеграла</h2>
+
+        <div class="form-group">
+            <label for="integralFunctionSelect">Выберите функцию</label>
+            <select id="integralFunctionSelect" class="form-control"></select>
+        </div>
+
+        <div class="form-group">
+            <label for="integralThreads">Количество потоков (1–16)</label>
+            <input type="number" id="integralThreads" min="1" max="16" value="1" class="form-control">
+        </div>
+
+        <button class="btn" onclick="calculateIntegral()">Вычислить интеграл</button>
+
+        <div id="integralResult" style="margin-top: 15px;"></div>
+
+        <div style="margin-top: 20px;">
             <button class="btn btn-danger" onclick="showProfile()">← Назад</button>
         </div>
     </div>
