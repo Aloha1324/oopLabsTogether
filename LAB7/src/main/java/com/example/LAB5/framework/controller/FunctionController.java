@@ -110,19 +110,46 @@ public class FunctionController {
 
         String name = (String) request.get("name");
 
-        // ✅ Используем `request`, а не `body`
         @SuppressWarnings("unchecked")
-        List<Number> rawX = (List<Number>) request.get("xValues");
+        List<?> rawX = (List<?>) request.get("xValues");
         @SuppressWarnings("unchecked")
-        List<Number> rawY = (List<Number>) request.get("yValues");
+        List<?> rawY = (List<?>) request.get("yValues");
+
+            List<Double> xValues = rawX.stream()
+                    .map(obj -> {
+                        if (obj instanceof Number) {
+                            return ((Number) obj).doubleValue();
+                        } else if (obj instanceof String) {
+                            try {
+                                return Double.parseDouble((String) obj);
+                            } catch (NumberFormatException e) {
+                                throw new IllegalArgumentException("Неверный формат числа: " + obj);
+                            }
+                        } else {
+                            throw new IllegalArgumentException("Неожиданный тип значения: " + obj.getClass());
+                        }
+                    })
+                    .collect(Collectors.toList());
+
+            List<Double> yValues = rawY.stream()
+                    .map(obj -> {
+                        if (obj instanceof Number) {
+                            return ((Number) obj).doubleValue();
+                        } else if (obj instanceof String) {
+                            try {
+                                return Double.parseDouble((String) obj);
+                            } catch (NumberFormatException e) {
+                                throw new IllegalArgumentException("Неверный формат числа: " + obj);
+                            }
+                        } else {
+                            throw new IllegalArgumentException("Неожиданный тип значения: " + obj.getClass());
+                        }
+                    })
+                .collect(Collectors.toList());
 
         if (rawX == null || rawY == null || rawX.size() != rawY.size()) {
             throw new IllegalArgumentException("Некорректные или пустые x/y массивы");
         }
-
-        // ✅ Безопасная конвертация Integer → Double
-        List<Double> xValues = rawX.stream().map(Number::doubleValue).collect(Collectors.toList());
-        List<Double> yValues = rawY.stream().map(Number::doubleValue).collect(Collectors.toList());
 
         FunctionResponse response = functionService.createTabulatedFunctionFromPoints(name, xValues, yValues);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
