@@ -234,7 +234,7 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         return result;
     }
 
-    protected int floorIndexOfX(double x) {
+    public int floorIndexOfX(double x) {
         logger.trace("Поиск floorIndexOfX для x={}", x);
 
         if (count < 2) {
@@ -262,7 +262,7 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         return index;
     }
 
-    protected double extrapolateLeft(double x) {
+    public double extrapolateLeft(double x) {
         logger.debug("Экстраполяция слева для x={}", x);
         double x0 = getX(0);
         double x1 = getX(1);
@@ -273,7 +273,7 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         return result;
     }
 
-    protected double extrapolateRight(double x) {
+    public double extrapolateRight(double x) {
         logger.debug("Экстраполяция справа для x={}", x);
         int last = getCount() - 1;
         double x0 = getX(last - 1);
@@ -285,7 +285,7 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         return result;
     }
 
-    protected double interpolate(double x, int floorIndex) {
+    public double interpolate(double x, int floorIndex) {
         logger.debug("Интерполяция для x={} в интервале {}", x, floorIndex);
 
         if (floorIndex < 0 || floorIndex >= getCount() - 1) {

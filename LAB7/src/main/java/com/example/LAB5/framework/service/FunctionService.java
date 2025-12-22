@@ -966,6 +966,7 @@ public class FunctionService {
         return convertToResponse(savedFunction);
     }
 
+
     public List<FunctionScanner.MathFunctionInfo> getMathFunctions() {
         return functionScanner.scanFunctions();
     }
@@ -1047,5 +1048,81 @@ public class FunctionService {
             dto.setPoints(pointDTOs);
         }
         return dto;
+    }
+    // В FunctionService.java
+    public FunctionResponse createCompositeFunction(CompositeRequest request) {
+        if (request.getFunctionAId() == null || request.getFunctionBId() == null) {
+            throw new IllegalArgumentException("Обе функции обязательны");
+        }
+        if (request.getOperation() == null || request.getName() == null || request.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Операция и название обязательны");
+        }
+
+        Function funcA = getFunctionById(request.getFunctionAId());
+        Function funcB = getFunctionById(request.getFunctionBId());
+        TabulatedFunction tfA = toTabulatedFunction(funcA);
+        TabulatedFunction tfB = toTabulatedFunction(funcB);
+
+        // Создаём MathFunction из табулированных
+        MathFunction mathA = createMathFunctionFromTabulated(tfA);
+        MathFunction mathB = createMathFunctionFromTabulated(tfB);
+
+        MathFunction composite;
+        switch (request.getOperation().toLowerCase()) {
+            case "compose":
+                composite = new CompositeFunction(mathA, mathB); // f(g(x))
+                break;
+            case "add":
+                composite = x -> mathA.apply(x) + mathB.apply(x);
+                break;
+            case "mul":
+                composite = x -> mathA.apply(x) * mathB.apply(x);
+                break;
+            default:
+                throw new IllegalArgumentException("Неподдерживаемая операция: " + request.getOperation());
+        }
+
+        // Табулируем на интервале функции A
+        double fromX = tfA.leftBound();
+        double toX = tfA.rightBound();
+        int pointsCount = tfA.getCount();
+
+        TabulatedFunction tabFunc = factoryProvider.getCurrentFactory().create(composite, fromX, toX, pointsCount);
+
+        // Сохраняем функцию — используем существующий метод saveTabulatedFunction
+        Function savedFunction = new Function();
+        savedFunction.setName(request.getName());
+        savedFunction.setExpression(String.format("СЛОЖНАЯ: %s(%s, %s)",
+                request.getOperation(), funcA.getName(), funcB.getName()));
+        savedFunction.setUser(getCurrentUser());
+        savedFunction.setCreatedAt(LocalDateTime.now());
+        savedFunction.setImplementationType(factoryProvider.getCurrentType());
+
+        Function finalFunction = functionRepository.save(savedFunction);
+
+        // Сохраняем точки
+        List<Point> points = new ArrayList<>();
+        for (int i = 0; i < tabFunc.getCount(); i++) {
+            Point point = new Point();
+            point.setXValue(tabFunc.getX(i));
+            point.setYValue(tabFunc.getY(i));
+            point.setFunction(finalFunction);
+            point.setUser(getCurrentUser());
+            points.add(point);
+        }
+        pointRepository.saveAll(points);
+        finalFunction.setPoints(points);
+
+        return convertToResponse(finalFunction);
+    }
+
+    // Вспомогательный метод (должен быть в FunctionService)
+    private MathFunction createMathFunctionFromTabulated(TabulatedFunction tf) {
+        return x -> {
+            if (x < tf.leftBound()) return tf.getY(0);
+            if (x > tf.rightBound()) return tf.getY(tf.getCount() - 1);
+            int idx = tf.floorIndexOfX(x);
+            return tf.interpolate(x, idx);
+        };
     }
 }

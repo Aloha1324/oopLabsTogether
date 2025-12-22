@@ -1091,6 +1091,212 @@ function showIntegralViewer() {
     loadFunctionsForIntegral();
 }
 
+// Загрузка функций для Composite
+async function loadFunctionsForComposite() {
+    const res = await fetch(`${API_BASE}/api/v1/functions/my`, {
+        headers: { 'Authorization': `Bearer ${currentToken}` }
+    });
+    const functions = await res.json();
+    ['compositeFuncA', 'compositeFuncB'].forEach(id => {
+        const select = document.getElementById(id);
+        select.innerHTML = '<option value="">-- Выберите --</option>';
+        functions.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.id;
+            opt.textContent = f.name;
+            select.appendChild(opt);
+        });
+    });
+}
+
+// Создание сложной функции
+async function createCompositeFunction() {
+    const name = document.getElementById('compositeName').value.trim();
+    const funcA = document.getElementById('compositeFuncA').value;
+    const funcB = document.getElementById('compositeFuncB').value;
+    const operation = document.getElementById('compositeOperation').value;
+
+    if (!name) return showErrorModal('Введите название');
+    if (!funcA || !funcB) return showErrorModal('Выберите обе функции');
+
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/functions/composite`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({
+                functionAId: parseInt(funcA),
+                functionBId: parseInt(funcB),
+                operation: operation,
+                name: name
+            })
+        });
+        if (res.ok) {
+            showMessage('Сложная функция создана!', 'success');
+            setTimeout(showProfile, 1000);
+        } else {
+            const err = await res.json().catch(() => ({}));
+            showErrorModal(err.message || 'Ошибка создания');
+        }
+    } catch (err) {
+        showErrorModal('Ошибка: ' + err.message);
+    } finally {
+        setLoading(false);
+    }
+}
+
+// Навигация
+function showCompositeCreator() {
+    showSection('compositeCreator');
+    loadFunctionsForComposite();
+}
+// Сохранение результата как JSON
+function saveResultAsJson() {
+    if (typeof lastResultId !== 'number') {
+        showErrorModal('Сначала выполните операцию');
+        return;
+    }
+    const a = document.createElement('a');
+    a.href = `${API_BASE}/api/v1/functions/${lastResultId}/export/json`;
+    a.download = `result_${lastResultId}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+// Загрузка результата из JSON
+function loadResultFromJson() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const text = await file.text();
+        setLoading(true);
+        try {
+            const res = await fetch(`${API_BASE}/api/v1/functions/import/json`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
+                body: text
+            });
+            const func = await res.json();
+            if (res.ok) {
+                showMessage('Функция загружена из JSON!', 'success');
+                activeFuncA = func; // можно также загрузить в B — зависит от логики
+                renderEditableTable(func, 'funcATable', 'A');
+            } else {
+                showErrorModal('Ошибка загрузки JSON');
+            }
+        } catch (err) {
+            showErrorModal('Ошибка: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+    input.click();
+}
+
+// Сохранение результата дифференцирования как JSON
+function saveDiffResultAsJson() {
+    if (typeof lastDiffResultId !== 'number') {
+        showErrorModal('Сначала выполните дифференцирование');
+        return;
+    }
+    const a = document.createElement('a');
+    a.href = `${API_BASE}/api/v1/functions/${lastDiffResultId}/export/json`;
+    a.download = `derivative_${lastDiffResultId}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+// Загрузка функции для дифференцирования из JSON
+function loadDiffResultFromJson() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const text = await file.text();
+        setLoading(true);
+        try {
+            const res = await fetch(`${API_BASE}/api/v1/functions/import/json`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
+                body: text
+            });
+            const func = await res.json();
+            if (res.ok) {
+                showMessage('Функция загружена из JSON!', 'success');
+                activeDiffFunc = func;
+                renderEditableTable(func, 'diffInputTable', 'DIFF');
+            } else {
+                showErrorModal('Ошибка загрузки JSON');
+            }
+        } catch (err) {
+            showErrorModal('Ошибка: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+    input.click();
+}
+
+// Экспорт текущей функции как JSON
+function exportFunctionAsJson() {
+    const funcId = document.getElementById('functionSelect').value;
+    if (!funcId) {
+        showErrorModal('Выберите функцию');
+        return;
+    }
+    const a = document.createElement('a');
+    a.href = `${API_BASE}/api/v1/functions/${funcId}/export/json`;
+    a.download = `function_${funcId}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+// Импорт функции из JSON в график
+function importFunctionFromJsonFile() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const text = await file.text();
+        setLoading(true);
+        try {
+            const res = await fetch(`${API_BASE}/api/v1/functions/import/json`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
+                body: text
+            });
+            const func = await res.json();
+            if (res.ok) {
+                showMessage('Функция импортирована из JSON!', 'success');
+                // Обновляем список функций и автоматически выбираем новую
+                await loadFunctionForGraph(); // или просто обновить список
+                loadFunctionsForViewer(); // обновить выпадающий список
+                document.getElementById('functionSelect').value = func.id;
+                await loadFunctionForGraph();
+            } else {
+                showErrorModal('Ошибка импорта JSON');
+            }
+        } catch (err) {
+            showErrorModal('Ошибка: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+    input.click();
+}
 
 // ===== WORDLE GAME CLASS =====
 class WordleGame {

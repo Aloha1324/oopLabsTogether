@@ -10,10 +10,10 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractTabulatedFunction implements TabulatedFunction {
     private static final Logger logger = LoggerFactory.getLogger(AbstractTabulatedFunction.class);
 
-    protected abstract int floorIndexOfX(double x);
-    protected abstract double extrapolateLeft(double x);
-    protected abstract double extrapolateRight(double x);
-    protected abstract double interpolate(double x, int floorIndex);
+    public abstract int floorIndexOfX(double x);
+    public abstract double interpolate(double x, int floorIndex);
+    public abstract double extrapolateLeft(double x);
+    public abstract double extrapolateRight(double x);
 
     protected double interpolate(double x, double leftX, double rightX, double leftY, double rightY) {
         logger.trace("Интерполяция: x={}, leftX={}, rightX={}, leftY={}, rightY={}",

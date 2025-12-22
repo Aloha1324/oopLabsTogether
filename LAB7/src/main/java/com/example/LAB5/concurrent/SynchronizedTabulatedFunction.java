@@ -2,7 +2,6 @@ package com.example.LAB5.concurrent;
 
 import com.example.LAB5.functions.Point;
 import com.example.LAB5.functions.TabulatedFunction;
-import com.example.LAB5.operations.TabulatedFunctionOperationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +15,12 @@ public class SynchronizedTabulatedFunction implements TabulatedFunction {
     public SynchronizedTabulatedFunction(TabulatedFunction function) {
         this.function = function;
         logger.debug("Создан SynchronizedTabulatedFunction для функции: {}", function.getClass().getSimpleName());
+    }
+
+    @Override
+    public synchronized int floorIndexOfX(double x) {
+        logger.trace("Вызов floorIndexOfX(x={}) синхронизированно", x);
+        return function.floorIndexOfX(x);
     }
 
     public interface Operation<T> {
@@ -87,6 +92,12 @@ public class SynchronizedTabulatedFunction implements TabulatedFunction {
         double result = function.apply(x);
         logger.trace("Применение функции к X={}, результат: {}", x, result);
         return result;
+    }
+
+    @Override
+    public synchronized double interpolate(double x, int index) {
+        logger.trace("Вызов interpolate(x={}, index={}) синхронизированно", x, index);
+        return function.interpolate(x, index);
     }
 
     @Override

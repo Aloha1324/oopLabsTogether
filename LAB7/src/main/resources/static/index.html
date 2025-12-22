@@ -645,6 +645,7 @@
                 <button class="btn" onclick="showCreateByFormula()">🧮 По формуле</button>
                 <button class="btn" onclick="showFunctionViewer()">📊 График</button>
                 <button class="btn" onclick="showIntegralViewer()">🧮 Интеграл</button>
+                <button class="btn" onclick="showCompositeCreator()">🔀 Сложная функция</button>
             </div>
         </div>
         <button class="btn btn-danger" onclick="logout()">🚪 Выйти</button>
@@ -766,6 +767,10 @@
                     <button class="btn" onclick="performOp('div')">➗</button>
                 </div>
                 <button class="btn" style="margin-top:8px;" onclick="saveResult()">💾 Сохранить результат</button>
+                <div class="grid-2" style="margin-top:8px; gap:4px;">
+                    <button class="btn" onclick="saveResultAsJson()">💾 JSON</button>
+                    <button class="btn" onclick="loadResultFromJson()">📥 JSON</button>
+                </div>
                 <div id="resultTable" class="user-info" style="margin-top:8px; min-height:80px;"></div>
             </div>
         </div>
@@ -804,6 +809,8 @@
                 <h3>Производная</h3>
                 <button class="btn" onclick="performDifferentiation()">⚡ Дифференцировать</button>
                 <button class="btn" style="margin-top:8px;" onclick="saveDiffResult()">💾 Сохранить</button>
+                <button class="btn" style="margin-top:8px;" onclick="saveDiffResultAsJson()">💾 Сохранить как JSON</button>
+                <button class="btn" style="margin-top:8px;" onclick="loadDiffResultFromJson()">📥 Загрузить из JSON</button>
                 <div id="diffResultTable" class="user-info" style="margin-top:8px; min-height:80px;"></div>
             </div>
         </div>
@@ -835,6 +842,10 @@
         </div>
 
         <div id="functionPointsTable" style="margin-top: 20px;"></div>
+        <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn" onclick="exportFunctionAsJson()">💾 Экспорт в JSON</button>
+            <button class="btn" onclick="importFunctionFromJsonFile()">📥 Импорт из JSON</button>
+        </div>
 
         <!-- ВСТАВКА/УДАЛЕНИЕ ДЛЯ ГРАФИКА -->
         <div id="viewerInsertPanel" class="insert-remove-panel" style="display:none; margin-top:10px;">
@@ -874,6 +885,39 @@
         <div style="margin-top: 20px;">
             <button class="btn btn-danger" onclick="showProfile()">← Назад</button>
         </div>
+    </div>
+
+    <!-- COMPOSITE FUNCTION -->
+    <div id="compositeCreator" class="auth-section">
+        <h2>🔀 Создать сложную функцию</h2>
+
+        <div class="form-group">
+            <label>Название функции</label>
+            <input type="text" id="compositeName" placeholder="Моя сложная функция" class="form-control">
+        </div>
+
+        <div class="grid-2" style="margin-top: 10px;">
+            <div>
+                <label>Функция A</label>
+                <select id="compositeFuncA" class="form-control"></select>
+            </div>
+            <div>
+                <label>Функция B</label>
+                <select id="compositeFuncB" class="form-control"></select>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
+            <label>Операция</label>
+            <select id="compositeOperation" class="form-control">
+                <option value="compose">f(g(x))</option>
+                <option value="add">f(x) + g(x)</option>
+                <option value="mul">f(x) * g(x)</option>
+            </select>
+        </div>
+
+        <button class="btn" onclick="createCompositeFunction()">✅ Создать сложную функцию</button>
+        <button class="btn btn-danger" style="margin-top: 8px;" onclick="showProfile()">← Назад</button>
     </div>
 
     <!-- LOADER & ERROR -->

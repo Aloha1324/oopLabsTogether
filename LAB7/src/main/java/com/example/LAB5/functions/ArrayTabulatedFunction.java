@@ -198,7 +198,7 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
         return result;
     }
 
-    protected int floorIndexOfX(double x) {
+    public int floorIndexOfX(double x) {
         logger.trace("Поиск floorIndexOfX для x={}", x);
 
         int count = getCount();
@@ -222,14 +222,14 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
         return count - 2;
     }
 
-    protected double extrapolateLeft(double x) {
+    public double extrapolateLeft(double x) {
         logger.debug("Экстраполяция слева для x={}", x);
         double result = interpolate(x, xValues[0], xValues[1], yValues[0], yValues[1]);
         logger.debug("Результат экстраполяции слева: {}", result);
         return result;
     }
 
-    protected double extrapolateRight(double x) {
+    public double extrapolateRight(double x) {
         logger.debug("Экстраполяция справа для x={}", x);
         int count = getCount();
         double result = interpolate(x, xValues[count - 2], xValues[count - 1], yValues[count - 2], yValues[count - 1]);
@@ -237,7 +237,7 @@ public class ArrayTabulatedFunction extends AbstractTabulatedFunction
         return result;
     }
 
-    protected double interpolate(double x, int floorIndex) {
+    public double interpolate(double x, int floorIndex) {
         logger.debug("Интерполяция для x={} в интервале {}", x, floorIndex);
 
         if (floorIndex < 0 || floorIndex >= getCount() - 1) {

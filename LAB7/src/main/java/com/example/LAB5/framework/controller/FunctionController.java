@@ -9,6 +9,7 @@ import com.example.LAB5.functions.TabulatedFunction;
 import com.example.LAB5.functions.FunctionScanner;
 import com.example.LAB5.functions.factory.TabulatedFunctionFactory;
 import com.example.LAB5.io.FunctionsIO;
+import com.example.LAB5.DTO.Request.CompositeRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -64,7 +65,23 @@ public class FunctionController {
         Function f = functionService.getFunctionById(id);
         return ResponseEntity.ok(functionService.convertToResponse(f));
     }
-    //
+    // Экспорт функции в JSON
+    @GetMapping("/{id}/export/json")
+    public ResponseEntity<String> exportFunctionToJson(@PathVariable Long id) {
+        String json = functionService.exportFunctionToJson(id);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=function_" + id + ".json")
+                .header("Content-Type", "application/json")
+                .body(json);
+    }
+
+    // Импорт функции из JSON
+    @PostMapping("/import/json")
+    public ResponseEntity<FunctionResponse> importFunctionFromJson(@RequestBody String json) {
+        FunctionResponse response = functionService.importFunctionFromJson(json);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/my")
     public ResponseEntity<List<FunctionResponse>> getAllFunctionsForCurrentUser() {
         List<Function> functions = functionService.getAllFunctionsForCurrentUser();
@@ -100,6 +117,11 @@ public class FunctionController {
         double y = request.get("y");
         functionService.insertPoint(id, x, y);
         return ResponseEntity.ok().build();
+    }
+    @PostMapping("/composite")
+    public ResponseEntity<FunctionResponse> createComposite(@RequestBody CompositeRequest request) {
+        FunctionResponse response = functionService.createCompositeFunction(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{id}/remove")
