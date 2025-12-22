@@ -1,6 +1,5 @@
 package com.example.LAB5.functions.factory;
 
-import com.example.LAB5.functions.ArrayTabulatedFunction;
 import com.example.LAB5.functions.LinkedListTabulatedFunction;
 import com.example.LAB5.functions.MathFunction;
 import com.example.LAB5.functions.TabulatedFunction;
@@ -20,10 +19,7 @@ public class LinkedListTabulatedFunctionFactory implements TabulatedFunctionFact
      * новая LinkedListTabulatedFunction
      */
     @Override
-    public TabulatedFunction create(MathFunction function,
-                                    double xFrom,
-                                    double xTo,
-                                    int count) {
+    public TabulatedFunction create(MathFunction function, double xFrom, double xTo, int count) {
         return new LinkedListTabulatedFunction(function, xFrom, xTo, count);
     }
 

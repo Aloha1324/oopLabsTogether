@@ -17,8 +17,7 @@ public interface TabulatedFunctionFactory {
      */
     TabulatedFunction create(double[] xValues, double[] yValues);
 
-    TabulatedFunction create(MathFunction function,
-                             double xFrom,
-                             double xTo,
-                             int count);
+    TabulatedFunction create(MathFunction function, double xFrom, double xTo, int count);
+
+
 }

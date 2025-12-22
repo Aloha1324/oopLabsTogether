@@ -18,16 +18,12 @@ public class ArrayTabulatedFunctionFactory implements TabulatedFunctionFactory {
      *новая ArrayTabulatedFunction
      */
     @Override
-    public TabulatedFunction create(double[] xValues, double[] yValues) {
-        return new ArrayTabulatedFunction(xValues, yValues);
-    }
-
-    @Override
-    public TabulatedFunction create(MathFunction function,
-                                    double xFrom,
-                                    double xTo,
-                                    int count) {
+    public TabulatedFunction create(MathFunction function, double xFrom, double xTo, int count) {
         return new ArrayTabulatedFunction(function, xFrom, xTo, count);
     }
 
+    @Override
+    public TabulatedFunction create(double[] xValues, double[] yValues) {
+        return new ArrayTabulatedFunction(xValues, yValues);
+    }
 }
