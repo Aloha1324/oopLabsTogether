@@ -215,8 +215,8 @@ async function createFunctionFromPoints() {
         const x = parseFloat(xInput);
         const y = parseFloat(yInput);
         if (isNaN(x) || isNaN(y)) return showErrorModal(`Ошибка в строке ${i + 1}: введите корректные числа`);
-        xVals.push(parseFloat(x.toFixed(10)));
-        yVals.push(parseFloat(y.toFixed(10)));
+        xVals.push(x.toFixed(10)); //"1.0000000000"
+        yVals.push(y.toFixed(10));
     }
     for (let i = 1; i < xVals.length; i++) {
         if (xVals[i] <= xVals[i - 1]) return showErrorModal('x должны строго возрастать!');

@@ -22,6 +22,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/functions")
@@ -100,27 +101,35 @@ public class FunctionController {
      */
     @PostMapping("/tabulated/by-points")
     public ResponseEntity<FunctionResponse> createTabulatedByPoints(@RequestBody Map<String, Object> request) {
-
         TabulatedFunctionFactory factory = factoryProvider.getCurrentFactory();
-        System.out.println(">>> Текущая фабрика: " + factory); // ← добавьте это
+        System.out.println(">>> Текущая фабрика: " + factory);
+
         if (factory == null) {
             throw new IllegalStateException("Фабрика не установлена!");
         }
 
-        @SuppressWarnings("unchecked")
         String name = (String) request.get("name");
+
+        // ✅ Используем `request`, а не `body`
         @SuppressWarnings("unchecked")
-        List<Double> xValues = (List<Double>) request.get("xValues");
+        List<Number> rawX = (List<Number>) request.get("xValues");
         @SuppressWarnings("unchecked")
-        List<Double> yValues = (List<Double>) request.get("yValues");
+        List<Number> rawY = (List<Number>) request.get("yValues");
+
+        if (rawX == null || rawY == null || rawX.size() != rawY.size()) {
+            throw new IllegalArgumentException("Некорректные или пустые x/y массивы");
+        }
+
+        // ✅ Безопасная конвертация Integer → Double
+        List<Double> xValues = rawX.stream().map(Number::doubleValue).collect(Collectors.toList());
+        List<Double> yValues = rawY.stream().map(Number::doubleValue).collect(Collectors.toList());
 
         FunctionResponse response = functionService.createTabulatedFunctionFromPoints(name, xValues, yValues);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
-     * Создание табулированной функции ПО МАТЕМАТИЧЕСКОЙ ФОРМУЛЕ
-     * Выполняет задание №2!
+     * Создание табулированной функции ПО МАТЕМАТИЧЕСКОЙ ФОРМУЛы
      */
     @PostMapping("/tabulated/by-math-function")
     public ResponseEntity<FunctionResponse> createTabulatedByMath(@RequestBody Map<String, Object> request) {
