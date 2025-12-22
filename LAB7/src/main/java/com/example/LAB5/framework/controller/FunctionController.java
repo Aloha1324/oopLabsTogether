@@ -6,6 +6,7 @@ import com.example.LAB5.framework.entity.Function;
 import com.example.LAB5.framework.service.FunctionService;
 import com.example.LAB5.framework.service.TabulatedFunctionFactoryProvider;
 import com.example.LAB5.functions.TabulatedFunction;
+import com.example.LAB5.functions.FunctionScanner;
 import com.example.LAB5.functions.factory.TabulatedFunctionFactory;
 import com.example.LAB5.io.FunctionsIO;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,11 +30,9 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class FunctionController {
 
-
-
-    // функционал (БД)
     private final FunctionService functionService;
     private final TabulatedFunctionFactoryProvider factoryProvider;
+
     @Autowired
     public FunctionController(FunctionService functionService, TabulatedFunctionFactoryProvider factoryProvider) {
         this.functionService = functionService;
@@ -188,22 +187,15 @@ public class FunctionController {
      */
     @GetMapping("/tabulated/math-functions")
     public ResponseEntity<List<MathFunctionInfo>> getMathFunctions() {
-        List<MathFunctionInfo> functions = List.of(
-                new MathFunctionInfo("IDENTITY", "Тождественная функция (f(x) = x)"),
-                new MathFunctionInfo("SQR", "Квадратичная функция (f(x) = x²)"),
-                new MathFunctionInfo("UNIT", "Константа 1"),
-                new MathFunctionInfo("ZERO", "Константа 0"),
-                new MathFunctionInfo("CONST_2", "Константа 2")
-        );
-        // Сортируем по описанию (по русскому названию)
-        List<MathFunctionInfo> sorted = functions.stream()
-                .sorted(Comparator.comparing(MathFunctionInfo::description))
-                .toList();
-        return ResponseEntity.ok(sorted);
+        List<com.example.LAB5.functions.FunctionScanner.MathFunctionInfo> scanned = functionService.getMathFunctions();
+        List<MathFunctionInfo> response = scanned.stream()
+                .map(info -> new MathFunctionInfo(
+                        info.clazz().getSimpleName(),
+                        info.displayName()
+                ))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(response);
     }
 
-
-    //  ВНУТРЕННИЕ DTO — ПРОСТЫЕ И ЧИТАЕМЫЕ
-
-    public record MathFunctionInfo(String key, String description) {}
+    public static record MathFunctionInfo(String key, String description) {}
 }

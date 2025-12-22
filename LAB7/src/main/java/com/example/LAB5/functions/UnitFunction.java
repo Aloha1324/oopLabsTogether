@@ -1,7 +1,8 @@
 package com.example.LAB5.functions;
 
-public class UnitFunction extends ConstantFunction {
-    public UnitFunction() {
-        super(1);
+@SimpleFunction(name = "function.unit", priority = 30)
+public class UnitFunction implements MathFunction {
+    public double apply(double x) {
+        return 1.0;
     }
 }

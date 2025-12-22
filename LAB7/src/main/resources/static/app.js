@@ -926,18 +926,15 @@ function updateControlButtons(target, func) {
         target === 'DIFF' ? 'diff' :
         target === 'VIEWER' ? 'viewer' :
         '';
-
     const insertBtn = document.getElementById(`${prefix}InsertBtn`);
     const removeBtn = document.getElementById(`${prefix}RemoveBtn`);
     const insertPanel = document.getElementById(`${prefix}InsertPanel`);
     const removePanel = document.getElementById(`${prefix}RemovePanel`);
-
     const isVisible = func && func.insertable !== undefined && func.removable !== undefined;
-
     if (insertBtn) insertBtn.style.display = isVisible && func.insertable ? 'inline-block' : 'none';
     if (removeBtn) removeBtn.style.display = isVisible && func.removable ? 'inline-block' : 'none';
     if (insertPanel) insertPanel.style.display = isVisible && func.insertable ? 'flex' : 'none';
-    if (removePanel) removePanel.style.display = isVisible && func.removable ? 'flex' : 'none';
+    if (removePanel) removePanel.style.display = isVisible && func.removable ? 'flex' : 'none'; // ← ИСПРАВЛЕНО!
 }
 async function insertPoint(target) {
     let func;

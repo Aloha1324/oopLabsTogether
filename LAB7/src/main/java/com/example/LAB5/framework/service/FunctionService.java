@@ -1,6 +1,5 @@
 package com.example.LAB5.framework.service;
 
-
 import com.example.LAB5.DTO.FunctionDTO;
 import com.example.LAB5.DTO.Request.*;
 import com.example.LAB5.DTO.Response.*;
@@ -36,16 +35,27 @@ import java.util.stream.Stream;
 public class FunctionService {
     private static final Logger logger = LoggerFactory.getLogger(FunctionService.class);
 
-    // Внутри FunctionService, как приватное поле
-    private static final Map<String, MathFunction> MATH_FUNCTION_MAP = Map.of(
-            "IDENTITY", new IdentityFunction(),
-            "SQR", new SqrFunction(),
-            "UNIT", new UnitFunction(),
-            "ZERO", new ZeroFunction(),
-            "CONST_2", new ConstantFunction(2.0)
-    );
-
     private final FunctionRepository functionRepository;
+    private final PointRepository pointRepository;
+    private final UserService userService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final List<PerformanceMetrics> performanceMetrics = new ArrayList<>();
+    private final TabulatedFunctionFactoryProvider factoryProvider;
+    private final FunctionScanner functionScanner;
+
+    @Autowired
+    public FunctionService(FunctionRepository functionRepository,
+                           PointRepository pointRepository,
+                           UserService userService,
+                           TabulatedFunctionFactoryProvider factoryProvider,
+                           FunctionScanner functionScanner) {
+        this.functionRepository = functionRepository;
+        this.pointRepository = pointRepository;
+        this.userService = userService;
+        this.factoryProvider = factoryProvider;
+        this.functionScanner = functionScanner;
+    }
+
     private TabulatedFunction toTabulatedFunction(Function f) {
         if (f.getPoints() == null || f.getPoints().size() < 2) {
             throw new IllegalArgumentException("Недостаточно точек для создания TabulatedFunction");
@@ -53,22 +63,6 @@ public class FunctionService {
         double[] x = f.getPoints().stream().mapToDouble(Point::getXValue).toArray();
         double[] y = f.getPoints().stream().mapToDouble(Point::getYValue).toArray();
         return factoryProvider.getCurrentFactory().create(x, y);
-    }
-    private final PointRepository pointRepository;
-    private final UserService userService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final List<PerformanceMetrics> performanceMetrics = new ArrayList<>();
-
-    private final TabulatedFunctionFactoryProvider factoryProvider;
-    @Autowired
-    public FunctionService(FunctionRepository functionRepository,
-                           PointRepository pointRepository,
-                           UserService userService,
-                           TabulatedFunctionFactoryProvider factoryProvider) {
-        this.functionRepository = functionRepository;
-        this.pointRepository = pointRepository;
-        this.userService = userService;
-        this.factoryProvider = factoryProvider;
     }
 
     public static class PerformanceMetrics {
@@ -124,6 +118,7 @@ public class FunctionService {
                     processedCount, errorCount, processingTime, getSuccessRate());
         }
     }
+
     @FunctionalInterface
     public interface FunctionProcessor {
         void process(Function function);
@@ -143,6 +138,7 @@ public class FunctionService {
         performanceMetrics.add(new PerformanceMetrics("GET_FUNCTION_BY_ID_OR_NULL", durationMs, function != null ? 1 : 0, "SPRING_DATA_JPA"));
         return function;
     }
+
     public void insertPoint(Long id, double x, double y) {
         Function f = getFunctionById(id);
         TabulatedFunction tf = toTabulatedFunction(f);
@@ -150,7 +146,6 @@ public class FunctionService {
             throw new UnsupportedOperationException("Функция не поддерживает вставку");
         }
         ((Insertable) tf).insert(x, y);
-        // Обновить точки в БД из tf
         updatePointsInDatabase(id, tf);
     }
 
@@ -165,8 +160,6 @@ public class FunctionService {
     }
 
     private void updatePointsInDatabase(Long functionId, TabulatedFunction tf) {
-        // 1. Удалить старые точки: pointRepository.deleteByFunctionId(functionId);
-        // 2. Создать новые из tf
         Function function = getFunctionById(functionId);
         List<Point> newPoints = new ArrayList<>();
         for (int i = 0; i < tf.getCount(); i++) {
@@ -229,14 +222,6 @@ public class FunctionService {
         return savedFunction;
     }
 
-    /**
-     * Сохраняет уже созданную и валидную табулированную функцию в базу данных.
-     * Используется для результатов операций (сложение, дифференцирование и т.д.).
-     *
-     * @param tabulatedFunction валидная табулированная функция
-     * @param name              название функции
-     * @return DTO-ответ для фронтенда
-     */
     public FunctionResponse saveTabulatedFunction(TabulatedFunction tabulatedFunction, String name) {
         long startTime = System.nanoTime();
 
@@ -257,7 +242,6 @@ public class FunctionService {
 
         Function savedFunction = functionRepository.save(function);
 
-        // Сохраняем точки из уже валидной TabulatedFunction
         List<Point> points = new ArrayList<>();
         for (int i = 0; i < tabulatedFunction.getCount(); i++) {
             Point point = new Point();
@@ -867,14 +851,8 @@ public class FunctionService {
         }
     }
 
-    // ============================================================================
-
-    /**
-     *СОЗДАНИЕ ТАБУЛИРОВАННОЙ ФУНКЦИИ ПО ТОЧКАМ (xValues, yValues)
-     */
     public FunctionResponse createTabulatedFunctionFromPoints(String name, List<Double> xValues, List<Double> yValues) {
         long startTime = System.nanoTime();
-        // После получения xValues и yValues
         if (xValues == null || yValues == null) {
             throw new IllegalArgumentException("xValues и yValues не могут быть null");
         }
@@ -884,7 +862,6 @@ public class FunctionService {
             }
         }
 
-        // Валидация входных данных
         if (xValues == null || yValues == null || xValues.isEmpty() || yValues.isEmpty()) {
             throw new IllegalArgumentException("X и Y массивы не могут быть пустыми");
         }
@@ -898,14 +875,10 @@ public class FunctionService {
             throw new IllegalArgumentException("Требуется минимум 2 точки");
         }
 
-        // Преобразуем List<Double> → double[]
         double[] xArray = xValues.stream().mapToDouble(Double::doubleValue).toArray();
         double[] yArray = yValues.stream().mapToDouble(Double::doubleValue).toArray();
 
-        // ✅ СОЗДАЁМ TabulatedFunction ЧЕРЕЗ ФАБРИКУ (key requirement!)
         TabulatedFunction tabFunc = factoryProvider.getCurrentFactory().create(xArray, yArray);
-
-        // Если дошли сюда — фабрика успешно создала валидную функцию (x строго возрастает и т.д.)
 
         User currentUser = getCurrentUser();
         String functionName = (name != null && !name.trim().isEmpty())
@@ -919,7 +892,6 @@ public class FunctionService {
         function.setCreatedAt(LocalDateTime.now());
         Function savedFunction = functionRepository.save(function);
 
-        // ✅ ИСПОЛЬЗУЕМ ТОЧКИ ИЗ TabulatedFunction
         List<Point> points = new ArrayList<>();
         for (int i = 0; i < tabFunc.getCount(); i++) {
             Point point = new Point();
@@ -940,9 +912,6 @@ public class FunctionService {
         return convertToResponse(savedFunction);
     }
 
-    /**
-     * СОЗДАНИЕ ТАБУЛИРОВАННОЙ ФУНКЦИИ ПО МАТЕМАТИЧЕСКОЙ ФОРМУЛЕ
-     */
     public FunctionResponse createTabulatedFunctionFromMath(String name, String mathFunctionType,
                                                             double fromX, double toX, int pointsCount) {
         long startTime = System.nanoTime();
@@ -957,12 +926,18 @@ public class FunctionService {
             throw new IllegalArgumentException("Максимальное количество точек — 10 000");
         }
 
-        MathFunction mathFunc = MATH_FUNCTION_MAP.get(mathFunctionType.toUpperCase());
+        MathFunction mathFunc = null;
+        List<FunctionScanner.MathFunctionInfo> availableFunctions = functionScanner.scanFunctions();
+        for (FunctionScanner.MathFunctionInfo info : availableFunctions) {
+            if (info.clazz().getSimpleName().equalsIgnoreCase(mathFunctionType)) {
+                mathFunc = info.instance();
+                break;
+            }
+        }
         if (mathFunc == null) {
             throw new IllegalArgumentException("Неизвестный тип функции: " + mathFunctionType);
         }
 
-        // ✅ СОЗДАЁМ TabulatedFunction ЧЕРЕЗ ФАБРИКУ И MathFunction
         TabulatedFunction tabFunc = factoryProvider.getCurrentFactory().create(mathFunc, fromX, toX, pointsCount);
 
         User currentUser = getCurrentUser();
@@ -978,7 +953,6 @@ public class FunctionService {
         function.setCreatedAt(LocalDateTime.now());
         Function savedFunction = functionRepository.save(function);
 
-        // ✅ ИСПОЛЬЗУЕМ ТОЧКИ ИЗ TabulatedFunction
         List<Point> points = new ArrayList<>();
         for (int i = 0; i < tabFunc.getCount(); i++) {
             Point point = new Point();
@@ -999,6 +973,9 @@ public class FunctionService {
         return convertToResponse(savedFunction);
     }
 
+    public List<FunctionScanner.MathFunctionInfo> getMathFunctions() {
+        return functionScanner.scanFunctions();
+    }
 
     private <T> T getFieldValue(Object obj, String fieldName, Class<T> type) {
         try {
@@ -1023,12 +1000,10 @@ public class FunctionService {
     public FunctionResponse convertToResponse(Function function) {
         if (function == null) return null;
 
-        // Создаём TabulatedFunction для проверки интерфейсов
         TabulatedFunction tf = null;
         try {
             tf = toTabulatedFunction(function);
         } catch (Exception e) {
-            // Если не удаётся создать (например, <2 точек), считаем, что не insertable/removable
             tf = null;
         }
 
@@ -1037,8 +1012,8 @@ public class FunctionService {
         response.setName(function.getName());
         response.setExpression(function.getExpression());
         response.setCreatedAt(function.getCreatedAt());
-        response.setInsertable(tf instanceof Insertable);   // ←
-        response.setRemovable(tf instanceof Removable);     // ←
+        response.setInsertable(tf instanceof Insertable);
+        response.setRemovable(tf instanceof Removable);
 
         if (function.getPoints() != null) {
             List<com.example.LAB5.DTO.PointDTO> pointDTOs = function.getPoints().stream()

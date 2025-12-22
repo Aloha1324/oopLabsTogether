@@ -24,6 +24,7 @@
         <jjwt.version>0.11.5</jjwt.version>
     </properties>
 
+
     <dependencies>
         <!-- Spring Boot Web (БЕЗ встроенного Tomcat) -->
         <dependency>
@@ -70,6 +71,11 @@
         </dependency>
 
         <!-- JWT Token -->
+        <dependency>
+            <groupId>io.github.classgraph</groupId>
+            <artifactId>classgraph</artifactId>
+            <version>4.8.172</version>
+        </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
