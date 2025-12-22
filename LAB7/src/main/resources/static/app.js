@@ -678,7 +678,6 @@ async function showFunctionSelector(target) {
 
 async function selectFunctionFromDropdown(target, funcId) {
     if (!funcId) return;
-
     setLoading(true);
     try {
         const res = await fetch(`${API_BASE}/api/v1/functions/${funcId}`, {
@@ -687,23 +686,28 @@ async function selectFunctionFromDropdown(target, funcId) {
         const func = await res.json();
         if (!res.ok) throw new Error('Функция не найдена');
 
+        // ✅ Сохраняем флаги insertable/removable
+        func.insertable = Boolean(func.insertable);
+        func.removable = Boolean(func.removable);
+
         if (target === 'A') {
             activeFuncA = func;
             renderEditableTable(func, 'funcATable', 'A');
+            updateControlButtons('A', func);
         } else if (target === 'B') {
             activeFuncB = func;
             renderEditableTable(func, 'funcBTable', 'B');
+            updateControlButtons('B', func);
         } else if (target === 'DIFF') {
             activeDiffFunc = func;
             renderEditableTable(func, 'diffInputTable', 'DIFF');
+            updateControlButtons('DIFF', func);
         }
-
         showMessage('Функция загружена!', 'success');
     } catch (err) {
         showErrorModal('Ошибка: ' + err.message);
     } finally {
         setLoading(false);
-        // Можно скрыть селект, или оставить для повторного выбора
     }
 }
 
@@ -763,11 +767,12 @@ async function loadFunctionForGraph() {
     const id = document.getElementById('functionSelect').value;
     if (!id) {
         clearGraphAndTable();
+        updateControlButtons('VIEWER', null); // скрыть кнопки
         return;
     }
     setLoading(true);
     try {
-        const res = await fetch(`${API_BASE}/api/functions/${id}`, {
+        const res = await fetch(`${API_BASE}/api/v1/functions/${id}`, {
             headers: { 'Authorization': `Bearer ${currentToken}` }
         });
         if (!res.ok) {
@@ -775,11 +780,18 @@ async function loadFunctionForGraph() {
             throw new Error(err.message || 'Функция не найдена');
         }
         const func = await res.json();
+        // ✅ Сохраняем флаги
+        func.insertable = Boolean(func.insertable);
+        func.removable = Boolean(func.removable);
+
         renderFunctionGraph(func);
         renderFunctionTableForGraph(func, 'functionPointsTable');
+        window.activeViewerFunc = func; // сохраним для кнопок
+        updateControlButtons('VIEWER', func);
     } catch (err) {
         showErrorModal(err.message);
         clearGraphAndTable();
+        updateControlButtons('VIEWER', null);
     } finally {
         setLoading(false);
     }
@@ -905,6 +917,109 @@ function showCreateByPointsForViewer() {
 
 function showCreateByFormulaForViewer() {
     showCreateByFormula();
+}
+
+function updateControlButtons(target, func) {
+    const prefix =
+        target === 'A' ? 'funcA' :
+        target === 'B' ? 'funcB' :
+        target === 'DIFF' ? 'diff' :
+        target === 'VIEWER' ? 'viewer' :
+        '';
+
+    const insertBtn = document.getElementById(`${prefix}InsertBtn`);
+    const removeBtn = document.getElementById(`${prefix}RemoveBtn`);
+    const insertPanel = document.getElementById(`${prefix}InsertPanel`);
+    const removePanel = document.getElementById(`${prefix}RemovePanel`);
+
+    const isVisible = func && func.insertable !== undefined && func.removable !== undefined;
+
+    if (insertBtn) insertBtn.style.display = isVisible && func.insertable ? 'inline-block' : 'none';
+    if (removeBtn) removeBtn.style.display = isVisible && func.removable ? 'inline-block' : 'none';
+    if (insertPanel) insertPanel.style.display = isVisible && func.insertable ? 'flex' : 'none';
+    if (removePanel) removePanel.style.display = isVisible && func.removable ? 'flex' : 'none';
+}
+async function insertPoint(target) {
+    let func;
+    let prefix;
+    if (target === 'A') { func = activeFuncA; prefix = 'funcA'; }
+    else if (target === 'B') { func = activeFuncB; prefix = 'funcB'; }
+    else if (target === 'DIFF') { func = activeDiffFunc; prefix = 'diff'; }
+    else if (target === 'VIEWER') { func = window.activeViewerFunc; prefix = 'viewer'; }
+    else return;
+
+    if (!func || !func.insertable) return showErrorModal('Функция не поддерживает вставку');
+
+    const xInput = document.getElementById(`${prefix}InsertX`).value;
+    const yInput = document.getElementById(`${prefix}InsertY`).value;
+    const x = parseFloat(xInput), y = parseFloat(yInput);
+    if (isNaN(x) || isNaN(y)) return showErrorModal('Введите корректные x и y');
+
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/functions/${func.id}/insert`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
+            body: JSON.stringify({ x, y })
+        });
+        if (res.ok) {
+            // Перезагружаем функцию
+            if (target === 'VIEWER') {
+                await loadFunctionForGraph();
+            } else {
+                await selectFunctionFromDropdown(target, func.id);
+            }
+            showMessage('Точка вставлена!', 'success');
+        } else {
+            const err = await res.json().catch(() => ({}));
+            showErrorModal(err.message || 'Ошибка вставки');
+        }
+    } catch (err) {
+        showErrorModal('Ошибка: ' + err.message);
+    } finally {
+        setLoading(false);
+    }
+}
+
+async function removePoint(target) {
+    let func;
+    let prefix;
+    if (target === 'A') { func = activeFuncA; prefix = 'funcA'; }
+    else if (target === 'B') { func = activeFuncB; prefix = 'funcB'; }
+    else if (target === 'DIFF') { func = activeDiffFunc; prefix = 'diff'; }
+    else if (target === 'VIEWER') { func = window.activeViewerFunc; prefix = 'viewer'; }
+    else return;
+
+    if (!func || !func.removable) return showErrorModal('Функция не поддерживает удаление');
+
+    const indexInput = document.getElementById(`${prefix}RemoveIndex`).value;
+    const index = parseInt(indexInput);
+    if (isNaN(index) || index < 0 || index >= func.points.length) {
+        return showErrorModal(`Индекс от 0 до ${func.points.length - 1}`);
+    }
+
+    setLoading(true);
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/functions/${func.id}/remove?index=${index}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (res.ok) {
+            if (target === 'VIEWER') {
+                await loadFunctionForGraph();
+            } else {
+                await selectFunctionFromDropdown(target, func.id);
+            }
+            showMessage('Точка удалена!', 'success');
+        } else {
+            const err = await res.json().catch(() => ({}));
+            showErrorModal(err.message || 'Ошибка удаления');
+        }
+    } catch (err) {
+        showErrorModal('Ошибка: ' + err.message);
+    } finally {
+        setLoading(false);
+    }
 }
 
 // ===== WORDLE GAME CLASS =====

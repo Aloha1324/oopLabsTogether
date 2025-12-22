@@ -12,11 +12,18 @@ public class FunctionResponse {
     private Long userId;
     private String username;
     private List<com.example.LAB5.DTO.PointDTO> points;
+
+    // === НОВЫЕ ПОЛЯ ===
+    private boolean insertable;
+    private boolean removable;
+
     private boolean success;
     private String message;
 
+    // --- Конструкторы ---
     public FunctionResponse() {}
 
+    // Основной конструктор (можно оставить, но использовать редко)
     public FunctionResponse(Long id, String name, String expression, LocalDateTime createdAt, Long userId, String username) {
         this.id = id;
         this.name = name;
@@ -28,6 +35,24 @@ public class FunctionResponse {
         this.message = "Success";
     }
 
+    // --- Геттеры и сеттеры для новых полей ---
+    public boolean isInsertable() {
+        return insertable;
+    }
+
+    public void setInsertable(boolean insertable) {
+        this.insertable = insertable;
+    }
+
+    public boolean isRemovable() {
+        return removable;
+    }
+
+    public void setRemovable(boolean removable) {
+        this.removable = removable;
+    }
+
+    // --- Остальные геттеры/сеттеры (уже есть) ---
     public Long getId() { return id; }
     public String getName() { return name; }
     public String getExpression() { return expression; }
@@ -48,6 +73,7 @@ public class FunctionResponse {
     public void setSuccess(boolean success) { this.success = success; }
     public void setMessage(String message) { this.message = message; }
 
+    // --- Статические фабрики (можно оставить) ---
     public static FunctionResponse success(Long id, String name, String expression, LocalDateTime createdAt, Long userId, String username) {
         return new FunctionResponse(id, name, expression, createdAt, userId, username);
     }
@@ -59,12 +85,15 @@ public class FunctionResponse {
         return response;
     }
 
+    // --- equals / hashCode / toString (обновим) ---
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         FunctionResponse that = (FunctionResponse) o;
         return success == that.success &&
+                insertable == that.insertable &&      // ←
+                removable == that.removable &&        // ←
                 Objects.equals(id, that.id) &&
                 Objects.equals(name, that.name) &&
                 Objects.equals(expression, that.expression) &&
@@ -77,7 +106,7 @@ public class FunctionResponse {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, expression, createdAt, userId, username, points, success, message);
+        return Objects.hash(id, name, expression, createdAt, userId, username, points, success, message, insertable, removable);
     }
 
     @Override
@@ -90,6 +119,8 @@ public class FunctionResponse {
                 ", userId=" + userId +
                 ", username='" + username + '\'' +
                 ", points=" + points +
+                ", insertable=" + insertable +        // ←
+                ", removable=" + removable +          // ←
                 ", success=" + success +
                 ", message='" + message + '\'' +
                 '}';

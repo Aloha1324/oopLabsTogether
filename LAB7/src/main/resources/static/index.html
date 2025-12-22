@@ -558,6 +558,23 @@
           color: #e2e8f0; text-align: center;
         }
 
+        /* === СТИЛИ ДЛЯ ПАНЕЛЕЙ ВСТАВКИ/УДАЛЕНИЯ === */
+        .insert-remove-panel {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin: 8px 0;
+        }
+        .insert-remove-panel input {
+            width: 80px;
+            font-size: 0.85rem;
+            padding: 6px;
+        }
+        .insert-remove-panel .btn {
+            padding: 6px;
+            font-size: 0.85rem;
+            width: auto;
+        }
     </style>
 </head>
 <body>
@@ -649,7 +666,7 @@
         </div>
         <button class="btn" onclick="createFunctionFromPoints()">✅ Создать функцию</button>
         <button class="btn btn-danger" style="margin-top: 8px;" onclick="showProfile()">← Назад</button>
-        </div>
+    </div>
 
     <!-- CREATE BY FORMULA -->
     <div id="createByFormula" class="auth-section">
@@ -701,6 +718,18 @@
                 <button class="btn" onclick="createFuncForOp('A', 'points')">📊 По точкам</button>
                 <button class="btn" onclick="createFuncForOp('A', 'formula')">🧮 По формуле</button>
                 <div id="funcATable" class="user-info" style="margin-top:8px; min-height:80px;"></div>
+
+                <!-- ВСТАВКА/УДАЛЕНИЕ ДЛЯ A -->
+                <div id="funcAInsertPanel" class="insert-remove-panel" style="display:none;">
+                    <input type="number" step="any" id="funcAInsertX" placeholder="x">
+                    <input type="number" step="any" id="funcAInsertY" placeholder="y">
+                    <button class="btn" onclick="insertPoint('A')">➕ Вставить</button>
+                </div>
+                <div id="funcARemovePanel" class="insert-remove-panel" style="display:none;">
+                    <input type="number" id="funcARemoveIndex" placeholder="индекс">
+                    <button class="btn btn-danger" onclick="removePoint('A')">🗑️ Удалить</button>
+                </div>
+
                 <input type="file" id="fileInputA" style="display:none;" accept=".bin" onchange="loadFile(this, 'A')">
             </div>
             <div>
@@ -713,6 +742,18 @@
                 <button class="btn" onclick="createFuncForOp('B', 'points')">📊 По точкам</button>
                 <button class="btn" onclick="createFuncForOp('B', 'formula')">🧮 По формуле</button>
                 <div id="funcBTable" class="user-info" style="margin-top:8px; min-height:80px;"></div>
+
+                <!-- ВСТАВКА/УДАЛЕНИЕ ДЛЯ B -->
+                <div id="funcBInsertPanel" class="insert-remove-panel" style="display:none;">
+                    <input type="number" step="any" id="funcBInsertX" placeholder="x">
+                    <input type="number" step="any" id="funcBInsertY" placeholder="y">
+                    <button class="btn" onclick="insertPoint('B')">➕ Вставить</button>
+                </div>
+                <div id="funcBRemovePanel" class="insert-remove-panel" style="display:none;">
+                    <input type="number" id="funcBRemoveIndex" placeholder="индекс">
+                    <button class="btn btn-danger" onclick="removePoint('B')">🗑️ Удалить</button>
+                </div>
+
                 <input type="file" id="fileInputB" style="display:none;" accept=".bin" onchange="loadFile(this, 'B')">
             </div>
             <div>
@@ -744,6 +785,18 @@
                 <button class="btn" onclick="createFuncForOp('DIFF', 'points')">📊 По точкам</button>
                 <button class="btn" onclick="createFuncForOp('DIFF', 'formula')">🧮 По формуле</button>
                 <div id="diffInputTable" class="user-info" style="margin-top:8px; min-height:80px;"></div>
+
+                <!-- ВСТАВКА/УДАЛЕНИЕ ДЛЯ ДИФФ -->
+                <div id="diffInsertPanel" class="insert-remove-panel" style="display:none;">
+                    <input type="number" step="any" id="diffInsertX" placeholder="x">
+                    <input type="number" step="any" id="diffInsertY" placeholder="y">
+                    <button class="btn" onclick="insertPoint('DIFF')">➕ Вставить</button>
+                </div>
+                <div id="diffRemovePanel" class="insert-remove-panel" style="display:none;">
+                    <input type="number" id="diffRemoveIndex" placeholder="индекс">
+                    <button class="btn btn-danger" onclick="removePoint('DIFF')">🗑️ Удалить</button>
+                </div>
+
                 <input type="file" id="fileInputDIFF" style="display:none;" accept=".bin" onchange="loadFile(this, 'DIFF')">
             </div>
             <div>
@@ -782,6 +835,17 @@
 
         <div id="functionPointsTable" style="margin-top: 20px;"></div>
 
+        <!-- ВСТАВКА/УДАЛЕНИЕ ДЛЯ ГРАФИКА -->
+        <div id="viewerInsertPanel" class="insert-remove-panel" style="display:none; margin-top:10px;">
+            <input type="number" step="any" id="viewerInsertX" placeholder="x">
+            <input type="number" step="any" id="viewerInsertY" placeholder="y">
+            <button class="btn" onclick="insertPoint('VIEWER')">➕ Вставить</button>
+        </div>
+        <div id="viewerRemovePanel" class="insert-remove-panel" style="display:none; margin-top:10px;">
+            <input type="number" id="viewerRemoveIndex" placeholder="индекс">
+            <button class="btn btn-danger" onclick="removePoint('VIEWER')">🗑️ Удалить</button>
+        </div>
+
         <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
             <button class="btn" onclick="showCreateByPoints()">➕ Создать по точкам</button>
             <button class="btn" onclick="showCreateByFormula()">🧮 Создать по формуле</button>
@@ -812,8 +876,6 @@
         <button class="btn" style="width:100%; padding:8px;" onclick="closeErrorModal()">Закрыть</button>
     </div>
 </div>
-
-<!-- Wordle Game Container (будет создан динамически) -->
 
 <script src="app.js"></script>
 </body>

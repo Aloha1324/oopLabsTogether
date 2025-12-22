@@ -92,6 +92,19 @@ public class FunctionController {
             FunctionsIO.writeTabulatedFunction(bos, tf);
         }
     }
+    @PostMapping("/{id}/insert")
+    public ResponseEntity<?> insertPoint(@PathVariable Long id, @RequestBody Map<String, Double> request) {
+        double x = request.get("x");
+        double y = request.get("y");
+        functionService.insertPoint(id, x, y);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}/remove")
+    public ResponseEntity<?> removePoint(@PathVariable Long id, @RequestParam int index) {
+        functionService.removePoint(id, index);
+        return ResponseEntity.ok().build();
+    }
 
     //==========================================================================
 

@@ -1,3 +1,4 @@
+C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\controller\DifferentiationController.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\Request\SearchRequest.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\entity\Point.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\controller\UserController.java
@@ -8,7 +9,6 @@ C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\ja
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\service\FrameworkPerformanceComparisonService.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\CompositeFunction.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\IdentityFunction.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\controller\ExceptionHandlerController.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\controller\HomeController.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\service\UserService.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\ArrayTabulatedFunction.java
@@ -48,12 +48,13 @@ C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\ja
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\IterationSolver.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\Insertable.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\Response\PaginatedResponse.java
+C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\controller\OperationsController.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\config\SecurityConfig.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\security\AuthRequest.java
-C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\ui\GlobalExceptionHandler.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\Response\CalculationResponse.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\repository\PointRepository.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\Response\ErrorResponse.java
+C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\exception\GlobalExceptionHandler.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\Response\ValidationErrorResponse.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\functions\ConstantFunction.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\security\CustomUserDetailsService.java
@@ -70,11 +71,13 @@ C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\ja
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\operations\TabulatedFunctionOperationService.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\Request\DifferentialRequest.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\operations\SteppingDifferentialOperator.java
+C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\controller\FactoryController.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\PointDTO.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\entity\Function.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\io\TabulatedFunctionFileInputStream.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\controller\PointController.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\Request\IntegrationRequest.java
+C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\service\TabulatedFunctionFactoryProvider.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\DTO\UserDTO.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\framework\controller\api\FunctionApiController.java
 C:\Users\artem\OneDrive\Рабочий стол\oopLabsTogether\LAB7\src\main\java\com\example\LAB5\operations\RightSteppingDifferentialOperator.java

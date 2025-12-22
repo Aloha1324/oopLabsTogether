@@ -13,6 +13,8 @@ import com.example.LAB5.functions.*;
 import com.example.LAB5.functions.factory.TabulatedFunctionFactory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.LAB5.functions.Insertable;
+import com.example.LAB5.functions.Removable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,14 @@ public class FunctionService {
     );
 
     private final FunctionRepository functionRepository;
+    private TabulatedFunction toTabulatedFunction(Function f) {
+        if (f.getPoints() == null || f.getPoints().size() < 2) {
+            throw new IllegalArgumentException("Недостаточно точек для создания TabulatedFunction");
+        }
+        double[] x = f.getPoints().stream().mapToDouble(Point::getXValue).toArray();
+        double[] y = f.getPoints().stream().mapToDouble(Point::getYValue).toArray();
+        return factoryProvider.getCurrentFactory().create(x, y);
+    }
     private final PointRepository pointRepository;
     private final UserService userService;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -132,6 +142,43 @@ public class FunctionService {
         long durationMs = TimeUnit.NANOSECONDS.toMillis(endTime - startTime);
         performanceMetrics.add(new PerformanceMetrics("GET_FUNCTION_BY_ID_OR_NULL", durationMs, function != null ? 1 : 0, "SPRING_DATA_JPA"));
         return function;
+    }
+    public void insertPoint(Long id, double x, double y) {
+        Function f = getFunctionById(id);
+        TabulatedFunction tf = toTabulatedFunction(f);
+        if (!(tf instanceof Insertable)) {
+            throw new UnsupportedOperationException("Функция не поддерживает вставку");
+        }
+        ((Insertable) tf).insert(x, y);
+        // Обновить точки в БД из tf
+        updatePointsInDatabase(id, tf);
+    }
+
+    public void removePoint(Long id, int index) {
+        Function f = getFunctionById(id);
+        TabulatedFunction tf = toTabulatedFunction(f);
+        if (!(tf instanceof Removable)) {
+            throw new UnsupportedOperationException("Функция не поддерживает удаление");
+        }
+        ((Removable) tf).remove(index);
+        updatePointsInDatabase(id, tf);
+    }
+
+    private void updatePointsInDatabase(Long functionId, TabulatedFunction tf) {
+        // 1. Удалить старые точки: pointRepository.deleteByFunctionId(functionId);
+        // 2. Создать новые из tf
+        Function function = getFunctionById(functionId);
+        List<Point> newPoints = new ArrayList<>();
+        for (int i = 0; i < tf.getCount(); i++) {
+            Point p = new Point();
+            p.setXValue(tf.getX(i));
+            p.setYValue(tf.getY(i));
+            p.setFunction(function);
+            p.setUser(getCurrentUser());
+            newPoints.add(p);
+        }
+        pointRepository.saveAll(newPoints);
+        function.setPoints(newPoints);
     }
 
     public Function getFunctionById(Long id) {
@@ -975,11 +1022,24 @@ public class FunctionService {
 
     public FunctionResponse convertToResponse(Function function) {
         if (function == null) return null;
+
+        // Создаём TabulatedFunction для проверки интерфейсов
+        TabulatedFunction tf = null;
+        try {
+            tf = toTabulatedFunction(function);
+        } catch (Exception e) {
+            // Если не удаётся создать (например, <2 точек), считаем, что не insertable/removable
+            tf = null;
+        }
+
         FunctionResponse response = new FunctionResponse();
         response.setId(function.getId());
         response.setName(function.getName());
         response.setExpression(function.getExpression());
         response.setCreatedAt(function.getCreatedAt());
+        response.setInsertable(tf instanceof Insertable);   // ←
+        response.setRemovable(tf instanceof Removable);     // ←
+
         if (function.getPoints() != null) {
             List<com.example.LAB5.DTO.PointDTO> pointDTOs = function.getPoints().stream()
                     .map(point -> {
@@ -991,10 +1051,12 @@ public class FunctionService {
                     .collect(Collectors.toList());
             response.setPoints(pointDTOs);
         }
+
         if (function.getUser() != null) {
             response.setUserId(function.getUser().getId());
             response.setUsername(function.getUser().getUsername());
         }
+
         return response;
     }
 

@@ -9,7 +9,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.io.Serializable;
 
-public class LinkedListTabulatedFunction extends AbstractTabulatedFunction implements Iterable<Point>, Cloneable, Serializable {
+public class LinkedListTabulatedFunction extends AbstractTabulatedFunction implements Insertable, Removable, Iterable<Point>, Cloneable, Serializable{
     private static final Logger logger = LoggerFactory.getLogger(LinkedListTabulatedFunction.class);
     private static final long serialVersionUID = 123456789L;
 
@@ -319,6 +319,30 @@ public class LinkedListTabulatedFunction extends AbstractTabulatedFunction imple
         double result = y0 + (y1 - y0) * (x - x0) / (x1 - x0);
         logger.trace("Результат линейной интерполяции: {}", result);
         return result;
+    }
+
+    public void remove(int index) {
+        logger.debug("Удаление точки по индексу: {}", index);
+
+        if (index < 0 || index >= getCount()) {
+            logger.error("Индекс вне диапазона: {} (допустимо: 0..{})", index, getCount() - 1);
+            throw new IllegalArgumentException("Index out of bounds: " + index);
+        }
+
+        if (getCount() <= 2) {
+            logger.error("Нельзя удалить точку - требуется минимум 2 точки, текущее количество: {}", getCount());
+            throw new IllegalStateException("Cannot remove point - at least 2 points are required");
+        }
+
+        if (index == 0) {
+            head = head.next;
+        } else {
+            Node prev = getNode(index - 1);
+            prev.next = prev.next.next;
+        }
+        count--;
+
+        logger.debug("Точка удалена, новый count={}", getCount());
     }
 
     public LinkedListTabulatedFunction clone() {
