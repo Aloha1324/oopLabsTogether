@@ -62,9 +62,9 @@ public class FunctionService {
         }
         double[] x = f.getPoints().stream().mapToDouble(Point::getXValue).toArray();
         double[] y = f.getPoints().stream().mapToDouble(Point::getYValue).toArray();
-        return factoryProvider.getCurrentFactory().create(x, y);
+        String username = getCurrentUser().getUsername();
+        return factoryProvider.getFactoryForUser(username).create(x, y);
     }
-
     public static class PerformanceMetrics {
         private final String operationName;
         private final long executionTimeMs;
@@ -810,6 +810,80 @@ public class FunctionService {
         }
     }
 
+    // В FunctionService.java
+
+    public FunctionResponse addFunctions(Long funcAId, Long funcBId) {
+        return performElementWiseOperation(funcAId, funcBId, (a, b) -> a + b, "Сложение");
+    }
+
+    public FunctionResponse subtractFunctions(Long funcAId, Long funcBId) {
+        return performElementWiseOperation(funcAId, funcBId, (a, b) -> a - b, "Вычитание");
+    }
+
+    public FunctionResponse multiplyFunctions(Long funcAId, Long funcBId) {
+        return performElementWiseOperation(funcAId, funcBId, (a, b) -> a * b, "Умножение");
+    }
+
+    public FunctionResponse divideFunctions(Long funcAId, Long funcBId) {
+        return performElementWiseOperation(funcAId, funcBId, (a, b) -> {
+            if (Math.abs(b) < 1e-12) {
+                throw new IllegalArgumentException("Деление на нулевую функцию: y = 0");
+            }
+            return a / b;
+        }, "Деление");
+    }
+
+    private FunctionResponse performElementWiseOperation(
+            Long funcAId, Long funcBId,
+            java.util.function.DoubleBinaryOperator operation,
+            String operationName) {
+
+        Function funcA = getFunctionById(funcAId);
+        Function funcB = getFunctionById(funcBId);
+
+        List<Point> pointsA = funcA.getPoints();
+        List<Point> pointsB = funcB.getPoints();
+
+        if (pointsA.size() != pointsB.size()) {
+            throw new IllegalArgumentException("Функции должны иметь одинаковое количество точек");
+        }
+
+        // Проверка совпадения x-значений
+        for (int i = 0; i < pointsA.size(); i++) {
+            if (Math.abs(pointsA.get(i).getXValue() - pointsB.get(i).getXValue()) > 1e-9) {
+                throw new IllegalArgumentException("Функции должны иметь одинаковые x-значения");
+            }
+        }
+
+        User user = getCurrentUser();
+        Function resultFunction = new Function();
+        resultFunction.setName(operationName + ": " + funcA.getName() + " и " + funcB.getName());
+        resultFunction.setExpression(operationName.toUpperCase() + " функций");
+        resultFunction.setUser(user);
+        resultFunction.setCreatedAt(LocalDateTime.now());
+        Function savedFunction = functionRepository.save(resultFunction);
+
+        List<Point> resultPoints = new ArrayList<>();
+        for (int i = 0; i < pointsA.size(); i++) {
+            double x = pointsA.get(i).getXValue();
+            double yA = pointsA.get(i).getYValue();
+            double yB = pointsB.get(i).getYValue();
+            double yResult = operation.applyAsDouble(yA, yB); // ← здесь может быть ошибка
+
+            Point point = new Point();
+            point.setXValue(x);
+            point.setYValue(yResult);
+            point.setFunction(savedFunction);
+            point.setUser(user);
+            resultPoints.add(point);
+        }
+
+        pointRepository.saveAll(resultPoints);
+        savedFunction.setPoints(resultPoints);
+        return convertToResponse(savedFunction);
+    }
+
+
     public FunctionResponse importFunctionFromJson(String json) {
         long startTime = System.nanoTime();
         try {
@@ -871,7 +945,7 @@ public class FunctionService {
         double[] xArray = xValues.stream().mapToDouble(Double::doubleValue).toArray();
         double[] yArray = yValues.stream().mapToDouble(Double::doubleValue).toArray();
 
-        TabulatedFunction tabFunc = factoryProvider.getCurrentFactory().create(xArray, yArray);
+        TabulatedFunction tabFunc =factoryProvider.getFactoryForUser(getCurrentUser().getUsername()).create(xArray, yArray);
 
         User currentUser = getCurrentUser();
         String functionName = (name != null && !name.trim().isEmpty())
@@ -931,7 +1005,7 @@ public class FunctionService {
             throw new IllegalArgumentException("Неизвестный тип функции: " + mathFunctionType);
         }
 
-        TabulatedFunction tabFunc = factoryProvider.getCurrentFactory().create(mathFunc, fromX, toX, pointsCount);
+        TabulatedFunction tabFunc = factoryProvider.getFactoryForUser(getCurrentUser().getUsername()).create(mathFunc, fromX, toX, pointsCount);
 
         User currentUser = getCurrentUser();
         String functionName = (name != null && !name.trim().isEmpty())
@@ -1057,16 +1131,13 @@ public class FunctionService {
         if (request.getOperation() == null || request.getName() == null || request.getName().trim().isEmpty()) {
             throw new IllegalArgumentException("Операция и название обязательны");
         }
-
         Function funcA = getFunctionById(request.getFunctionAId());
         Function funcB = getFunctionById(request.getFunctionBId());
         TabulatedFunction tfA = toTabulatedFunction(funcA);
         TabulatedFunction tfB = toTabulatedFunction(funcB);
-
         // Создаём MathFunction из табулированных
         MathFunction mathA = createMathFunctionFromTabulated(tfA);
         MathFunction mathB = createMathFunctionFromTabulated(tfB);
-
         MathFunction composite;
         switch (request.getOperation().toLowerCase()) {
             case "compose":
@@ -1081,14 +1152,12 @@ public class FunctionService {
             default:
                 throw new IllegalArgumentException("Неподдерживаемая операция: " + request.getOperation());
         }
-
         // Табулируем на интервале функции A
         double fromX = tfA.leftBound();
         double toX = tfA.rightBound();
         int pointsCount = tfA.getCount();
-
-        TabulatedFunction tabFunc = factoryProvider.getCurrentFactory().create(composite, fromX, toX, pointsCount);
-
+        String username = getCurrentUser().getUsername();
+        TabulatedFunction tabFunc = factoryProvider.getFactoryForUser(username).create(composite, fromX, toX, pointsCount);
         // Сохраняем функцию — используем существующий метод saveTabulatedFunction
         Function savedFunction = new Function();
         savedFunction.setName(request.getName());
@@ -1096,10 +1165,9 @@ public class FunctionService {
                 request.getOperation(), funcA.getName(), funcB.getName()));
         savedFunction.setUser(getCurrentUser());
         savedFunction.setCreatedAt(LocalDateTime.now());
-        savedFunction.setImplementationType(factoryProvider.getCurrentType());
-
+        // 👇 ИСПРАВЛЕНО: используем getCurrentTypeForUser(username)
+        savedFunction.setImplementationType(factoryProvider.getCurrentTypeForUser(username));
         Function finalFunction = functionRepository.save(savedFunction);
-
         // Сохраняем точки
         List<Point> points = new ArrayList<>();
         for (int i = 0; i < tabFunc.getCount(); i++) {
@@ -1112,7 +1180,6 @@ public class FunctionService {
         }
         pointRepository.saveAll(points);
         finalFunction.setPoints(points);
-
         return convertToResponse(finalFunction);
     }
 

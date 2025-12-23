@@ -1,8 +1,12 @@
+// src/main/java/com/example/LAB5/framework/controller/FactoryController.java
+
 package com.example.LAB5.framework.controller;
 
 import com.example.LAB5.framework.service.TabulatedFunctionFactoryProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -20,18 +24,30 @@ public class FactoryController {
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, String>> getFactoryType() {
-        return ResponseEntity.ok(Map.of("type", factoryProvider.getCurrentType()));
+    public ResponseEntity<Map<String, String>> getFactoryType(Authentication auth) {
+        String username = getCurrentUsername(auth);
+        String type = factoryProvider.getCurrentTypeForUser(username);
+        return ResponseEntity.ok(Map.of("type", type));
     }
 
     @PostMapping
-    public ResponseEntity<?> setFactoryType(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> setFactoryType(@RequestBody Map<String, String> request, Authentication auth) {
         String type = request.get("type");
         if (!"array".equals(type) && !"linked-list".equals(type)) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "Недопустимый тип фабрики: " + type));
         }
-        factoryProvider.setFactoryType(type);
+
+        String username = getCurrentUsername(auth);
+        factoryProvider.setFactoryForUser(username, type);
+
         return ResponseEntity.ok(Map.of("type", type));
+    }
+
+    private String getCurrentUsername(Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new RuntimeException("Пользователь не аутентифицирован");
+        }
+        return auth.getName();
     }
 }

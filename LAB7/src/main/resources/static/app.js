@@ -140,29 +140,38 @@ function logout() {
 
 // ===== MATH FUNCTIONS (FORMULA) =====
 async function loadMathFunctions() {
+    const select = document.getElementById('mathFunctionSelect');
+    if (!select) {
+        console.error("Элемент 'mathFunctionSelect' не найден!");
+        return;
+    }
     setLoading(true);
     try {
         const res = await fetch(`${API_BASE}/api/v1/functions/tabulated/math-functions`, {
             headers: { 'Authorization': `Bearer ${currentToken}` }
         });
+        if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
+        }
         const functions = await res.json();
-        const select = document.getElementById('mathFunctionSelect');
+        console.log("Загруженные функции:", functions); // ← для отладки
         select.innerHTML = '';
-
-        const sortedFunctions = (functions || []).sort((a, b) => {
-            const descA = (a?.description || '');
-            const descB = (b?.description || '');
-            return descA.localeCompare(descB, 'ru');
-        });
-
-        sortedFunctions.forEach(f => {
+        if (Array.isArray(functions) && functions.length > 0) {
+            functions.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f.key;
+                opt.textContent = f.description;
+                select.appendChild(opt);
+            });
+        } else {
             const opt = document.createElement('option');
-            opt.value = f.key;
-            opt.textContent = f.description;
+            opt.value = '';
+            opt.textContent = 'Нет функций';
             select.appendChild(opt);
-        });
+        }
     } catch (err) {
-        showErrorModal('Не удалось загрузить функции: ' + err.message);
+        console.error("Ошибка загрузки функций:", err);
+        showMessage('Не удалось загрузить функции: ' + err.message);
     } finally {
         setLoading(false);
     }
@@ -399,8 +408,8 @@ async function performOp(operation) {
             },
             body: JSON.stringify({
                 functionAId: activeFuncA.id,
-                functionBId: activeFuncB.id,
-                factoryType: factoryType
+                functionBId: activeFuncB.id
+
             })
         });
         const data = await res.json();
@@ -409,10 +418,11 @@ async function performOp(operation) {
             lastResultId = data.id;
             showMessage('Операция выполнена!', 'success');
         } else {
-            showErrorModal(data.error || data.message || 'Ошибка операции');
+
+            showErrorModal(data.message || 'На ноль делить нельзя ;)');
         }
     } catch (err) {
-        showErrorModal('Ошибка: ' + err.message);
+        showErrorModal('Ошибка сети: ' + err.message);
     } finally {
         setLoading(false);
     }
@@ -1199,6 +1209,18 @@ function loadResultFromJson() {
     };
     input.click();
 }
+function resetGlobalState() {
+    activeFuncA = null;
+    activeFuncB = null;
+    activeDiffFunc = null;
+    // ЗАДАНИЕ 3: сброс данных просмотрщика
+    currentViewFunction = null;
+    currentIntegralFunction = null;
+    if (functionChart) {
+        functionChart.destroy();
+        functionChart = null;
+    }
+}
 
 // Сохранение результата дифференцирования как JSON
 function saveDiffResultAsJson() {
@@ -1297,6 +1319,7 @@ function importFunctionFromJsonFile() {
     };
     input.click();
 }
+
 
 // ===== WORDLE GAME CLASS =====
 class WordleGame {

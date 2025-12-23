@@ -1,5 +1,9 @@
 package com.example.LAB5.framework.controller;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+import com.example.LAB5.DTO.Request.FunctionOperationRequest;
 import com.example.LAB5.DTO.Request.UpdateFunctionRequest;
 import com.example.LAB5.DTO.Response.FunctionResponse;
 import com.example.LAB5.framework.entity.Function;
@@ -45,12 +49,19 @@ public class FunctionController {
 
     // ============================================================================
 
+    private String getCurrentUsername(Authentication auth) {
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new RuntimeException("Пользователь не аутентифицирован");
+        }
+        return auth.getName();
+    }
 
-    private TabulatedFunction toTabulatedFunction(Function f) {
+    private TabulatedFunction toTabulatedFunction(Function f, Authentication auth) {
         var points = f.getPoints();
         double[] x = points.stream().mapToDouble(p -> p.getXValue()).toArray();
         double[] y = points.stream().mapToDouble(p -> p.getYValue()).toArray();
-        return factoryProvider.getCurrentFactory().create(x, y);
+        String username = getCurrentUsername(auth);
+        return factoryProvider.getFactoryForUser(username).create(x, y);
     }
 
     @PutMapping("/{id}")
@@ -65,6 +76,7 @@ public class FunctionController {
         Function f = functionService.getFunctionById(id);
         return ResponseEntity.ok(functionService.convertToResponse(f));
     }
+
     // Экспорт функции в JSON
     @GetMapping("/{id}/export/json")
     public ResponseEntity<String> exportFunctionToJson(@PathVariable Long id) {
@@ -74,6 +86,8 @@ public class FunctionController {
                 .header("Content-Type", "application/json")
                 .body(json);
     }
+
+
 
     // Импорт функции из JSON
     @PostMapping("/import/json")
@@ -93,7 +107,8 @@ public class FunctionController {
     @PostMapping("/import")
     public ResponseEntity<FunctionResponse> importFunction(@RequestParam("file") MultipartFile file) {
         try (var bis = new BufferedInputStream(file.getInputStream())) {
-            TabulatedFunction tf = FunctionsIO.readTabulatedFunction(bis, factoryProvider.getCurrentFactory());
+            String username = getCurrentUsername(SecurityContextHolder.getContext().getAuthentication());
+            TabulatedFunction tf = FunctionsIO.readTabulatedFunction(bis, factoryProvider.getFactoryForUser(username));
             FunctionResponse resp = functionService.saveTabulatedFunction(tf, "Импортированная функция");
             return ResponseEntity.ok(resp);
         } catch (Exception e) {
@@ -104,13 +119,14 @@ public class FunctionController {
     @GetMapping("/{id}/export")
     public void exportFunction(@PathVariable Long id, HttpServletResponse response) throws IOException {
         Function f = functionService.getFunctionById(id);
-        TabulatedFunction tf = toTabulatedFunction(f);
+        TabulatedFunction tf = toTabulatedFunction(f, SecurityContextHolder.getContext().getAuthentication());
         response.setContentType("application/octet-stream");
         response.setHeader("Content-Disposition", "attachment; filename=function_" + id + ".bin");
         try (var bos = new BufferedOutputStream(response.getOutputStream())) {
             FunctionsIO.writeTabulatedFunction(bos, tf);
         }
     }
+
     @PostMapping("/{id}/insert")
     public ResponseEntity<?> insertPoint(@PathVariable Long id, @RequestBody Map<String, Double> request) {
         double x = request.get("x");
@@ -118,6 +134,7 @@ public class FunctionController {
         functionService.insertPoint(id, x, y);
         return ResponseEntity.ok().build();
     }
+
     @PostMapping("/composite")
     public ResponseEntity<FunctionResponse> createComposite(@RequestBody CompositeRequest request) {
         FunctionResponse response = functionService.createCompositeFunction(request);
@@ -137,8 +154,9 @@ public class FunctionController {
      *
      */
     @PostMapping("/tabulated/by-points")
-    public ResponseEntity<FunctionResponse> createTabulatedByPoints(@RequestBody Map<String, Object> request) {
-        TabulatedFunctionFactory factory = factoryProvider.getCurrentFactory();
+    public ResponseEntity<FunctionResponse> createTabulatedByPoints(@RequestBody Map<String, Object> request, Authentication auth) {
+        String username = getCurrentUsername(auth);
+        TabulatedFunctionFactory factory = factoryProvider.getFactoryForUser(username);
         System.out.println(">>> Текущая фабрика: " + factory);
 
         if (factory == null) {
@@ -152,36 +170,36 @@ public class FunctionController {
         @SuppressWarnings("unchecked")
         List<?> rawY = (List<?>) request.get("yValues");
 
-            List<Double> xValues = rawX.stream()
-                    .map(obj -> {
-                        if (obj instanceof Number) {
-                            return ((Number) obj).doubleValue();
-                        } else if (obj instanceof String) {
-                            try {
-                                return Double.parseDouble((String) obj);
-                            } catch (NumberFormatException e) {
-                                throw new IllegalArgumentException("Неверный формат числа: " + obj);
-                            }
-                        } else {
-                            throw new IllegalArgumentException("Неожиданный тип значения: " + obj.getClass());
+        List<Double> xValues = rawX.stream()
+                .map(obj -> {
+                    if (obj instanceof Number) {
+                        return ((Number) obj).doubleValue();
+                    } else if (obj instanceof String) {
+                        try {
+                            return Double.parseDouble((String) obj);
+                        } catch (NumberFormatException e) {
+                            throw new IllegalArgumentException("Неверный формат числа: " + obj);
                         }
-                    })
-                    .collect(Collectors.toList());
+                    } else {
+                        throw new IllegalArgumentException("Неожиданный тип значения: " + obj.getClass());
+                    }
+                })
+                .collect(Collectors.toList());
 
-            List<Double> yValues = rawY.stream()
-                    .map(obj -> {
-                        if (obj instanceof Number) {
-                            return ((Number) obj).doubleValue();
-                        } else if (obj instanceof String) {
-                            try {
-                                return Double.parseDouble((String) obj);
-                            } catch (NumberFormatException e) {
-                                throw new IllegalArgumentException("Неверный формат числа: " + obj);
-                            }
-                        } else {
-                            throw new IllegalArgumentException("Неожиданный тип значения: " + obj.getClass());
+        List<Double> yValues = rawY.stream()
+                .map(obj -> {
+                    if (obj instanceof Number) {
+                        return ((Number) obj).doubleValue();
+                    } else if (obj instanceof String) {
+                        try {
+                            return Double.parseDouble((String) obj);
+                        } catch (NumberFormatException e) {
+                            throw new IllegalArgumentException("Неверный формат числа: " + obj);
                         }
-                    })
+                    } else {
+                        throw new IllegalArgumentException("Неожиданный тип значения: " + obj.getClass());
+                    }
+                })
                 .collect(Collectors.toList());
 
         if (rawX == null || rawY == null || rawX.size() != rawY.size()) {
@@ -191,6 +209,7 @@ public class FunctionController {
         FunctionResponse response = functionService.createTabulatedFunctionFromPoints(name, xValues, yValues);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
     @PostMapping("/integrate")
     public ResponseEntity<CalculationResponse> integrate(@Valid @RequestBody IntegrationRequest request) {
         CalculationResponse response = functionService.integrate(request);
@@ -201,7 +220,8 @@ public class FunctionController {
      * Создание табулированной функции ПО МАТЕМАТИЧЕСКОЙ ФОРМУЛы
      */
     @PostMapping("/tabulated/by-math-function")
-    public ResponseEntity<FunctionResponse> createTabulatedByMath(@RequestBody Map<String, Object> request) {
+    public ResponseEntity<FunctionResponse> createTabulatedByMath(@RequestBody Map<String, Object> request, Authentication auth) {
+        String username = getCurrentUsername(auth);
         String name = (String) request.get("name");
         String mathFunctionType = (String) request.get("mathFunctionType");
         double fromX = ((Number) request.get("fromX")).doubleValue();
