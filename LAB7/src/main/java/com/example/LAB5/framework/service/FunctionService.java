@@ -720,7 +720,7 @@ public class FunctionService {
         }
     }
 
-    // В FunctionService.java
+
     public CalculationResponse integrate(IntegrationRequest request) {
         Long functionId = request.getFunctionId();
         Function function = getFunctionById(functionId);
@@ -810,7 +810,6 @@ public class FunctionService {
         }
     }
 
-    // В FunctionService.java
 
     public FunctionResponse addFunctions(Long funcAId, Long funcBId) {
         return performElementWiseOperation(funcAId, funcBId, (a, b) -> a + b, "Сложение");
@@ -1158,14 +1157,14 @@ public class FunctionService {
         int pointsCount = tfA.getCount();
         String username = getCurrentUser().getUsername();
         TabulatedFunction tabFunc = factoryProvider.getFactoryForUser(username).create(composite, fromX, toX, pointsCount);
-        // Сохраняем функцию — используем существующий метод saveTabulatedFunction
+
         Function savedFunction = new Function();
         savedFunction.setName(request.getName());
         savedFunction.setExpression(String.format("СЛОЖНАЯ: %s(%s, %s)",
                 request.getOperation(), funcA.getName(), funcB.getName()));
         savedFunction.setUser(getCurrentUser());
         savedFunction.setCreatedAt(LocalDateTime.now());
-        // 👇 ИСПРАВЛЕНО: используем getCurrentTypeForUser(username)
+
         savedFunction.setImplementationType(factoryProvider.getCurrentTypeForUser(username));
         Function finalFunction = functionRepository.save(savedFunction);
         // Сохраняем точки

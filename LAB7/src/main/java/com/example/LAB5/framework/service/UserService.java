@@ -164,13 +164,12 @@ public class UserService {
         return result;
     }
 
-    // Add the missing getUsersByUsername method
+
     public List<User> getUsersByUsername(String username) {
         long startTime = System.nanoTime();
         logger.debug("Поиск пользователей по имени (частичное совпадение): {}", username);
 
-        // Assuming you have a method in repository for partial username search
-        // You might need to add this method to UserRepository
+
         List<User> result = userRepository.findByUsernameContainingIgnoreCase(username);
 
         long endTime = System.nanoTime();

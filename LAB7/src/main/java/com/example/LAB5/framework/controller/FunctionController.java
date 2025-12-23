@@ -47,7 +47,7 @@ public class FunctionController {
         this.factoryProvider = factoryProvider;
     }
 
-    // ============================================================================
+    //
 
     private String getCurrentUsername(Authentication auth) {
         if (auth == null || !auth.isAuthenticated()) {
@@ -147,8 +147,7 @@ public class FunctionController {
         return ResponseEntity.ok().build();
     }
 
-    //==========================================================================
-
+    //
     /**
      * Создание табулированной функции ПО ТОЧКАМ (xValues, yValues)
      *

@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class WordleService {
 
-    // ✅ Карта: userId -> GameState
+    // userId -> GameState
     private final Map<String, GameSession> userGames = new ConcurrentHashMap<>();
 
     private static final List<String> WORDS;
@@ -58,7 +58,7 @@ public class WordleService {
         return session != null ? session.getState() : null;
     }
 
-    // ✅ Внутренний класс сессии
+    //Внутренний класс сессии
     private static class GameSession {
         private final String targetWord;
         private int attemptsLeft = 6;
@@ -118,7 +118,7 @@ public class WordleService {
         }
     }
 
-    // DTO классы (остаются те же)
+    // DTO классы
     public static class WordleGameState {
         private final String targetWord;
         private final int attemptsLeft;

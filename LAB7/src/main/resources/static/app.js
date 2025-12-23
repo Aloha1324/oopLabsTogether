@@ -13,7 +13,7 @@ let lastDiffResultId = null;
 
 let hasUnsavedChanges = false;
 
-// ===== NAVIGATION =====
+//
 function showSection(sectionId) {
     document.querySelectorAll('.auth-section').forEach(section => {
         section.classList.remove('active');
@@ -42,7 +42,7 @@ function updateProfileUI() {
     }
 }
 
-// ===== MESSAGES & LOADING =====
+//
 function showMessage(message, type = 'error') {
     const msgEl = document.getElementById('errorMsg');
     msgEl.textContent = message;
@@ -66,7 +66,7 @@ function setLoading(loading) {
     document.getElementById('loading').style.display = loading ? 'block' : 'none';
 }
 
-// ===== AUTH =====
+//
 async function login() {
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
@@ -177,7 +177,7 @@ async function loadMathFunctions() {
     }
 }
 
-// ===== CREATE BY POINTS =====
+//
 function generatePointsTable() {
     const count = parseInt(document.getElementById('pointsCount').value) || 0;
       if (count > 10000) {
@@ -254,7 +254,7 @@ async function createFunctionFromPoints() {
     }
 }
 
-// ===== CREATE BY FORMULA =====
+//
 async function createFunctionFromMath() {
     const name = document.getElementById('formulaName').value || null;
     const type = document.getElementById('mathFunctionSelect').value;
@@ -327,7 +327,7 @@ async function loadFile(input, target) {
     }
 }
 
-// ===== FACTORY SETTINGS =====
+//
 async function loadFactorySettings() {
     setLoading(true);
     try {
@@ -376,7 +376,7 @@ async function saveFactorySettings() {
     }
 }
 
-// ===== OPERATIONS =====
+//
 function createFuncForOp(target, type) {
     const originalBack = () => showSection('operations');
     if (type === 'points') {
@@ -428,7 +428,7 @@ async function performOp(operation) {
     }
 }
 
-// ===== DIFFERENTIATION =====
+//
 async function performDifferentiation() {
     if (!activeDiffFunc) return showErrorModal('Загрузите функцию для дифференцирования!');
     setLoading(true);
@@ -459,7 +459,6 @@ async function performDifferentiation() {
     }
 }
 
-// ===== UTILITIES =====
 // Для операндов (редактируемый Y)
 function renderEditableTable(func, containerId, target) {
     const container = document.getElementById(containerId);
@@ -534,7 +533,7 @@ async function updateY(target, index, value) {
                     x: p.x,
                     y: p.y
                 }))
-                // Остальные поля (name, type и т.д.) не обязательны при обновлении точек
+
             })
         });
 
@@ -545,7 +544,7 @@ async function updateY(target, index, value) {
 
         console.log(`✅ Точка ${index} обновлена: ${oldY} → ${newY}`);
     } catch (error) {
-        // ❌ При ошибке — откатываем локальные изменения
+
         func.points[index].y = oldY;
         showErrorModal(`Ошибка обновления точки: ${error.message}`);
     }
@@ -554,7 +553,7 @@ async function updateY(target, index, value) {
 
 function saveResult() {
     if (!activeFuncA || !activeFuncB) return showErrorModal('Нет данных для сохранения');
-    // Предположим, что performOp сохраняет ID результата в lastResultId
+
     if (typeof lastResultId === 'number') {
         const a = document.createElement('a');
         a.href = `${API_BASE}/api/v1/functions/${lastResultId}/export`;
@@ -618,7 +617,7 @@ async function loadFunction(target) {
     }
 }
 
-// ============== ГРАФИК ФУНКЦИИ ==============
+//ГРАФИК ФУНКЦИИ
 async function loadFunctionsForViewer() {
     setLoading(true);
     try {
@@ -658,10 +657,8 @@ async function showFunctionSelector(target) {
     const select = document.getElementById(selectId);
     if (!select) return;
 
-    // Показываем селект
     select.style.display = 'block';
 
-    // Загружаем только функции текущего пользователя
     setLoading(true);
     try {
         const res = await fetch(`${API_BASE}/api/v1/functions/my`, {
@@ -696,7 +693,7 @@ async function selectFunctionFromDropdown(target, funcId) {
         const func = await res.json();
         if (!res.ok) throw new Error('Функция не найдена');
 
-        // ✅ Сохраняем флаги insertable/removable
+
         func.insertable = Boolean(func.insertable);
         func.removable = Boolean(func.removable);
 
@@ -746,7 +743,7 @@ async function loadUserFunctionsIntoSelect(target) {
 
     setLoading(true);
     try {
-        // ⚠️ ВАЖНО: используем НОВЫЙ эндпоинт, который возвращает ТОЛЬКО функции пользователя
+
         const res = await fetch(`${API_BASE}/api/v1/functions/my`, {
             headers: { 'Authorization': `Bearer ${currentToken}` }
         });
@@ -790,7 +787,7 @@ async function loadFunctionForGraph() {
             throw new Error(err.message || 'Функция не найдена');
         }
         const func = await res.json();
-        // ✅ Сохраняем флаги
+
         func.insertable = Boolean(func.insertable);
         func.removable = Boolean(func.removable);
 

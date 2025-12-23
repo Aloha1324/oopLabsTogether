@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class HomeController {
 
-    // ✅ ГЛАВНАЯ → JWT авторизация (index.html)
+    //главная -> JWT авторизация (index.html)
     @GetMapping("/")
     public String index() {
         return "redirect:/index.html";
     }
 
-    // ✅ Health check (всегда доступен)
+    //Health check (всегда доступен)
     @GetMapping("/health")
     public String health() {
         return "OK";

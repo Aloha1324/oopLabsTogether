@@ -14,7 +14,7 @@ public class FunctionOperationRequest {
     private Integer polynomialDegree = 2;
     private List<Double> xValues;
 
-    // 👇 НОВЫЕ ПОЛЯ ДЛЯ ОПЕРАЦИЙ С ДВУМЯ ФУНКЦИЯМИ
+    //
     private Long functionAId;
     private Long functionBId;
 
@@ -35,7 +35,7 @@ public class FunctionOperationRequest {
     public Integer getPolynomialDegree() { return polynomialDegree; }
     public List<Double> getXValues() { return xValues; }
 
-    // 👇 НОВЫЕ ГЕТТЕРЫ
+    //
     public Long getFunctionAId() { return functionAId; }
     public Long getFunctionBId() { return functionBId; }
     public String getMathFunctionType() { return mathFunctionType; }
@@ -51,7 +51,7 @@ public class FunctionOperationRequest {
     public void setPolynomialDegree(Integer polynomialDegree) { this.polynomialDegree = polynomialDegree; }
     public void setXValues(List<Double> xValues) { this.xValues = xValues; }
 
-    // 👇 НОВЫЕ СЕТТЕРЫ
+    //
     public void setFunctionAId(Long functionAId) { this.functionAId = functionAId; }
     public void setFunctionBId(Long functionBId) { this.functionBId = functionBId; }
     public void setMathFunctionType(String mathFunctionType) { this.mathFunctionType = mathFunctionType; }
