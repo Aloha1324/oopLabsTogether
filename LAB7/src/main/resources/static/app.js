@@ -419,7 +419,7 @@ async function performOp(operation) {
             showMessage('Операция выполнена!', 'success');
         } else {
 
-            showErrorModal(data.message || 'На ноль делить нельзя ;)');
+            showErrorModal(data.message || 'Ошибка операции');
         }
     } catch (err) {
         showErrorModal('Ошибка сети: ' + err.message);
